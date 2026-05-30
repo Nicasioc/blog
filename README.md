@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Soccer Blog Platform
 
-## Getting Started
+A white-label Next.js 16 blog that pulls content from a WordPress REST API. One codebase deploys once per soccer team, each with its own environment variables for branding, WordPress instance, and AdSense account.
 
-First, run the development server:
+## Tech Stack
+
+| Area | Choice |
+|------|--------|
+| Framework | Next.js 16.2.6 (App Router, TypeScript) |
+| UI | shadcn (New York style) + Tailwind v4 + Base UI |
+| Data | WordPress REST API via `fetch` with ISR |
+| Ads | AdSense (pluggable — Prebid stub included) |
+| Testing | Vitest + React Testing Library |
+| Deployment | Vercel (one project per team) |
+
+## Quick Setup
 
 ```bash
+# 1. Install dependencies
+npm install
+
+# 2. Configure environment
+cp .env.example .env.local
+# Edit .env.local — fill in your WordPress URL, site name, colors, etc.
+
+# 3. Start dev server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The app starts at `http://localhost:3000`. It will error on startup if any required env vars are missing — the Zod schema in `src/lib/env.ts` validates everything at boot time.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Script | What it does |
+|--------|-------------|
+| `npm run dev` | Start dev server (hot reload) |
+| `npm run build` | Production build |
+| `npm start` | Start production server (after build) |
+| `npm run typecheck` | TypeScript type check (no emit) |
+| `npm run test:run` | Run all tests once |
+| `npm test` | Run tests in watch mode |
+| `npm run test:coverage` | Run tests with coverage report |
+| `npm run lint` | ESLint check |
+| `npm run lint:fix` | ESLint auto-fix |
+| `npm run format` | Prettier format all files |
+| `npm run format:check` | Check formatting without writing |
 
-## Learn More
+## Documentation
 
-To learn more about Next.js, take a look at the following resources:
+| Guide | What it covers |
+|-------|---------------|
+| [Architecture](docs/architecture.md) | Layered architecture, dependency rules, file patterns |
+| [White-Label Deployment](docs/white-label-deployment.md) | Setting up new team sites on Vercel |
+| [WordPress Integration](docs/wordpress-integration.md) | WP REST API, ISR webhook, WP config |
+| [Ad System](docs/ad-system.md) | AdSense setup, provider abstraction, Prebid migration |
+| [Development Guide](docs/development.md) | Day-to-day dev workflow, testing, gotchas |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/
+├── app/                    # Next.js routes, layouts, API handlers
+├── application/            # Use cases — orchestrate persistence + domain
+├── components/
+│   ├── ads/                # Ad abstraction layer
+│   ├── layout/             # Header, Footer, Sidebar, SiteLogo
+│   ├── navigation/         # Breadcrumb, Pagination, TagList
+│   ├── post/               # PostCard, PostBody, CommentForm, etc.
+│   ├── seo/                # JSON-LD Server Components
+│   └── ui/                 # shadcn auto-generated — DO NOT edit
+├── domain/                 # Pure TypeScript models — no framework deps
+├── lib/                    # Env validation, siteConfig, cn() helper
+├── persistence/            # WordPress REST API client, DTOs, mappers, repos
+├── services/               # Ad config (placement types + slot IDs)
+└── utils/                  # Shared type guards, structured logger
+```
 
-## Deploy on Vercel
+## White-Label in One Line
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Set `NEXT_PUBLIC_SITE_NAME`, `NEXT_PUBLIC_PRIMARY_COLOR`, `NEXT_PUBLIC_SECONDARY_COLOR`, `WORDPRESS_API_URL`, and `NEXT_PUBLIC_ADSENSE_PUBLISHER_ID` — everything else inherits from there. See [White-Label Deployment](docs/white-label-deployment.md).

@@ -4,6 +4,7 @@ const serverSchema = z.object({
   WORDPRESS_API_URL: z.string().url(),
   REVALIDATE_POSTS: z.coerce.number().default(3600),
   REVALIDATE_PAGES: z.coerce.number().default(86400),
+  REVALIDATE_SECRET: z.string().min(16),
 })
 
 const clientSchema = z.object({
@@ -18,6 +19,10 @@ const clientSchema = z.object({
     .default('#ffffff'),
   NEXT_PUBLIC_AD_PROVIDER: z.enum(['adsense', 'gam', 'prebid']).default('adsense'),
   NEXT_PUBLIC_ADSENSE_PUBLISHER_ID: z.string().startsWith('ca-pub-').optional(),
+  NEXT_PUBLIC_ADSENSE_SLOT_HEADER: z.string().optional().default(''),
+  NEXT_PUBLIC_ADSENSE_SLOT_IN_CONTENT: z.string().optional().default(''),
+  NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR: z.string().optional().default(''),
+  NEXT_PUBLIC_ADSENSE_SLOT_FOOTER: z.string().optional().default(''),
 })
 
 const _serverEnv = serverSchema.safeParse(process.env)
