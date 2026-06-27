@@ -37,26 +37,26 @@ export const CommentForm = ({ postId }: Props) => {
 
   return (
     <section className="mt-12">
-      <h2 className="text-xl font-bold mb-4">Leave a Comment</h2>
+      <h2 className="mb-4 text-xl font-bold">Leave a Comment</h2>
       {status === 'success' ? (
-        <p className="text-sm text-muted-foreground border rounded-lg p-4">
+        <p className="text-muted-foreground rounded-lg border p-4 text-sm">
           Your comment has been submitted and is awaiting moderation. Thank you!
         </p>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <input
               name="authorName"
               required
               placeholder="Name *"
-              className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
+              className="focus:ring-brand-primary w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
             />
             <input
               name="authorEmail"
               type="email"
               required
               placeholder="Email * (not displayed)"
-              className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
+              className="focus:ring-brand-primary w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
             />
           </div>
           <textarea
@@ -64,11 +64,9 @@ export const CommentForm = ({ postId }: Props) => {
             required
             rows={5}
             placeholder="Your comment..."
-            className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary resize-none"
+            className="focus:ring-brand-primary w-full resize-none rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
           />
-          {status === 'error' && (
-            <p className="text-destructive text-sm">{errorMessage}</p>
-          )}
+          {status === 'error' && <p className="text-destructive text-sm">{errorMessage}</p>}
           <Button type="submit" disabled={isPending}>
             {isPending ? 'Submitting…' : 'Post Comment'}
           </Button>

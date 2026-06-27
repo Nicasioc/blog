@@ -21,7 +21,7 @@ export const PostBody = ({ content }: Props) => {
   return (
     <div className="prose prose-lg max-w-none">
       <ContentHtml html={before} />
-      <AdSlot placement="in-content" className="my-6 not-prose" />
+      <AdSlot placement="in-content" className="not-prose my-6" />
       <ContentHtml html={after} />
     </div>
   )

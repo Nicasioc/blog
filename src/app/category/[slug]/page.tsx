@@ -43,12 +43,10 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         ]}
       />
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_300px]">
           <div>
-            <Breadcrumb
-              items={[{ name: 'Home', href: '/' }, { name: data.category.name }]}
-            />
-            <h1 className="text-3xl font-bold mt-4 mb-6">{data.category.name}</h1>
+            <Breadcrumb items={[{ name: 'Home', href: '/' }, { name: data.category.name }]} />
+            <h1 className="mt-4 mb-6 text-3xl font-bold">{data.category.name}</h1>
             <PostList posts={data.posts} />
             <Pagination pagination={data.pagination} basePath={`/category/${slug}`} />
           </div>

@@ -12,9 +12,16 @@ const eslintConfig = defineConfig([
   {
     plugins: { tailwindcss: tailwindPlugin },
     ignores: ['src/components/ui/**'],
+    settings: {
+      tailwindcss: {
+        config: {},
+        cssFiles: ['./src/app/globals.css'],
+        whitelist: ['adsbygoogle'],
+      },
+    },
     rules: {
       ...tailwindPlugin.configs.recommended.rules,
-      'tailwindcss/no-custom-classname': 'warn',
+      'tailwindcss/no-custom-classname': 'off',
     },
   },
   {

@@ -9,7 +9,7 @@ export const CommentList = ({ comments }: Props) => {
 
   return (
     <section className="mt-12">
-      <h2 className="text-xl font-bold mb-4">
+      <h2 className="mb-4 text-xl font-bold">
         {comments.length} {comments.length === 1 ? 'Comment' : 'Comments'}
       </h2>
       <Separator className="mb-6" />

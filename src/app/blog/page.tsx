@@ -20,9 +20,9 @@ export default async function BlogPage({ searchParams }: Props) {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_300px]">
         <div>
-          <h1 className="text-3xl font-bold mb-6">Latest Posts</h1>
+          <h1 className="mb-6 text-3xl font-bold">Latest Posts</h1>
           <PostList posts={data.posts} />
           <Pagination pagination={data.pagination} basePath="/blog" />
         </div>

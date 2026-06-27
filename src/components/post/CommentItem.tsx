@@ -12,10 +12,10 @@ export const CommentItem = ({ comment, depth = 0 }: Props) => (
           {comment.authorName.charAt(0).toUpperCase()}
         </AvatarFallback>
       </Avatar>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="font-semibold text-sm">{comment.authorName}</span>
-          <span className="text-xs text-muted-foreground">
+      <div className="min-w-0 flex-1">
+        <div className="mb-1 flex items-center gap-2">
+          <span className="text-sm font-semibold">{comment.authorName}</span>
+          <span className="text-muted-foreground text-xs">
             {comment.publishedAt.toLocaleDateString('en-US', {
               year: 'numeric',
               month: 'short',
@@ -23,7 +23,7 @@ export const CommentItem = ({ comment, depth = 0 }: Props) => (
             })}
           </span>
         </div>
-        <ContentHtml html={comment.content} className="text-sm prose prose-sm max-w-none" />
+        <ContentHtml html={comment.content} className="prose prose-sm max-w-none text-sm" />
       </div>
     </div>
     {comment.children.map((child) => (

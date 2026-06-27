@@ -7,7 +7,7 @@ type Props = { tags: Tag[] }
 export const TagList = ({ tags }: Props) => {
   if (tags.length === 0) return null
   return (
-    <div className="flex flex-wrap gap-2 mt-4">
+    <div className="mt-4 flex flex-wrap gap-2">
       {tags.map((tag) => (
         <Badge key={tag.id} variant="outline" render={<Link href={`/tag/${tag.slug}`} />}>
           {tag.name}

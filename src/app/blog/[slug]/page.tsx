@@ -51,7 +51,7 @@ export default async function PostPage({ params }: Props) {
         ]}
       />
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_300px]">
           <article>
             <Breadcrumb
               items={[
@@ -60,8 +60,8 @@ export default async function PostPage({ params }: Props) {
                 { name: post.title },
               ]}
             />
-            <h1 className="text-3xl font-bold mt-4 mb-2">{post.title}</h1>
-            <p className="text-sm text-muted-foreground mb-6">
+            <h1 className="mt-4 mb-2 text-3xl font-bold">{post.title}</h1>
+            <p className="text-muted-foreground mb-6 text-sm">
               {post.publishedAt.toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
@@ -75,7 +75,7 @@ export default async function PostPage({ params }: Props) {
                 alt={post.featuredImage.alt}
                 width={post.featuredImage.width}
                 height={post.featuredImage.height}
-                className="w-full rounded-lg mb-6"
+                className="mb-6 w-full rounded-lg"
                 priority
               />
             )}
