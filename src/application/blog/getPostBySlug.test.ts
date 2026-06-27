@@ -15,8 +15,8 @@ import {
 } from '@/persistence/wordpress/repositories/postRepository'
 import { fetchCommentsByPostId } from '@/persistence/wordpress/repositories/commentRepository'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const makePost = (id: number, categoryIds: number[] = []) =>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ({ id, slug: `post-${id}`, categories: categoryIds.map((cid) => ({ id: cid })) }) as any
 
 describe('getPostBySlug', () => {

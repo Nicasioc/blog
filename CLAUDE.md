@@ -157,6 +157,42 @@ Type-checking is intentionally excluded from the pre-commit hook (too slow); run
 
 A `pre-push` hook runs `npm run test:run` before every push. Pushes are blocked if any test fails.
 
+### Commit Message Convention
+
+All commits must follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/). The `commit-msg` hook enforces this automatically via `commitlint`.
+
+**Format:** `<type>(<optional scope>): <description>`
+
+**Allowed types:**
+
+| Type       | When to use                                     |
+| ---------- | ----------------------------------------------- |
+| `feat`     | A new feature                                   |
+| `fix`      | A bug fix                                       |
+| `docs`     | Documentation changes only                      |
+| `style`    | Formatting, missing semicolons, etc.            |
+| `refactor` | Code change that is neither a fix nor a feature |
+| `perf`     | Performance improvement                         |
+| `test`     | Adding or updating tests                        |
+| `build`    | Build system or dependency changes              |
+| `ci`       | CI/CD configuration changes                     |
+| `chore`    | Maintenance tasks (e.g. version bumps, tooling) |
+| `revert`   | Reverts a previous commit                       |
+
+**Examples:**
+
+```
+feat: add tag filtering to post list
+fix(auth): handle expired session tokens
+docs: update environment variable table
+test(domain): add edge cases for slug builder
+chore: upgrade Next.js to 16.3
+refactor(persistence): extract DTO mapper to own file
+feat!: replace CMS adapter — breaking change
+```
+
+Append `!` after the type/scope to signal a breaking change.
+
 ## PR and Review Expectations
 
 - Keep PRs focused, small, and reviewable.
@@ -240,3 +276,4 @@ The `.dark` block in `globals.css` is intentionally **not** overridden with bran
 - No hardcoded hex color values in components — use CSS token utilities.
 - Tests added or updated for every changed function (`npm run test:run` passes).
 - Lint, types, and tests are passing.
+- Commit message follows the Conventional Commits format.
