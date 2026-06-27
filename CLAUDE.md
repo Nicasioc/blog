@@ -112,6 +112,26 @@ Keep dependencies flowing inward:
 - Mock only true external boundaries (network, DB, third-party SDKs).
 - Include negative/error-path test cases, not only happy paths.
 
+## Linting and Formatting
+
+ESLint, Prettier, and TypeScript are configured. Run the relevant scripts before pushing:
+
+- `npm run lint` — check for lint errors
+- `npm run lint:fix` — auto-fix lint errors
+- `npm run format` — auto-format all files
+- `npm run typecheck` — type-check without emitting
+
+### Pre-commit Hook
+
+Husky + lint-staged run automatically on every commit. Staged files are linted and formatted before the commit lands:
+
+- `.ts`, `.tsx`, `.js`, `.jsx`, `.mjs` — ESLint (auto-fix) + Prettier
+- `.json`, `.css`, `.md` — Prettier
+
+The hook is installed via the `prepare` npm script. Any contributor who runs `npm install` gets it automatically — no manual setup needed.
+
+Type-checking is intentionally excluded from the pre-commit hook (too slow); run `npm run typecheck` manually or rely on CI.
+
 ## PR and Review Expectations
 
 - Keep PRs focused, small, and reviewable.
@@ -142,11 +162,11 @@ The `<style>` tag is **server-rendered** — values are baked into HTML at reque
 
 ### Env Vars That Drive the Theme
 
-| Variable | Purpose | Example |
-|---|---|---|
-| `NEXT_PUBLIC_PRIMARY_COLOR` | Brand primary — header, footer, badges, headings | `"#13294b"` |
-| `NEXT_PUBLIC_SECONDARY_COLOR` | Brand secondary — accent labels, left-border markers | `"#e4002b"` |
-| `NEXT_PUBLIC_PRIMARY_FOREGROUND` | Text color on primary backgrounds | `"#ffffff"` |
+| Variable                         | Purpose                                              | Example     |
+| -------------------------------- | ---------------------------------------------------- | ----------- |
+| `NEXT_PUBLIC_PRIMARY_COLOR`      | Brand primary — header, footer, badges, headings     | `"#13294b"` |
+| `NEXT_PUBLIC_SECONDARY_COLOR`    | Brand secondary — accent labels, left-border markers | `"#e4002b"` |
+| `NEXT_PUBLIC_PRIMARY_FOREGROUND` | Text color on primary backgrounds                    | `"#ffffff"` |
 
 All three require quoted hex values (`"#RRGGBB"`). The unquoted `#` is treated as a comment in `.env` files.
 
@@ -166,17 +186,17 @@ The `.dark` block in `globals.css` is intentionally **not** overridden with bran
 
 ### Where Brand Colors Appear
 
-| Element | Token used |
-|---|---|
-| Header background | `bg-primary` |
-| Header bottom border | `border-brand-secondary` |
-| Nav link hover | `hover:text-brand-secondary` |
-| Footer background | `bg-primary` |
-| "Featured" section label | `text-brand-secondary`, `border-brand-secondary` |
-| PostCard category badges | `bg-primary` (via `variant="default"`) |
-| Sidebar category badge hover | `hover:bg-primary` |
-| Post body headings | `--tw-prose-headings: var(--brand-primary)` |
-| Post body links | `--tw-prose-links: var(--brand-secondary)` |
+| Element                      | Token used                                       |
+| ---------------------------- | ------------------------------------------------ |
+| Header background            | `bg-primary`                                     |
+| Header bottom border         | `border-brand-secondary`                         |
+| Nav link hover               | `hover:text-brand-secondary`                     |
+| Footer background            | `bg-primary`                                     |
+| "Featured" section label     | `text-brand-secondary`, `border-brand-secondary` |
+| PostCard category badges     | `bg-primary` (via `variant="default"`)           |
+| Sidebar category badge hover | `hover:bg-primary`                               |
+| Post body headings           | `--tw-prose-headings: var(--brand-primary)`      |
+| Post body links              | `--tw-prose-links: var(--brand-secondary)`       |
 
 ### Rules for Theming Work
 

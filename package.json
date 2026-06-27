@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "prepare": "husky || true",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -14,6 +15,15 @@
     "test:run": "vitest run --passWithNoTests",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,mjs}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,css,md}": [
+      "prettier --write"
+    ]
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -43,7 +53,9 @@
     "eslint-config-next": "16.2.6",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-tailwindcss": "^3.18.3",
+    "husky": "^9.1.7",
     "jsdom": "^29.1.1",
+    "lint-staged": "^16.4.0",
     "prettier": "^3.8.4",
     "tailwindcss": "^4.3.1",
     "typescript": "^5.9.3",
