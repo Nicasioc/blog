@@ -5,6 +5,22 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * THEMING
+ * Brand colors are injected server-side from env vars via a <style> tag in layout.tsx:
+ *   --brand-primary           ← NEXT_PUBLIC_PRIMARY_COLOR
+ *   --brand-secondary         ← NEXT_PUBLIC_SECONDARY_COLOR
+ *   --brand-primary-foreground ← NEXT_PUBLIC_PRIMARY_FOREGROUND
+ *
+ * In :root below, shadcn's --primary / --primary-foreground are mapped to these vars
+ * so all shadcn components (Button, Badge, etc.) automatically inherit the tenant brand.
+ *
+ * --brand-secondary is exposed as Tailwind utilities (text-brand-secondary, etc.) for
+ * explicit accent use. It does NOT override --accent to avoid coloring all hover states.
+ *
+ * To add a new brand-configurable value: add env var → env.client.ts → siteConfig.theme
+ * → layout.tsx <style> tag → map here in @theme inline or :root.
+ */
 @theme inline {
   --color-brand-primary: var(--brand-primary);
   --color-brand-secondary: var(--brand-secondary);
@@ -53,14 +69,16 @@
 }
 
 :root {
+  --sl-azul: #13294b;
+  --sl-rojo: #e4002b;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
+  --primary: var(--brand-primary);
+  --primary-foreground: var(--brand-primary-foreground);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
@@ -126,9 +144,14 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground flex flex-col min-h-dvh;
   }
   html {
     @apply font-sans;
+  }
+  .prose {
+    --tw-prose-headings: var(--brand-primary);
+    --tw-prose-links: var(--brand-secondary);
+    --tw-prose-bold: var(--brand-primary);
   }
 }

@@ -20,8 +20,8 @@ cp .env.example .env.local
 #    NEXT_PUBLIC_SITE_NAME — any name
 #    NEXT_PUBLIC_SITE_URL — http://localhost:3000
 #    NEXT_PUBLIC_SITE_LOGO_URL — any image URL or /favicon.ico
-#    NEXT_PUBLIC_PRIMARY_COLOR — any 6-digit hex e.g. "#1a1a2e"
-#    NEXT_PUBLIC_SECONDARY_COLOR — "#e94560"
+#    NEXT_PUBLIC_PRIMARY_COLOR — any 6-digit hex e.g. "#13294b"
+#    NEXT_PUBLIC_SECONDARY_COLOR — any 6-digit hex e.g. "#e4002b"
 #    REVALIDATE_SECRET — any 16+ char string e.g. "dev-secret-12345678"
 
 # 4. Start dev server

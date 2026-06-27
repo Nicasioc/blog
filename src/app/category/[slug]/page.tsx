@@ -5,8 +5,6 @@ import { generateCategoryMetadata } from '@/domain/seo/metadata.utils'
 import { siteConfig } from '@/lib/siteConfig'
 import { clientEnv } from '@/lib/env.client'
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
-import { Header } from '@/components/layout/Header'
-import { Footer } from '@/components/layout/Footer'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { PostList } from '@/components/post/PostList'
 import { Breadcrumb } from '@/components/navigation/Breadcrumb'
@@ -44,8 +42,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           { name: data.category.name, url: `${siteUrl}/category/${slug}` },
         ]}
       />
-      <Header />
-      <main className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
           <div>
             <Breadcrumb
@@ -57,8 +54,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           </div>
           <Sidebar categories={[]} />
         </div>
-      </main>
-      <Footer />
+      </div>
     </>
   )
 }

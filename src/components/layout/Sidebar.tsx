@@ -12,7 +12,7 @@ export const Sidebar = ({ categories }: Props) => (
         <h3 className="font-semibold mb-3">Categories</h3>
         <div className="flex flex-wrap gap-2">
           {categories.map((cat) => (
-            <Badge key={cat.id} variant="outline" render={<Link href={`/category/${cat.slug}`} />}>
+            <Badge key={cat.id} variant="outline" className="border-primary/40 text-primary hover:bg-primary hover:text-primary-foreground transition-colors" render={<Link href={`/category/${cat.slug}`} />}>
               {cat.name}
             </Badge>
           ))}

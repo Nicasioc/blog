@@ -42,24 +42,54 @@ NEXT_PUBLIC_PRIMARY_COLOR=#FFFFFF     # ❌ — silently becomes empty string
 
 ```
 .env.local
-  NEXT_PUBLIC_PRIMARY_COLOR="#FFFFFF"
+  NEXT_PUBLIC_PRIMARY_COLOR="#13294b"
        │
        ▼
-src/lib/env.ts (Zod validates hex format)
+src/lib/env.client.ts  (Zod validates hex format — must be "#RRGGBB")
        │
        ▼
-src/lib/siteConfig.ts (assembles SiteConfig singleton)
+src/lib/siteConfig.ts  (assembles SiteConfig singleton at module load)
        │
        ▼
-src/app/layout.tsx (injects CSS custom properties)
-  <style>:root { --brand-primary: #FFFFFF; ... }</style>
+src/app/layout.tsx  (Server Component — server-renders a <style> tag into <head>)
+  <style>:root { --brand-primary: #13294b; --brand-secondary: ...; ... }</style>
        │
        ▼
-Tailwind classes: text-brand-primary, hover:text-brand-primary, etc.
-shadcn --primary override: components pick up team colors automatically
+src/app/globals.css :root
+  --primary: var(--brand-primary)          ← shadcn's primary token now follows the brand
+  --primary-foreground: var(--brand-primary-foreground)
+       │
+       ▼
+src/app/globals.css @theme inline
+  --color-primary: var(--primary)          ← Tailwind v4 utility mapping
+       │
+       ▼
+Tailwind utilities: bg-primary, text-primary, ring-primary, hover:bg-primary, etc.
 ```
 
-All shadcn components that reference `--primary` and `--secondary` automatically use the team's colors because `layout.tsx` overrides those CSS variables at `:root`.
+Because `--primary` is mapped to `var(--brand-primary)` in `globals.css`, all shadcn
+components that use `bg-primary` or `text-primary` (Button default, Badge default, focus
+rings, etc.) automatically inherit the tenant's brand color — no per-component changes needed.
+
+The `<style>` tag is **server-rendered**: hex values are baked into HTML at request time,
+not injected by client-side JavaScript.
+
+### What each color drives
+
+| Variable | UI elements |
+|---|---|
+| `PRIMARY_COLOR` | Header bg, footer bg, primary buttons, default badges, post body headings, sidebar badge hover |
+| `SECONDARY_COLOR` | Header bottom border, "Featured" accent bar, post body links, nav link hover |
+| `PRIMARY_FOREGROUND` | All text rendered on top of primary-colored surfaces (header nav, footer copyright) |
+
+### Adding a third brand color
+
+Follow the same chain:
+1. Add env var in `env.client.ts` (Zod, hex regex)
+2. Add to `siteConfig.theme`
+3. Inject in the `layout.tsx` `<style>` tag as `--brand-tertiary: ${value}`
+4. Map in `globals.css` `@theme inline`: `--color-brand-tertiary: var(--brand-tertiary)`
+5. Use in components as `text-brand-tertiary`, `bg-brand-tertiary`, etc.
 
 ---
 

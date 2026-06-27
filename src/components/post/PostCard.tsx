@@ -22,7 +22,7 @@ export const PostCard = ({ post }: Props) => (
     <CardHeader className="flex-1">
       <div className="flex gap-2 flex-wrap mb-2">
         {post.categories.slice(0, 2).map((cat) => (
-          <Badge key={cat.id} variant="secondary" render={<Link href={`/category/${cat.slug}`} />}>
+          <Badge key={cat.id} variant="default" render={<Link href={`/category/${cat.slug}`} />}>
             {cat.name}
           </Badge>
         ))}

@@ -119,6 +119,72 @@ Keep dependencies flowing inward:
 - Ensure lint, type checks, and tests pass before merge.
 - Review for architecture boundary violations and hidden side effects.
 
+## White-Label Theming
+
+This project is a white-label platform. Visual identity (colors, logo, site name) is configured entirely via environment variables — no code changes needed to rebrand for a new tenant.
+
+### Token Resolution Chain
+
+Brand colors flow through four layers:
+
+```
+.env.local  (hex values set per tenant)
+  → src/lib/env.client.ts  (validates hex format via Zod)
+    → src/lib/siteConfig.ts  (exposes as siteConfig.theme.*)
+      → src/app/layout.tsx  (server-renders a <style> tag into <head>)
+        → :root { --brand-primary / --brand-secondary / --brand-primary-foreground }
+          → src/app/globals.css :root  (--primary: var(--brand-primary))
+            → @theme inline  (--color-primary: var(--primary))
+              → Tailwind utilities  (bg-primary, text-primary, ring-primary, etc.)
+```
+
+The `<style>` tag is **server-rendered** — values are baked into HTML at request time, not injected by client JS.
+
+### Env Vars That Drive the Theme
+
+| Variable | Purpose | Example |
+|---|---|---|
+| `NEXT_PUBLIC_PRIMARY_COLOR` | Brand primary — header, footer, badges, headings | `"#13294b"` |
+| `NEXT_PUBLIC_SECONDARY_COLOR` | Brand secondary — accent labels, left-border markers | `"#e4002b"` |
+| `NEXT_PUBLIC_PRIMARY_FOREGROUND` | Text color on primary backgrounds | `"#ffffff"` |
+
+All three require quoted hex values (`"#RRGGBB"`). The unquoted `#` is treated as a comment in `.env` files.
+
+### shadcn Token Mapping
+
+`--primary` and `--primary-foreground` in `globals.css` are mapped to the brand vars, so all shadcn components that use `bg-primary`, `text-primary`, or `text-primary-foreground` inherit the tenant's brand automatically:
+
+- **Button** (default variant) — brand primary background
+- **Badge** (default variant) — brand primary background
+- **Focus rings** — brand primary
+
+`--brand-secondary` is exposed as a Tailwind utility (`text-brand-secondary`, `bg-brand-secondary`, `border-brand-secondary`) for explicit accent use. It intentionally does **not** override `--accent` to avoid making all hover states chromatic.
+
+### Dark Mode
+
+The `.dark` block in `globals.css` is intentionally **not** overridden with brand colors. Dark mode uses shadcn's default light-on-dark primary. Brand identity in dark mode comes from explicit `text-brand-secondary` / `bg-brand-secondary` usage. No dark mode toggle is wired up yet.
+
+### Where Brand Colors Appear
+
+| Element | Token used |
+|---|---|
+| Header background | `bg-primary` |
+| Header bottom border | `border-brand-secondary` |
+| Nav link hover | `hover:text-brand-secondary` |
+| Footer background | `bg-primary` |
+| "Featured" section label | `text-brand-secondary`, `border-brand-secondary` |
+| PostCard category badges | `bg-primary` (via `variant="default"`) |
+| Sidebar category badge hover | `hover:bg-primary` |
+| Post body headings | `--tw-prose-headings: var(--brand-primary)` |
+| Post body links | `--tw-prose-links: var(--brand-secondary)` |
+
+### Rules for Theming Work
+
+- **Never hardcode hex values in components.** Use `bg-primary`, `text-brand-secondary`, etc.
+- **Never read brand colors from `siteConfig` directly in components.** The CSS variable chain is the source of truth.
+- To add a new brand-driven element, use `bg-primary` / `text-primary` (already wired) or `bg-brand-secondary` / `text-brand-secondary` (explicit secondary slot).
+- If you need a new configurable color (e.g. a tertiary accent), follow the same pattern: add an env var → validate in `env.client.ts` → add to `siteConfig.theme` → inject in `layout.tsx` `<style>` tag → map into `globals.css`.
+
 ## Quick Checklist (Before Merge)
 
 - Architecture boundaries respected.
@@ -126,4 +192,5 @@ Keep dependencies flowing inward:
 - No direct `process.env` usage outside env module.
 - No runtime barrel re-exports.
 - Immutable updates used for objects/arrays.
+- No hardcoded hex color values in components — use CSS token utilities.
 - Lint, types, and tests are passing.

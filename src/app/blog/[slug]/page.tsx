@@ -8,8 +8,6 @@ import { siteConfig } from '@/lib/siteConfig'
 import { clientEnv } from '@/lib/env.client'
 import { PostJsonLd } from '@/components/seo/PostJsonLd'
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
-import { Header } from '@/components/layout/Header'
-import { Footer } from '@/components/layout/Footer'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { PostBody } from '@/components/post/PostBody'
 import { AuthorCard } from '@/components/post/AuthorCard'
@@ -52,8 +50,7 @@ export default async function PostPage({ params }: Props) {
           { name: post.title, url: post.canonicalUrl },
         ]}
       />
-      <Header />
-      <main className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
           <article>
             <Breadcrumb
@@ -91,8 +88,7 @@ export default async function PostPage({ params }: Props) {
           </article>
           <Sidebar categories={[]} />
         </div>
-      </main>
-      <Footer />
+      </div>
     </>
   )
 }
