@@ -107,10 +107,31 @@ Keep dependencies flowing inward:
 
 ## Testing Expectations
 
-- Add or update tests for behavior changes.
-- Unit test domain logic and pure utilities first.
-- Mock only true external boundaries (network, DB, third-party SDKs).
-- Include negative/error-path test cases, not only happy paths.
+**Every code change must include tests.** Adding or modifying a function without a corresponding test file update is not acceptable. No exceptions.
+
+### What to test
+
+- **`src/domain/`** — pure functions, mappers, and utilities: always unit tested, no mocks needed.
+- **`src/application/`** — use cases: mock repository/service boundaries with `vi.mock`; test orchestration logic and all `null`/not-found branches.
+- **`src/persistence/mappers/`** — DTO-to-domain mappers: always unit tested with fixture DTOs, no mocks needed.
+- **`src/utils/`** — helpers: always unit tested.
+- **`src/components/`** — UI components: not required unless they contain logic (validation, derived state). Pure rendering components do not need tests.
+
+### Rules
+
+- Test files live next to the source file they cover: `foo.ts` → `foo.test.ts`.
+- Mock only true external boundaries: network (`fetch`), database, Next.js cache (`revalidateTag`), third-party SDKs.
+- Always cover the negative/error path: not-found returns, failed fetches, invalid inputs.
+- **TypeScript types are not enforced at runtime.** Any data that crosses a system boundary (API response, form submission, CMS payload) can arrive malformed. Test that mappers and validators handle missing fields, `null`, `undefined`, and unexpected values gracefully — do not assume the shape is correct just because the type says so.
+- Do not test TypeScript types — only runtime behavior.
+- Use `vi.mock` at module level; import mocked functions after the mock declaration.
+- Cast minimal fixture objects with `as any` rather than building full DTO shapes when the missing fields are irrelevant to the test.
+
+### Running tests
+
+- `npm run test:run` — single run, used before committing
+- `npm test` — watch mode during development
+- `npm run test:coverage` — coverage report (targets `src/domain/**`, `src/utils/**`, `src/application/**`)
 
 ## Linting and Formatting
 
@@ -131,6 +152,10 @@ Husky + lint-staged run automatically on every commit. Staged files are linted a
 The hook is installed via the `prepare` npm script. Any contributor who runs `npm install` gets it automatically — no manual setup needed.
 
 Type-checking is intentionally excluded from the pre-commit hook (too slow); run `npm run typecheck` manually or rely on CI.
+
+### Pre-push Hook
+
+A `pre-push` hook runs `npm run test:run` before every push. Pushes are blocked if any test fails.
 
 ## PR and Review Expectations
 
@@ -213,4 +238,5 @@ The `.dark` block in `globals.css` is intentionally **not** overridden with bran
 - No runtime barrel re-exports.
 - Immutable updates used for objects/arrays.
 - No hardcoded hex color values in components — use CSS token utilities.
+- Tests added or updated for every changed function (`npm run test:run` passes).
 - Lint, types, and tests are passing.
