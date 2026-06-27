@@ -1,4 +1,4 @@
-import { clientEnv } from '@/lib/env'
+import { clientEnv } from '@/lib/env.client'
 
 export type AdPlacement = 'header-leaderboard' | 'in-content' | 'sidebar' | 'footer'
 

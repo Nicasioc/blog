@@ -1,12 +1,5 @@
 import { z } from 'zod'
 
-const serverSchema = z.object({
-  WORDPRESS_API_URL: z.string().url(),
-  REVALIDATE_POSTS: z.coerce.number().default(3600),
-  REVALIDATE_PAGES: z.coerce.number().default(86400),
-  REVALIDATE_SECRET: z.string().min(16),
-})
-
 const clientSchema = z.object({
   NEXT_PUBLIC_SITE_NAME: z.string().min(1),
   NEXT_PUBLIC_SITE_URL: z.string().url(),
@@ -25,15 +18,23 @@ const clientSchema = z.object({
   NEXT_PUBLIC_ADSENSE_SLOT_FOOTER: z.string().optional().default(''),
 })
 
-const _serverEnv = serverSchema.safeParse(process.env)
-const _clientEnv = clientSchema.safeParse(process.env)
+const _clientEnv = clientSchema.safeParse({
+  NEXT_PUBLIC_SITE_NAME: process.env.NEXT_PUBLIC_SITE_NAME,
+  NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+  NEXT_PUBLIC_SITE_LOGO_URL: process.env.NEXT_PUBLIC_SITE_LOGO_URL,
+  NEXT_PUBLIC_PRIMARY_COLOR: process.env.NEXT_PUBLIC_PRIMARY_COLOR,
+  NEXT_PUBLIC_SECONDARY_COLOR: process.env.NEXT_PUBLIC_SECONDARY_COLOR,
+  NEXT_PUBLIC_PRIMARY_FOREGROUND: process.env.NEXT_PUBLIC_PRIMARY_FOREGROUND,
+  NEXT_PUBLIC_AD_PROVIDER: process.env.NEXT_PUBLIC_AD_PROVIDER,
+  NEXT_PUBLIC_ADSENSE_PUBLISHER_ID: process.env.NEXT_PUBLIC_ADSENSE_PUBLISHER_ID,
+  NEXT_PUBLIC_ADSENSE_SLOT_HEADER: process.env.NEXT_PUBLIC_ADSENSE_SLOT_HEADER,
+  NEXT_PUBLIC_ADSENSE_SLOT_IN_CONTENT: process.env.NEXT_PUBLIC_ADSENSE_SLOT_IN_CONTENT,
+  NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR: process.env.NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR,
+  NEXT_PUBLIC_ADSENSE_SLOT_FOOTER: process.env.NEXT_PUBLIC_ADSENSE_SLOT_FOOTER,
+})
 
-if (!_serverEnv.success) {
-  throw new Error(`Server env validation failed:\n${_serverEnv.error.toString()}`)
-}
 if (!_clientEnv.success) {
   throw new Error(`Client env validation failed:\n${_clientEnv.error.toString()}`)
 }
 
-export const serverEnv = _serverEnv.data
 export const clientEnv = _clientEnv.data

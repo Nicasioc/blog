@@ -3,7 +3,7 @@ import { mapWpCategoryToCategory } from '@/persistence/wordpress/mappers/categor
 import type { WpCategoryDto } from '@/persistence/wordpress/types/wpCategory.dto'
 import type { Category } from '@/domain/category/category.model'
 import { isNotFoundError } from '@/persistence/wordpress/wpError'
-import { serverEnv } from '@/lib/env'
+import { serverEnv } from '@/lib/env.server'
 
 export const fetchCategoryBySlug = async (slug: string): Promise<Category | null> => {
   try {

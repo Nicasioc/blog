@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next'
 import { fetchAllPostSlugs } from '@/persistence/wordpress/repositories/postRepository'
 import { fetchAllPageSlugs } from '@/persistence/wordpress/repositories/pageRepository'
 import { fetchAllCategories } from '@/persistence/wordpress/repositories/categoryRepository'
-import { clientEnv } from '@/lib/env'
+import { clientEnv } from '@/lib/env.client'
 
 export const revalidate = 86400
 

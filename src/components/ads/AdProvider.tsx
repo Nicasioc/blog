@@ -2,7 +2,7 @@
 import { createContext, useContext, type ReactNode } from 'react'
 import { AdSenseSlot } from './providers/AdSenseProvider'
 import type { AdPlacement } from '@/services/ads/adConfig'
-import { clientEnv } from '@/lib/env'
+import { clientEnv } from '@/lib/env.client'
 
 type AdProviderContextValue = {
   renderSlot: (placement: AdPlacement, className?: string) => ReactNode

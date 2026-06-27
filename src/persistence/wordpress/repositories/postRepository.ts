@@ -3,7 +3,8 @@ import { mapWpPostToPost } from '@/persistence/wordpress/mappers/postMapper'
 import type { WpPostDto } from '@/persistence/wordpress/types/wpPost.dto'
 import type { Post } from '@/domain/post/post.model'
 import { isNotFoundError } from '@/persistence/wordpress/wpError'
-import { clientEnv, serverEnv } from '@/lib/env'
+import { clientEnv } from '@/lib/env.client'
+import { serverEnv } from '@/lib/env.server'
 
 type PostsListParams = {
   page?: number

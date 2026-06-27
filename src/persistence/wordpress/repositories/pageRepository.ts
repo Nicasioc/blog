@@ -3,7 +3,7 @@ import { mapWpPageToWpPage } from '@/persistence/wordpress/mappers/pageMapper'
 import type { WpPageDto } from '@/persistence/wordpress/types/wpPage.dto'
 import type { WpPage } from '@/domain/page/page.model'
 import { isNotFoundError } from '@/persistence/wordpress/wpError'
-import { serverEnv } from '@/lib/env'
+import { serverEnv } from '@/lib/env.server'
 
 export const fetchPageBySlug = async (slug: string): Promise<WpPage | null> => {
   try {

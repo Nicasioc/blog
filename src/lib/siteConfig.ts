@@ -1,4 +1,4 @@
-import { clientEnv } from '@/lib/env'
+import { clientEnv } from '@/lib/env.client'
 
 export type SiteConfig = {
   siteName: string

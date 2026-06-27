@@ -3,7 +3,7 @@ import { mapWpTagToTag } from '@/persistence/wordpress/mappers/tagMapper'
 import type { WpTagDto } from '@/persistence/wordpress/types/wpTag.dto'
 import type { Tag } from '@/domain/tag/tag.model'
 import { isNotFoundError } from '@/persistence/wordpress/wpError'
-import { serverEnv } from '@/lib/env'
+import { serverEnv } from '@/lib/env.server'
 
 export const fetchTagBySlug = async (slug: string): Promise<Tag | null> => {
   try {

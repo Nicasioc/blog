@@ -1,4 +1,4 @@
-import { serverEnv } from '@/lib/env'
+import { serverEnv } from '@/lib/env.server'
 import { logger } from '@/utils/logger'
 import { WpApiError } from '@/persistence/wordpress/wpError'
 

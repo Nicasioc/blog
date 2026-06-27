@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next'
-import { clientEnv } from '@/lib/env'
+import { clientEnv } from '@/lib/env.client'
 
 export default function robots(): MetadataRoute.Robots {
   const siteUrl = clientEnv.NEXT_PUBLIC_SITE_URL
