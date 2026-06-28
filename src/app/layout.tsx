@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import Script from 'next/script'
 import { siteConfig } from '@/lib/siteConfig'
+import { serverEnv } from '@/lib/env.server'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { Providers } from './providers'
@@ -17,6 +18,10 @@ export const metadata: Metadata = {
   },
   description: `${siteConfig.siteName} — latest news and updates`,
   robots: { index: true, follow: true },
+  icons: {
+    icon: serverEnv.SITE_FAVICON_URL ?? '/favicon.ico',
+    apple: serverEnv.SITE_APPLE_TOUCH_ICON_URL,
+  },
 }
 
 export const viewport: Viewport = {
