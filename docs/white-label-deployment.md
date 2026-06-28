@@ -6,31 +6,34 @@ One GitHub repo, one Vercel project per team. Each project has its own env vars 
 
 ### Server-only (never exposed to browser)
 
-| Variable | Required | Purpose | Example |
-|----------|----------|---------|---------|
-| `WORDPRESS_API_URL` | ✅ | WordPress REST API base URL | `https://realmadrid.com/wp-json` |
-| `REVALIDATE_POSTS` | default: 3600 | ISR TTL for posts (seconds) | `3600` |
-| `REVALIDATE_PAGES` | default: 86400 | ISR TTL for WP pages (seconds) | `86400` |
-| `REVALIDATE_SECRET` | ✅ min 16 chars | Authenticates the ISR webhook | `my-super-secret-key-32chars` |
+| Variable                | Required        | Purpose                                         | Example                          |
+| ----------------------- | --------------- | ----------------------------------------------- | -------------------------------- |
+| `WORDPRESS_API_URL`     | ✅              | WordPress REST API base URL                     | `https://realmadrid.com/wp-json` |
+| `WORDPRESS_CATEGORY_ID` | optional        | Scope all post feeds to a single WP category ID | `5`                              |
+| `WORDPRESS_TAG_ID`      | optional        | Scope all post feeds to a single WP tag ID      | `7`                              |
+| `REVALIDATE_POSTS`      | default: 3600   | ISR TTL for posts (seconds)                     | `3600`                           |
+| `REVALIDATE_PAGES`      | default: 86400  | ISR TTL for WP pages (seconds)                  | `86400`                          |
+| `REVALIDATE_SECRET`     | ✅ min 16 chars | Authenticates the ISR webhook                   | `my-super-secret-key-32chars`    |
 
 ### Client-safe (NEXT_PUBLIC_ prefix)
 
-| Variable | Required | Purpose | Example |
-|----------|----------|---------|---------|
-| `NEXT_PUBLIC_SITE_NAME` | ✅ | Display name | `Real Madrid News` |
-| `NEXT_PUBLIC_SITE_URL` | ✅ | Canonical base URL | `https://realmadrid-news.com` |
-| `NEXT_PUBLIC_SITE_LOGO_URL` | ✅ | Logo image URL | `https://cdn.example.com/rm-logo.svg` |
-| `NEXT_PUBLIC_PRIMARY_COLOR` | ✅ hex | Team primary color | `#FFFFFF` |
-| `NEXT_PUBLIC_SECONDARY_COLOR` | ✅ hex | Team secondary color | `#FFD700` |
-| `NEXT_PUBLIC_PRIMARY_FOREGROUND` | default: `#ffffff` | Text on primary bg | `#000000` |
-| `NEXT_PUBLIC_AD_PROVIDER` | default: `adsense` | Ad provider (`adsense`\|`gam`\|`prebid`) | `adsense` |
-| `NEXT_PUBLIC_ADSENSE_PUBLISHER_ID` | optional | AdSense publisher ID | `ca-pub-1234567890` |
-| `NEXT_PUBLIC_ADSENSE_SLOT_HEADER` | optional | Slot ID for header leaderboard | `1234567890` |
-| `NEXT_PUBLIC_ADSENSE_SLOT_IN_CONTENT` | optional | Slot ID for in-content ad | `0987654321` |
-| `NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR` | optional | Slot ID for sidebar | `1122334455` |
-| `NEXT_PUBLIC_ADSENSE_SLOT_FOOTER` | optional | Slot ID for footer | `5544332211` |
+| Variable                              | Required           | Purpose                                  | Example                               |
+| ------------------------------------- | ------------------ | ---------------------------------------- | ------------------------------------- |
+| `NEXT_PUBLIC_SITE_NAME`               | ✅                 | Display name                             | `Real Madrid News`                    |
+| `NEXT_PUBLIC_SITE_URL`                | ✅                 | Canonical base URL                       | `https://realmadrid-news.com`         |
+| `NEXT_PUBLIC_SITE_LOGO_URL`           | ✅                 | Logo image URL                           | `https://cdn.example.com/rm-logo.svg` |
+| `NEXT_PUBLIC_PRIMARY_COLOR`           | ✅ hex             | Team primary color                       | `#FFFFFF`                             |
+| `NEXT_PUBLIC_SECONDARY_COLOR`         | ✅ hex             | Team secondary color                     | `#FFD700`                             |
+| `NEXT_PUBLIC_PRIMARY_FOREGROUND`      | default: `#ffffff` | Text on primary bg                       | `#000000`                             |
+| `NEXT_PUBLIC_AD_PROVIDER`             | default: `adsense` | Ad provider (`adsense`\|`gam`\|`prebid`) | `adsense`                             |
+| `NEXT_PUBLIC_ADSENSE_PUBLISHER_ID`    | optional           | AdSense publisher ID                     | `ca-pub-1234567890`                   |
+| `NEXT_PUBLIC_ADSENSE_SLOT_HEADER`     | optional           | Slot ID for header leaderboard           | `1234567890`                          |
+| `NEXT_PUBLIC_ADSENSE_SLOT_IN_CONTENT` | optional           | Slot ID for in-content ad                | `0987654321`                          |
+| `NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR`    | optional           | Slot ID for sidebar                      | `1122334455`                          |
+| `NEXT_PUBLIC_ADSENSE_SLOT_FOOTER`     | optional           | Slot ID for footer                       | `5544332211`                          |
 
 **Hex color note:** In `.env` files, unquoted `#` is treated as a comment. Always quote hex values:
+
 ```
 NEXT_PUBLIC_PRIMARY_COLOR="#FFFFFF"   # ✅
 NEXT_PUBLIC_PRIMARY_COLOR=#FFFFFF     # ❌ — silently becomes empty string
@@ -76,15 +79,16 @@ not injected by client-side JavaScript.
 
 ### What each color drives
 
-| Variable | UI elements |
-|---|---|
-| `PRIMARY_COLOR` | Header bg, footer bg, primary buttons, default badges, post body headings, sidebar badge hover |
-| `SECONDARY_COLOR` | Header bottom border, "Featured" accent bar, post body links, nav link hover |
-| `PRIMARY_FOREGROUND` | All text rendered on top of primary-colored surfaces (header nav, footer copyright) |
+| Variable             | UI elements                                                                                    |
+| -------------------- | ---------------------------------------------------------------------------------------------- |
+| `PRIMARY_COLOR`      | Header bg, footer bg, primary buttons, default badges, post body headings, sidebar badge hover |
+| `SECONDARY_COLOR`    | Header bottom border, "Featured" accent bar, post body links, nav link hover                   |
+| `PRIMARY_FOREGROUND` | All text rendered on top of primary-colored surfaces (header nav, footer copyright)            |
 
 ### Adding a third brand color
 
 Follow the same chain:
+
 1. Add env var in `env.client.ts` (Zod, hex regex)
 2. Add to `siteConfig.theme`
 3. Inject in the `layout.tsx` `<style>` tag as `--brand-tertiary: ${value}`
@@ -131,9 +135,44 @@ ISR works out of the box on Vercel — `revalidate` constants map to Edge Cache 
 
 ---
 
+## Post Scoping (Shared WordPress Instance)
+
+When two or more tenants share the same `WORDPRESS_API_URL`, set one of the scoping vars to
+restrict this site to only its own content:
+
+```
+WORDPRESS_CATEGORY_ID=5   # show only posts in WP category ID 5
+# — or —
+WORDPRESS_TAG_ID=7        # show only posts tagged with WP tag ID 7
+```
+
+Both are optional and independent. If neither is set, all published posts are returned (the
+default behaviour when each tenant has its own WordPress instance).
+
+**Prefer `WORDPRESS_TAG_ID` for multi-tenant setups.** WordPress ANDs different taxonomy
+params (`?tags=SCOPE&categories=BROWSE`), so tag-based scoping combines correctly with
+category-archive pages. Category-based scoping uses a single `categories` param and the
+archive category replaces the scope in those pages — posts outside the tenant scope may
+appear. See the WordPress Integration doc for the full technical explanation.
+
+**What is affected:**
+
+| Page / feature                                | Scoped?                                              |
+| --------------------------------------------- | ---------------------------------------------------- |
+| Homepage post feed                            | ✅                                                   |
+| Paginated post archive                        | ✅                                                   |
+| Static slug generation (sitemap / pre-render) | ✅                                                   |
+| Category archive                              | tag-scope ✅ / category-scope ⚠️                     |
+| Tag archive                                   | ✅ (tag-scope only affects pages not archive itself) |
+| Single post page                              | — (fetched by slug, no scope needed)                 |
+| Related posts                                 | — (derived from the post's own categories)           |
+
+---
+
 ## Multiple Teams — Isolation
 
 Each Vercel project is fully isolated:
+
 - Own env vars (different WP instance, different colors, different AdSense account)
 - Own domain
 - Own Edge Cache
