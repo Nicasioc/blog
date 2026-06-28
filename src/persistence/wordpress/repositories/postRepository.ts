@@ -20,7 +20,12 @@ export type PostsListResult = {
 }
 
 export const fetchPostsList = async (params: PostsListParams = {}): Promise<PostsListResult> => {
-  const { page = 1, perPage = 10, categoryId, tagId } = params
+  const {
+    page = 1,
+    perPage = 10,
+    categoryId = serverEnv.WORDPRESS_CATEGORY_ID,
+    tagId = serverEnv.WORDPRESS_TAG_ID,
+  } = params
 
   const result = await wpFetch<WpPostDto[]>('/wp/v2/posts', {
     params: {
@@ -80,8 +85,13 @@ export const fetchRelatedPosts = async (
 }
 
 export const fetchAllPostSlugs = async (): Promise<Array<{ slug: string }>> => {
+  const scopeParams = {
+    categories: serverEnv.WORDPRESS_CATEGORY_ID,
+    tags: serverEnv.WORDPRESS_TAG_ID,
+  }
+
   const firstPage = await wpFetch<WpPostDto[]>('/wp/v2/posts', {
-    params: { per_page: 100, page: 1, status: 'publish', _fields: 'slug' },
+    params: { per_page: 100, page: 1, status: 'publish', _fields: 'slug', ...scopeParams },
     tags: ['posts'],
     revalidate: serverEnv.REVALIDATE_PAGES,
   })
@@ -94,7 +104,7 @@ export const fetchAllPostSlugs = async (): Promise<Array<{ slug: string }>> => {
   const rest = await Promise.all(
     remainingPages.map((page) =>
       wpFetch<WpPostDto[]>('/wp/v2/posts', {
-        params: { per_page: 100, page, status: 'publish', _fields: 'slug' },
+        params: { per_page: 100, page, status: 'publish', _fields: 'slug', ...scopeParams },
         tags: ['posts'],
         revalidate: serverEnv.REVALIDATE_PAGES,
       }),

@@ -28,11 +28,12 @@ src/app/ routes                         (render)
 Every request to the WP REST API includes `?_embed=1` (set unconditionally in `wpClient.ts`). This collapses author, featured image, and taxonomy terms into a single response via the `_embedded` property — avoiding 4+ sequential requests per post.
 
 Key `_embedded` fields:
+
 ```typescript
-dto._embedded?.author?.[0]                    // WpAuthorDto
-dto._embedded?.['wp:featuredmedia']?.[0]      // WpMediaDto
-dto._embedded?.['wp:term']?.[0]               // WpCategoryDto[] (categories)
-dto._embedded?.['wp:term']?.[1]               // WpTagDto[] (tags)
+dto._embedded?.author?.[0] // WpAuthorDto
+dto._embedded?.['wp:featuredmedia']?.[0] // WpMediaDto
+dto._embedded?.['wp:term']?.[0] // WpCategoryDto[] (categories)
+dto._embedded?.['wp:term']?.[1] // WpTagDto[] (tags)
 ```
 
 **Note:** `?_embed` has **no effect** on `/wp/v2/comments` — the comment endpoint doesn't support embedding. All comment fields are available directly on the DTO.
@@ -49,11 +50,12 @@ X-WP-TotalPages: 15
 ```
 
 `wpClient.ts` extracts these and includes them in `WpFetchResult<T>`:
+
 ```typescript
 type WpFetchResult<T> = {
   data: T
-  totalItems: number   // from X-WP-Total header
-  totalPages: number   // from X-WP-TotalPages header
+  totalItems: number // from X-WP-Total header
+  totalPages: number // from X-WP-TotalPages header
 }
 ```
 
@@ -62,14 +64,15 @@ type WpFetchResult<T> = {
 ## UTC Dates — Always Use `date_gmt`
 
 WordPress returns **two** date fields per post:
+
 - `date` — site's local timezone (varies per WP configuration)
 - `date_gmt` — UTC (always correct regardless of WP timezone setting)
 
 Always use `date_gmt`. WP omits the `Z` timezone suffix, so `new Date('2024-01-01T10:00:00')` is parsed as **local time** by JavaScript. The mappers always append `'Z'`:
 
 ```typescript
-publishedAt: new Date(dto.date_gmt + 'Z')  // correct: UTC
-publishedAt: new Date(dto.date)             // wrong: site-local time
+publishedAt: new Date(dto.date_gmt + 'Z') // correct: UTC
+publishedAt: new Date(dto.date) // wrong: site-local time
 ```
 
 ---
@@ -84,6 +87,64 @@ fetchPostsList({ categoryId: 5 })         → Post[]
 ```
 
 This resolution happens in the **application layer** (`getCategoryArchive.ts`, `getTagArchive.ts`), not in the repository. Repositories only know about IDs.
+
+---
+
+## Multi-Tenant Post Scoping
+
+When multiple white-label sites share a single WordPress instance, each tenant needs to
+declare which posts belong to it. The convention is to assign every post to a **tenant
+category** or a **tenant tag** inside WordPress. The corresponding env var then tells the
+app to filter all fetches accordingly.
+
+### WordPress-side setup
+
+**Tag strategy (recommended):** Create one tag per tenant (e.g. `site-a`, `site-b`). Every
+post authored for a given tenant gets that tag. Content categories (`Sports`, `Politics`,
+etc.) remain independent.
+
+**Category strategy:** Create one top-level category per tenant. Posts belong to both the
+tenant category and a content category. This is simpler to set up but has a filtering
+limitation (see below).
+
+### How the filter is applied
+
+`WORDPRESS_CATEGORY_ID` / `WORDPRESS_TAG_ID` are read from `serverEnv` and used as
+parameter defaults inside `fetchPostsList`:
+
+```
+serverEnv.WORDPRESS_CATEGORY_ID / WORDPRESS_TAG_ID
+  → postRepository.fetchPostsList (default params)
+  → wpFetch '/wp/v2/posts' { categories: ..., tags: ... }
+  → WP REST API filters server-side
+```
+
+`fetchAllPostSlugs` (used for static generation) also receives the scope so that only
+in-scope post pages are pre-rendered.
+
+Caller-provided params override the env defaults. `getCategoryArchive` passes the archive's
+own `categoryId`, replacing the global scope for that request.
+
+### AND vs OR — why tags are preferred
+
+WordPress REST API combines **different** taxonomy params as AND:
+
+```
+GET /wp/v2/posts?tags=7&categories=10
+→ posts tagged 7 AND in category 10   ✅
+```
+
+But multiple values of the **same** param are OR:
+
+```
+GET /wp/v2/posts?categories=5,10
+→ posts in category 5 OR category 10  ⚠️
+```
+
+With tag-based scoping, browsing the category archive sends `?tags=SCOPE&categories=ARCHIVE`
+— AND logic, correct isolation. With category-based scoping, the archive category param
+replaces (not ANDs with) the scope, so posts outside the tenant scope may appear in
+category archive pages.
 
 ---
 
@@ -141,10 +202,11 @@ The secret must match `REVALIDATE_SECRET` in the Next.js deployment's env vars.
 Comments use a shorter cache TTL (`revalidate: 300` — 5 minutes) and a post-scoped cache tag:
 
 ```typescript
-tags: [`comments-${postId}`]   // scoped to a specific post
+tags: [`comments-${postId}`] // scoped to a specific post
 ```
 
 `submitComment` (Server Action) calls:
+
 ```typescript
 revalidateTag(`comments-${data.postId}`, { expire: 300 })
 ```
@@ -155,13 +217,13 @@ This means approving a comment in WP takes up to 5 minutes to appear on the site
 
 ## WordPress Configuration Requirements
 
-| Setting | Where | Why |
-|---------|-------|-----|
-| REST API enabled | Default in WP 4.7+ | Required for all data fetching |
-| Allow comments | Settings → Discussion | `submitComment` Server Action requires this |
-| Permalinks enabled | Settings → Permalinks → Post name | WP REST requires pretty permalinks |
-| Yoast SEO (optional) | Plugin | Provides `yoast_head_json` → `PostSeo` metadata |
-| CORS headers (optional) | Not needed | All WP fetches are server-side; CORS never applies |
+| Setting                 | Where                             | Why                                                |
+| ----------------------- | --------------------------------- | -------------------------------------------------- |
+| REST API enabled        | Default in WP 4.7+                | Required for all data fetching                     |
+| Allow comments          | Settings → Discussion             | `submitComment` Server Action requires this        |
+| Permalinks enabled      | Settings → Permalinks → Post name | WP REST requires pretty permalinks                 |
+| Yoast SEO (optional)    | Plugin                            | Provides `yoast_head_json` → `PostSeo` metadata    |
+| CORS headers (optional) | Not needed                        | All WP fetches are server-side; CORS never applies |
 
 ---
 
