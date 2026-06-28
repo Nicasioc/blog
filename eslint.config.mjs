@@ -68,6 +68,7 @@ const eslintConfig = defineConfig([
       'src/app/**/route.ts',
       'src/app/**/robots.ts',
       'src/app/**/sitemap.ts',
+      'src/app/**/manifest.ts',
     ],
     rules: {
       'import/no-default-export': 'off',

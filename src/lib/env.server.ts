@@ -8,6 +8,10 @@ const serverSchema = z.object({
   REVALIDATE_POSTS: z.coerce.number().default(3600),
   REVALIDATE_PAGES: z.coerce.number().default(86400),
   REVALIDATE_SECRET: z.string().min(16),
+  SITE_FAVICON_URL: z.string().min(1).optional(),
+  SITE_APPLE_TOUCH_ICON_URL: z.string().min(1).optional(),
+  SITE_ICON_192_URL: z.string().min(1).optional(),
+  SITE_ICON_512_URL: z.string().min(1).optional(),
 })
 
 const _serverEnv = serverSchema.safeParse(process.env)
