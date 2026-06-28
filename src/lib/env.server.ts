@@ -3,6 +3,8 @@ import { z } from 'zod'
 
 const serverSchema = z.object({
   WORDPRESS_API_URL: z.string().url(),
+  WORDPRESS_CATEGORY_ID: z.coerce.number().optional(),
+  WORDPRESS_TAG_ID: z.coerce.number().optional(),
   REVALIDATE_POSTS: z.coerce.number().default(3600),
   REVALIDATE_PAGES: z.coerce.number().default(86400),
   REVALIDATE_SECRET: z.string().min(16),
