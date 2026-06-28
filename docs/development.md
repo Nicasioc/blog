@@ -23,6 +23,12 @@ cp .env.example .env.local
 #    NEXT_PUBLIC_PRIMARY_COLOR — any 6-digit hex e.g. "#13294b"
 #    NEXT_PUBLIC_SECONDARY_COLOR — any 6-digit hex e.g. "#e4002b"
 #    REVALIDATE_SECRET — any 16+ char string e.g. "dev-secret-12345678"
+#
+#    Favicon (optional — falls back to /favicon.ico if not set):
+#    SITE_FAVICON_URL — e.g. /raices-cuervas/favicon.ico
+#    SITE_APPLE_TOUCH_ICON_URL — e.g. /raices-cuervas/apple-touch-icon.png
+#    SITE_ICON_192_URL — e.g. /raices-cuervas/favicon-192.png
+#    SITE_ICON_512_URL — e.g. /raices-cuervas/favicon-512.png
 
 # 4. Start dev server
 npm run dev
@@ -32,19 +38,19 @@ The app fails fast on startup if required env vars are missing — the Zod schem
 
 ## Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Dev server with hot reload |
-| `npm run build` | Production build (runs typecheck + lint as part of build) |
-| `npm start` | Production server (requires a prior `npm run build`) |
-| `npm run typecheck` | TypeScript check — run before every commit |
-| `npm run test:run` | All tests once — fastest pre-commit check |
-| `npm test` | Tests in watch mode during development |
-| `npm run test:coverage` | Coverage report — output in `coverage/` |
-| `npm run lint` | ESLint — checks all `.ts` and `.tsx` files |
-| `npm run lint:fix` | ESLint with auto-fix |
-| `npm run format` | Prettier format all files |
-| `npm run format:check` | Check formatting (used in CI) |
+| Command                 | Description                                               |
+| ----------------------- | --------------------------------------------------------- |
+| `npm run dev`           | Dev server with hot reload                                |
+| `npm run build`         | Production build (runs typecheck + lint as part of build) |
+| `npm start`             | Production server (requires a prior `npm run build`)      |
+| `npm run typecheck`     | TypeScript check — run before every commit                |
+| `npm run test:run`      | All tests once — fastest pre-commit check                 |
+| `npm test`              | Tests in watch mode during development                    |
+| `npm run test:coverage` | Coverage report — output in `coverage/`                   |
+| `npm run lint`          | ESLint — checks all `.ts` and `.tsx` files                |
+| `npm run lint:fix`      | ESLint with auto-fix                                      |
+| `npm run format`        | Prettier format all files                                 |
+| `npm run format:check`  | Check formatting (used in CI)                             |
 
 ## Testing Strategy
 
@@ -53,6 +59,7 @@ The app fails fast on startup if required env vars are missing — the Zod schem
 **What we don't test:** UI components (visual correctness is verified by running the app), route files (thin wiring), repository functions (network calls — verify manually against a real WP instance).
 
 **Test file locations:**
+
 ```
 src/utils/checks.test.ts                              ← type guards
 src/domain/seo/metadata.utils.test.ts                 ← metadata generation
@@ -63,6 +70,7 @@ src/application/blog/getHomepageData.test.ts          ← use case (mocked repos
 ```
 
 **Running a specific test file:**
+
 ```bash
 npx vitest run src/persistence/wordpress/mappers/postMapper.test.ts
 ```
@@ -183,6 +191,7 @@ npm run lint        # zero errors (warnings about Tailwind custom classes are OK
 ```
 
 Architecture boundary check:
+
 - No `import` from `@/persistence/` in any component or route body
 - No `process.env` outside `src/lib/env.ts`
 - No `console.log` in any `.ts`/`.tsx` file
