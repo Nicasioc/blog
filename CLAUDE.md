@@ -233,17 +233,17 @@ All three require quoted hex values (`"#RRGGBB"`). The unquoted `#` is treated a
 
 ### Favicon and Logo Env Vars
 
-| Variable                    | Purpose                                     | Example                                |
-| --------------------------- | ------------------------------------------- | -------------------------------------- |
-| `NEXT_PUBLIC_SITE_LOGO_URL` | Logo shown in header (client-safe)          | `/raices-cuervas/logo-main.png`        |
-| `SITE_FAVICON_URL`          | Browser tab favicon (server-only)           | `/raices-cuervas/favicon.ico`          |
-| `SITE_APPLE_TOUCH_ICON_URL` | iOS home screen icon (server-only)          | `/raices-cuervas/apple-touch-icon.png` |
-| `SITE_ICON_192_URL`         | PWA icon 192×192 for manifest (server-only) | `/raices-cuervas/favicon-192.png`      |
-| `SITE_ICON_512_URL`         | PWA icon 512×512 for manifest (server-only) | `/raices-cuervas/favicon-512.png`      |
+| Variable                    | Purpose                                     | Example                               |
+| --------------------------- | ------------------------------------------- | ------------------------------------- |
+| `NEXT_PUBLIC_SITE_LOGO_URL` | Logo shown in header (client-safe)          | `/debate-cuervo/logo-main.svg`        |
+| `SITE_FAVICON_URL`          | Browser tab favicon (server-only)           | `/debate-cuervo/favicon.ico`          |
+| `SITE_APPLE_TOUCH_ICON_URL` | iOS home screen icon (server-only)          | `/debate-cuervo/apple-touch-icon.png` |
+| `SITE_ICON_192_URL`         | PWA icon 192×192 for manifest (server-only) | `/debate-cuervo/favicon-192.png`      |
+| `SITE_ICON_512_URL`         | PWA icon 512×512 for manifest (server-only) | `/debate-cuervo/favicon-512.png`      |
 
 All four favicon vars are optional — they fall back to `/favicon.ico` if unset.
 
-**Tenant asset convention:** Place all brand assets for a tenant under `public/<tenant-slug>/` and point env vars to relative paths (e.g. `/raices-cuervas/favicon.ico`). No code changes required for new tenants — add the folder and set the vars.
+**Tenant asset convention:** Place all brand assets for a tenant under `public/<tenant-slug>/` and point env vars to relative paths (e.g. `/debate-cuervo/favicon.ico`). No code changes required for new tenants — add the folder and set the vars.
 
 **Logo rendering:** Logos render in their natural colors via `src/components/layout/SiteLogo.tsx`. Provide a logo version that is legible on the dark primary header background. Avoid relying on CSS filters to adapt logo color.
 
