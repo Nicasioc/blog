@@ -25,10 +25,10 @@ cp .env.example .env.local
 #    REVALIDATE_SECRET — any 16+ char string e.g. "dev-secret-12345678"
 #
 #    Favicon (optional — falls back to /favicon.ico if not set):
-#    SITE_FAVICON_URL — e.g. /raices-cuervas/favicon.ico
-#    SITE_APPLE_TOUCH_ICON_URL — e.g. /raices-cuervas/apple-touch-icon.png
-#    SITE_ICON_192_URL — e.g. /raices-cuervas/favicon-192.png
-#    SITE_ICON_512_URL — e.g. /raices-cuervas/favicon-512.png
+#    SITE_FAVICON_URL — e.g. /debate-cuervo/favicon.ico
+#    SITE_APPLE_TOUCH_ICON_URL — e.g. /debate-cuervo/apple-touch-icon.png
+#    SITE_ICON_192_URL — e.g. /debate-cuervo/favicon-192.png
+#    SITE_ICON_512_URL — e.g. /debate-cuervo/favicon-512.png
 
 # 4. Start dev server
 npm run dev

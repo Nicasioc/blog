@@ -8,7 +8,7 @@ export const SiteLogo = () => (
       src={siteConfig.logoUrl}
       alt={siteConfig.siteName}
       width={120}
-      height={40}
+      height={19}
       className="h-14 w-auto"
     />
   </Link>

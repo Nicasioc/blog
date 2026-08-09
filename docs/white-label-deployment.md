@@ -6,18 +6,18 @@ One GitHub repo, one Vercel project per team. Each project has its own env vars 
 
 ### Server-only (never exposed to browser)
 
-| Variable                    | Required        | Purpose                                         | Example                                |
-| --------------------------- | --------------- | ----------------------------------------------- | -------------------------------------- |
-| `WORDPRESS_API_URL`         | ✅              | WordPress REST API base URL                     | `https://realmadrid.com/wp-json`       |
-| `WORDPRESS_CATEGORY_ID`     | optional        | Scope all post feeds to a single WP category ID | `5`                                    |
-| `WORDPRESS_TAG_ID`          | optional        | Scope all post feeds to a single WP tag ID      | `7`                                    |
-| `REVALIDATE_POSTS`          | default: 3600   | ISR TTL for posts (seconds)                     | `3600`                                 |
-| `REVALIDATE_PAGES`          | default: 86400  | ISR TTL for WP pages (seconds)                  | `86400`                                |
-| `REVALIDATE_SECRET`         | ✅ min 16 chars | Authenticates the ISR webhook                   | `my-super-secret-key-32chars`          |
-| `SITE_FAVICON_URL`          | optional        | Browser tab favicon path                        | `/raices-cuervas/favicon.ico`          |
-| `SITE_APPLE_TOUCH_ICON_URL` | optional        | iOS home screen icon path                       | `/raices-cuervas/apple-touch-icon.png` |
-| `SITE_ICON_192_URL`         | optional        | PWA manifest icon 192×192                       | `/raices-cuervas/favicon-192.png`      |
-| `SITE_ICON_512_URL`         | optional        | PWA manifest icon 512×512                       | `/raices-cuervas/favicon-512.png`      |
+| Variable                    | Required        | Purpose                                         | Example                               |
+| --------------------------- | --------------- | ----------------------------------------------- | ------------------------------------- |
+| `WORDPRESS_API_URL`         | ✅              | WordPress REST API base URL                     | `https://realmadrid.com/wp-json`      |
+| `WORDPRESS_CATEGORY_ID`     | optional        | Scope all post feeds to a single WP category ID | `5`                                   |
+| `WORDPRESS_TAG_ID`          | optional        | Scope all post feeds to a single WP tag ID      | `7`                                   |
+| `REVALIDATE_POSTS`          | default: 3600   | ISR TTL for posts (seconds)                     | `3600`                                |
+| `REVALIDATE_PAGES`          | default: 86400  | ISR TTL for WP pages (seconds)                  | `86400`                               |
+| `REVALIDATE_SECRET`         | ✅ min 16 chars | Authenticates the ISR webhook                   | `my-super-secret-key-32chars`         |
+| `SITE_FAVICON_URL`          | optional        | Browser tab favicon path                        | `/debate-cuervo/favicon.ico`          |
+| `SITE_APPLE_TOUCH_ICON_URL` | optional        | iOS home screen icon path                       | `/debate-cuervo/apple-touch-icon.png` |
+| `SITE_ICON_192_URL`         | optional        | PWA manifest icon 192×192                       | `/debate-cuervo/favicon-192.png`      |
+| `SITE_ICON_512_URL`         | optional        | PWA manifest icon 512×512                       | `/debate-cuervo/favicon-512.png`      |
 
 All four favicon vars fall back to `/favicon.ico` when unset.
 
@@ -109,17 +109,15 @@ Place all brand assets for a tenant under `public/<tenant-slug>/`:
 
 ```
 public/
-  raices-cuervas/
+  debate-cuervo/
     favicon.ico
     apple-touch-icon.png
     favicon-192.png
     favicon-512.png
-    icon-512-maskable.png
-    logo-main.png
-    logo-transparent.png
+    logo-main.svg
 ```
 
-Point the env vars to relative paths (e.g. `/raices-cuervas/favicon.ico`). No code changes are needed when onboarding a new tenant — add the folder and set the env vars.
+Point the env vars to relative paths (e.g. `/debate-cuervo/favicon.ico`). No code changes are needed when onboarding a new tenant — add the folder and set the env vars.
 
 Logos render in their natural colors. Provide a logo variant that is legible on the dark primary header background (e.g. a light or white version, or a full-color badge).
 
