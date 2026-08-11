@@ -20,13 +20,9 @@ export const payloadMutate = async <T>(
   if (!serverEnv.PAYLOAD_API_KEY) {
     throw new Error('PAYLOAD_API_KEY is required to perform authenticated Payload writes')
   }
-  const apiUrl = serverEnv.PAYLOAD_API_URL
-  if (!apiUrl) {
-    throw new Error('PAYLOAD_API_URL is required to use the Payload persistence layer')
-  }
 
   const tenantId = await resolveTenantId()
-  const url = new URL(`${apiUrl}${endpoint}`)
+  const url = new URL(`${serverEnv.PAYLOAD_API_URL}${endpoint}`)
 
   const response = await fetch(url.toString(), {
     method,

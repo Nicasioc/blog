@@ -35,13 +35,8 @@ type PayloadTenantDto = { id: number }
 const TENANT_CACHE_TAG = 'tenant'
 
 export const resolveTenantId = async (): Promise<number> => {
-  const tenantSlug = serverEnv.PAYLOAD_TENANT_SLUG
-  if (!tenantSlug) {
-    throw new Error('PAYLOAD_TENANT_SLUG is required to use the Payload persistence layer')
-  }
-
   const result = await payloadFetch<PayloadTenantDto>('/tenants', {
-    where: { slug: { equals: tenantSlug } },
+    where: { slug: { equals: serverEnv.PAYLOAD_TENANT_SLUG } },
     limit: 1,
     depth: 0,
     tags: [TENANT_CACHE_TAG],
@@ -51,7 +46,7 @@ export const resolveTenantId = async (): Promise<number> => {
 
   const tenant = result.data[0]
   if (!tenant) {
-    throw new Error(`No Payload tenant found for slug "${tenantSlug}"`)
+    throw new Error(`No Payload tenant found for slug "${serverEnv.PAYLOAD_TENANT_SLUG}"`)
   }
   return tenant.id
 }
@@ -71,16 +66,11 @@ export const payloadFetch = async <T>(
     scopeToTenant = true,
   } = options
 
-  const apiUrl = serverEnv.PAYLOAD_API_URL
-  if (!apiUrl) {
-    throw new Error('PAYLOAD_API_URL is required to use the Payload persistence layer')
-  }
-
   const effectiveWhere: WhereClause = scopeToTenant
     ? { ...where, tenant: { equals: await resolveTenantId() } }
     : where
 
-  const url = new URL(`${apiUrl}${endpoint}`)
+  const url = new URL(`${serverEnv.PAYLOAD_API_URL}${endpoint}`)
   url.searchParams.set('depth', String(depth))
   if (limit !== undefined) url.searchParams.set('limit', String(limit))
   if (page !== undefined) url.searchParams.set('page', String(page))
