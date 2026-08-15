@@ -4,6 +4,7 @@ vi.mock('@/lib/env.server', () => ({
   serverEnv: {
     PAYLOAD_API_URL: 'https://cms.example.com/api',
     PAYLOAD_TENANT_SLUG: 'debate-cuervo',
+    PAYLOAD_API_KEY: 'test-api-key',
     REVALIDATE_POSTS: 3600,
     REVALIDATE_PAGES: 86400,
   },
@@ -38,6 +39,14 @@ describe('payloadFetch', () => {
     const tenantUrl = new URL(fetchMock.mock.calls[0][0] as string)
     expect(tenantUrl.pathname).toBe('/api/tenants')
     expect(tenantUrl.searchParams.get('where[slug][equals]')).toBe('debate-cuervo')
+
+    const tenantCallOptions = fetchMock.mock.calls[0][1] as RequestInit
+    expect((tenantCallOptions.headers as Record<string, string>).Authorization).toBe(
+      'users API-Key test-api-key',
+    )
+
+    const dataCallOptions = fetchMock.mock.calls[1][1] as RequestInit
+    expect(dataCallOptions.headers).toBeUndefined()
 
     const dataUrl = new URL(fetchMock.mock.calls[1][0] as string)
     expect(dataUrl.pathname).toBe('/api/posts')

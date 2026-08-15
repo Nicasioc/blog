@@ -1,8 +1,8 @@
 import {
   fetchPostBySlug,
   fetchRelatedPosts,
-} from '@/persistence/wordpress/repositories/postRepository'
-import { fetchCommentsByPostId } from '@/persistence/wordpress/repositories/commentRepository'
+} from '@/persistence/payload/repositories/postRepository'
+import { fetchCommentsByPostId } from '@/persistence/payload/repositories/commentRepository'
 import type { Post } from '@/domain/post/post.model'
 import type { Comment } from '@/domain/comment/comment.model'
 

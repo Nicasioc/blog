@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { getPostsList } from './getPostsList'
 
-vi.mock('@/persistence/wordpress/repositories/postRepository', () => ({
+vi.mock('@/persistence/payload/repositories/postRepository', () => ({
   fetchPostsList: vi.fn(),
 }))
 
-import { fetchPostsList } from '@/persistence/wordpress/repositories/postRepository'
+import { fetchPostsList } from '@/persistence/payload/repositories/postRepository'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const makePost = (id: number) => ({ id, slug: `post-${id}` }) as any

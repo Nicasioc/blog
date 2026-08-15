@@ -6,21 +6,21 @@ One GitHub repo, one Vercel project per team. Each project has its own env vars 
 
 ### Server-only (never exposed to browser)
 
-| Variable                    | Required        | Purpose                                                                                    | Example                               |
-| --------------------------- | --------------- | ------------------------------------------------------------------------------------------ | ------------------------------------- |
-| `WORDPRESS_API_URL`         | ✅              | WordPress REST API base URL                                                                | `https://realmadrid.com/wp-json`      |
-| `WORDPRESS_CATEGORY_ID`     | optional        | Scope all post feeds to a single WP category ID                                            | `5`                                   |
-| `WORDPRESS_TAG_ID`          | optional        | Scope all post feeds to a single WP tag ID                                                 | `7`                                   |
-| `PAYLOAD_API_URL`           | ✅              | Payload CMS REST API base URL (must end in `/api`)                                         | `https://blog-cms.example.com/api`    |
-| `PAYLOAD_TENANT_SLUG`       | ✅              | Tenant slug used to scope all Payload reads/writes                                         | `realmadrid`                          |
-| `PAYLOAD_API_KEY`           | optional        | Per-tenant API key — only needed for authenticated writes (publishing, comment moderation) | `pk_live_...`                         |
-| `REVALIDATE_POSTS`          | default: 3600   | ISR TTL for posts (seconds)                                                                | `3600`                                |
-| `REVALIDATE_PAGES`          | default: 86400  | ISR TTL for WP pages (seconds)                                                             | `86400`                               |
-| `REVALIDATE_SECRET`         | ✅ min 16 chars | Authenticates the ISR webhook                                                              | `my-super-secret-key-32chars`         |
-| `SITE_FAVICON_URL`          | optional        | Browser tab favicon path                                                                   | `/debate-cuervo/favicon.ico`          |
-| `SITE_APPLE_TOUCH_ICON_URL` | optional        | iOS home screen icon path                                                                  | `/debate-cuervo/apple-touch-icon.png` |
-| `SITE_ICON_192_URL`         | optional        | PWA manifest icon 192×192                                                                  | `/debate-cuervo/favicon-192.png`      |
-| `SITE_ICON_512_URL`         | optional        | PWA manifest icon 512×512                                                                  | `/debate-cuervo/favicon-512.png`      |
+| Variable                    | Required        | Purpose                                                                                                                             | Example                               |
+| --------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| `WORDPRESS_API_URL`         | ✅              | WordPress REST API base URL                                                                                                         | `https://realmadrid.com/wp-json`      |
+| `WORDPRESS_CATEGORY_ID`     | optional        | Scope all post feeds to a single WP category ID                                                                                     | `5`                                   |
+| `WORDPRESS_TAG_ID`          | optional        | Scope all post feeds to a single WP tag ID                                                                                          | `7`                                   |
+| `PAYLOAD_API_URL`           | ✅              | Payload CMS REST API base URL (must end in `/api`)                                                                                  | `https://blog-cms.example.com/api`    |
+| `PAYLOAD_TENANT_SLUG`       | ✅              | Tenant slug used to scope all Payload reads/writes                                                                                  | `realmadrid`                          |
+| `PAYLOAD_API_KEY`           | ✅              | Per-tenant API key — required even for reads, since resolving `PAYLOAD_TENANT_SLUG` to an id hits the non-public Tenants collection | `pk_live_...`                         |
+| `REVALIDATE_POSTS`          | default: 3600   | ISR TTL for posts (seconds)                                                                                                         | `3600`                                |
+| `REVALIDATE_PAGES`          | default: 86400  | ISR TTL for WP pages (seconds)                                                                                                      | `86400`                               |
+| `REVALIDATE_SECRET`         | ✅ min 16 chars | Authenticates the ISR webhook                                                                                                       | `my-super-secret-key-32chars`         |
+| `SITE_FAVICON_URL`          | optional        | Browser tab favicon path                                                                                                            | `/debate-cuervo/favicon.ico`          |
+| `SITE_APPLE_TOUCH_ICON_URL` | optional        | iOS home screen icon path                                                                                                           | `/debate-cuervo/apple-touch-icon.png` |
+| `SITE_ICON_192_URL`         | optional        | PWA manifest icon 192×192                                                                                                           | `/debate-cuervo/favicon-192.png`      |
+| `SITE_ICON_512_URL`         | optional        | PWA manifest icon 512×512                                                                                                           | `/debate-cuervo/favicon-512.png`      |
 
 All four favicon vars fall back to `/favicon.ico` when unset.
 

@@ -8,7 +8,10 @@ const serverSchema = z.object({
   // Payload CMS (BLO-76): additive alongside WORDPRESS_* — the full swap is BLO-78.
   PAYLOAD_API_URL: z.string().url(),
   PAYLOAD_TENANT_SLUG: z.string().min(1),
-  PAYLOAD_API_KEY: z.string().min(1).optional(),
+  // Required, not just for writes — every read resolves PAYLOAD_TENANT_SLUG to a
+  // numeric id via the Tenants collection, which isn't publicly readable (it holds
+  // revalidateSecret), so that lookup needs credentials too.
+  PAYLOAD_API_KEY: z.string().min(1),
   REVALIDATE_POSTS: z.coerce.number().default(3600),
   REVALIDATE_PAGES: z.coerce.number().default(86400),
   REVALIDATE_SECRET: z.string().min(16),

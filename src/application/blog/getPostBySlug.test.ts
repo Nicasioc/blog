@@ -1,19 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { getPostBySlug } from './getPostBySlug'
 
-vi.mock('@/persistence/wordpress/repositories/postRepository', () => ({
+vi.mock('@/persistence/payload/repositories/postRepository', () => ({
   fetchPostBySlug: vi.fn(),
   fetchRelatedPosts: vi.fn(),
 }))
-vi.mock('@/persistence/wordpress/repositories/commentRepository', () => ({
+vi.mock('@/persistence/payload/repositories/commentRepository', () => ({
   fetchCommentsByPostId: vi.fn(),
 }))
 
 import {
   fetchPostBySlug,
   fetchRelatedPosts,
-} from '@/persistence/wordpress/repositories/postRepository'
-import { fetchCommentsByPostId } from '@/persistence/wordpress/repositories/commentRepository'
+} from '@/persistence/payload/repositories/postRepository'
+import { fetchCommentsByPostId } from '@/persistence/payload/repositories/commentRepository'
 
 const makePost = (id: number, categoryIds: number[] = []) =>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

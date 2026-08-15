@@ -1,5 +1,5 @@
-import { fetchPostsList } from '@/persistence/wordpress/repositories/postRepository'
-import { fetchAllCategories } from '@/persistence/wordpress/repositories/categoryRepository'
+import { fetchPostsList } from '@/persistence/payload/repositories/postRepository'
+import { fetchAllCategories } from '@/persistence/payload/repositories/categoryRepository'
 import type { Post } from '@/domain/post/post.model'
 import type { Category } from '@/domain/category/category.model'
 

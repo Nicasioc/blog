@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { getHomepageData } from './getHomepageData'
 
-vi.mock('@/persistence/wordpress/repositories/postRepository', () => ({
+vi.mock('@/persistence/payload/repositories/postRepository', () => ({
   fetchPostsList: vi.fn(),
 }))
-vi.mock('@/persistence/wordpress/repositories/categoryRepository', () => ({
+vi.mock('@/persistence/payload/repositories/categoryRepository', () => ({
   fetchAllCategories: vi.fn(),
 }))
 
-import { fetchPostsList } from '@/persistence/wordpress/repositories/postRepository'
-import { fetchAllCategories } from '@/persistence/wordpress/repositories/categoryRepository'
+import { fetchPostsList } from '@/persistence/payload/repositories/postRepository'
+import { fetchAllCategories } from '@/persistence/payload/repositories/categoryRepository'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const makePost = (id: number) => ({ id, slug: `post-${id}` }) as any

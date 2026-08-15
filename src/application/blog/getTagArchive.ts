@@ -1,5 +1,5 @@
-import { fetchTagBySlug } from '@/persistence/wordpress/repositories/tagRepository'
-import { fetchPostsList } from '@/persistence/wordpress/repositories/postRepository'
+import { fetchTagBySlug } from '@/persistence/payload/repositories/tagRepository'
+import { fetchPostsList } from '@/persistence/payload/repositories/postRepository'
 import type { Tag } from '@/domain/tag/tag.model'
 import type { Post } from '@/domain/post/post.model'
 import type { PaginationInfo } from '@/domain/shared/pagination.model'

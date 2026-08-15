@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getPageBySlug } from '@/application/page/getPageBySlug'
-import { fetchAllPageSlugs } from '@/persistence/wordpress/repositories/pageRepository'
+import { fetchAllPageSlugs } from '@/persistence/payload/repositories/pageRepository'
 import { generatePageMetadata } from '@/domain/seo/metadata.utils'
 import { siteConfig } from '@/lib/siteConfig'
 import { ContentHtml } from '@/components/post/ContentHtml'
