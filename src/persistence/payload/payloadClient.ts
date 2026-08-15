@@ -22,6 +22,10 @@ type PayloadFetchOptions = {
   // cross-tenant read leak. Only the tenant lookup itself (resolveTenantId, below)
   // opts out, to avoid resolving its own scope recursively.
   scopeToTenant?: boolean
+  // The Tenants collection is not publicly readable (it holds revalidateSecret), unlike
+  // every content collection — so resolving a tenant slug to an id needs credentials.
+  // Content reads stay unauthenticated, matching Payload's public-read access control.
+  authenticated?: boolean
 }
 
 type PayloadListResponse<T> = {
@@ -42,6 +46,7 @@ export const resolveTenantId = async (): Promise<number> => {
     tags: [TENANT_CACHE_TAG],
     revalidate: serverEnv.REVALIDATE_PAGES,
     scopeToTenant: false,
+    authenticated: true,
   })
 
   const tenant = result.data[0]
@@ -64,6 +69,7 @@ export const payloadFetch = async <T>(
     tags = [],
     revalidate = serverEnv.REVALIDATE_POSTS,
     scopeToTenant = true,
+    authenticated = false,
   } = options
 
   const effectiveWhere: WhereClause = scopeToTenant
@@ -84,6 +90,9 @@ export const payloadFetch = async <T>(
   select.forEach((field) => url.searchParams.set(`select[${field}]`, 'true'))
 
   const response = await fetch(url.toString(), {
+    headers: authenticated
+      ? { Authorization: `users API-Key ${serverEnv.PAYLOAD_API_KEY}` }
+      : undefined,
     next: { tags, revalidate },
   })
 

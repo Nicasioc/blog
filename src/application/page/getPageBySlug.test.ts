@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { getPageBySlug } from './getPageBySlug'
 
-vi.mock('@/persistence/wordpress/repositories/pageRepository', () => ({
+vi.mock('@/persistence/payload/repositories/pageRepository', () => ({
   fetchPageBySlug: vi.fn(),
 }))
 
-import { fetchPageBySlug } from '@/persistence/wordpress/repositories/pageRepository'
+import { fetchPageBySlug } from '@/persistence/payload/repositories/pageRepository'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const makePage = (slug: string) => ({ id: 1, slug, title: 'Page' }) as any

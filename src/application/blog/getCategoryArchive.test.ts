@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { getCategoryArchive } from './getCategoryArchive'
 
-vi.mock('@/persistence/wordpress/repositories/categoryRepository', () => ({
+vi.mock('@/persistence/payload/repositories/categoryRepository', () => ({
   fetchCategoryBySlug: vi.fn(),
 }))
-vi.mock('@/persistence/wordpress/repositories/postRepository', () => ({
+vi.mock('@/persistence/payload/repositories/postRepository', () => ({
   fetchPostsList: vi.fn(),
 }))
 
-import { fetchCategoryBySlug } from '@/persistence/wordpress/repositories/categoryRepository'
-import { fetchPostsList } from '@/persistence/wordpress/repositories/postRepository'
+import { fetchCategoryBySlug } from '@/persistence/payload/repositories/categoryRepository'
+import { fetchPostsList } from '@/persistence/payload/repositories/postRepository'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const makeCategory = (id: number) => ({ id, slug: `category-${id}`, name: `Category ${id}` }) as any

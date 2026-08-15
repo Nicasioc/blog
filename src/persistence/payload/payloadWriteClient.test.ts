@@ -20,7 +20,8 @@ describe('payloadMutate', () => {
   })
 
   it('throws when PAYLOAD_API_KEY is not set', async () => {
-    vi.mocked(serverEnv).PAYLOAD_API_KEY = undefined
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(vi.mocked(serverEnv) as any).PAYLOAD_API_KEY = undefined
 
     await expect(payloadMutate('/posts', { method: 'POST', body: { title: 'x' } })).rejects.toThrow(
       'PAYLOAD_API_KEY is required',

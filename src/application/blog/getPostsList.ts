@@ -1,4 +1,4 @@
-import { fetchPostsList } from '@/persistence/wordpress/repositories/postRepository'
+import { fetchPostsList } from '@/persistence/payload/repositories/postRepository'
 import type { Post } from '@/domain/post/post.model'
 import type { PaginationInfo } from '@/domain/shared/pagination.model'
 
