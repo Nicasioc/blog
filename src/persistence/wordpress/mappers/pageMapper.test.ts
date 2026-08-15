@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { mapWpPageToWpPage } from '@/persistence/wordpress/mappers/pageMapper'
+import { mapWpPageToPage } from '@/persistence/wordpress/mappers/pageMapper'
 import type { WpPageDto } from '@/persistence/wordpress/types/wpPage.dto'
 
 const baseDto: WpPageDto = {
@@ -12,9 +12,9 @@ const baseDto: WpPageDto = {
   link: 'https://example.com/about',
 }
 
-describe('mapWpPageToWpPage', () => {
+describe('mapWpPageToPage', () => {
   it('maps scalar fields', () => {
-    const page = mapWpPageToWpPage(baseDto)
+    const page = mapWpPageToPage(baseDto)
     expect(page.id).toBe(5)
     expect(page.slug).toBe('about')
     expect(page.title).toBe('About Us')
@@ -22,18 +22,18 @@ describe('mapWpPageToWpPage', () => {
   })
 
   it('parses modified_gmt as UTC Date', () => {
-    const page = mapWpPageToWpPage(baseDto)
+    const page = mapWpPageToPage(baseDto)
     expect(page.modifiedAt.toISOString()).toBe('2024-06-01T08:00:00.000Z')
   })
 
   it('returns seo: null when yoast_head_json is absent', () => {
-    const page = mapWpPageToWpPage(baseDto)
+    const page = mapWpPageToPage(baseDto)
     expect(page.seo).toBeNull()
   })
 
   it('returns seo: null when both title and description are empty', () => {
     const dto: WpPageDto = { ...baseDto, yoast_head_json: { title: '', description: '' } }
-    const page = mapWpPageToWpPage(dto)
+    const page = mapWpPageToPage(dto)
     expect(page.seo).toBeNull()
   })
 
@@ -46,7 +46,7 @@ describe('mapWpPageToWpPage', () => {
         og_image: [{ url: 'https://example.com/og.jpg' }],
       },
     }
-    const page = mapWpPageToWpPage(dto)
+    const page = mapWpPageToPage(dto)
     expect(page.seo?.metaTitle).toBe('SEO Title')
     expect(page.seo?.metaDescription).toBe('SEO Desc')
     expect(page.seo?.ogImage).toBe('https://example.com/og.jpg')
@@ -57,7 +57,7 @@ describe('mapWpPageToWpPage', () => {
       ...baseDto,
       yoast_head_json: { title: 'SEO Title', description: 'SEO Desc' },
     }
-    const page = mapWpPageToWpPage(dto)
+    const page = mapWpPageToPage(dto)
     expect(page.seo?.ogImage).toBeNull()
   })
 })

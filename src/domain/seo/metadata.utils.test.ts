@@ -1,7 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { generatePostMetadata, generateCategoryMetadata, generateTagMetadata, generatePageMetadata } from '@/domain/seo/metadata.utils'
+import {
+  generatePostMetadata,
+  generateCategoryMetadata,
+  generateTagMetadata,
+  generatePageMetadata,
+} from '@/domain/seo/metadata.utils'
 import type { Post } from '@/domain/post/post.model'
-import type { WpPage } from '@/domain/page/page.model'
+import type { Page } from '@/domain/page/page.model'
 import type { Category } from '@/domain/category/category.model'
 import type { Tag } from '@/domain/tag/tag.model'
 import type { SiteConfig } from '@/lib/siteConfig'
@@ -146,7 +151,7 @@ describe('generateTagMetadata', () => {
 })
 
 describe('generatePageMetadata', () => {
-  const page: WpPage = {
+  const page: Page = {
     id: 2,
     slug: 'about',
     title: 'About Us',

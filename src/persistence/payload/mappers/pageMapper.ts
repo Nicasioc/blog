@@ -1,6 +1,6 @@
 import type { PayloadPageDto } from '@/persistence/payload/types/payloadPage.dto'
 import type { PayloadMediaDto } from '@/persistence/payload/types/payloadMedia.dto'
-import type { WpPage } from '@/domain/page/page.model'
+import type { Page } from '@/domain/page/page.model'
 import type { PostSeo } from '@/domain/post/post.model'
 import { isNonEmptyObject } from '@/utils/checks'
 
@@ -19,7 +19,7 @@ const extractSeo = (dto: PayloadPageDto): PostSeo | null => {
   }
 }
 
-export const mapPayloadPageToPage = (dto: PayloadPageDto): WpPage => ({
+export const mapPayloadPageToPage = (dto: PayloadPageDto): Page => ({
   id: dto.id,
   slug: dto.slug,
   title: dto.title,
