@@ -1,33 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-vi.mock('next/cache', () => ({ revalidateTag: vi.fn() }))
-vi.mock('@/lib/env.server', () => ({ serverEnv: { WORDPRESS_API_URL: 'https://wp.example.com' } }))
-vi.mock('@/utils/logger', () => ({
-  logger: { warn: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn() },
+vi.mock('@/persistence/payload/repositories/commentRepository', () => ({
+  createComment: vi.fn(),
 }))
 
 import { submitComment } from './submitComment'
+import { createComment } from '@/persistence/payload/repositories/commentRepository'
+import { PayloadApiError } from '@/persistence/payload/payloadError'
 
 const validData = {
   postId: 1,
-  parentId: null,
+  parentId: undefined,
   authorName: 'Alice',
   authorEmail: 'alice@example.com',
   authorUrl: '',
   content: 'Great post!',
 }
 
-const mockFetchOk = () =>
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) }))
-
-const mockFetchFail = (status: number, message: string) =>
-  vi.stubGlobal(
-    'fetch',
-    vi.fn().mockResolvedValue({ ok: false, status, json: async () => ({ message }) }),
-  )
-
 describe('submitComment — validation', () => {
-  beforeEach(() => vi.unstubAllGlobals())
+  beforeEach(() => vi.clearAllMocks())
 
   it('rejects blank name', async () => {
     const result = await submitComment({ ...validData, authorName: '   ' })
@@ -65,36 +56,47 @@ describe('submitComment — validation', () => {
   })
 
   it('accepts a valid http URL', async () => {
-    mockFetchOk()
+    vi.mocked(createComment).mockResolvedValue({} as never)
     const result = await submitComment({ ...validData, authorUrl: 'http://example.com' })
     expect(result).toMatchObject({ success: true })
   })
 
   it('accepts a valid https URL', async () => {
-    mockFetchOk()
+    vi.mocked(createComment).mockResolvedValue({} as never)
     const result = await submitComment({ ...validData, authorUrl: 'https://example.com' })
     expect(result).toMatchObject({ success: true })
   })
 
   it('accepts an absent URL (empty string)', async () => {
-    mockFetchOk()
+    vi.mocked(createComment).mockResolvedValue({} as never)
     const result = await submitComment({ ...validData, authorUrl: '' })
     expect(result).toMatchObject({ success: true })
   })
 })
 
-describe('submitComment — fetch outcomes', () => {
-  beforeEach(() => vi.unstubAllGlobals())
+describe('submitComment — createComment outcomes', () => {
+  beforeEach(() => vi.clearAllMocks())
 
-  it('returns success: true when API responds 2xx', async () => {
-    mockFetchOk()
+  it('returns success: true when createComment resolves', async () => {
+    vi.mocked(createComment).mockResolvedValue({} as never)
     const result = await submitComment(validData)
     expect(result).toEqual({ success: true })
   })
 
-  it('returns success: false with error message when API responds non-2xx', async () => {
-    mockFetchFail(422, 'Duplicate comment')
+  it('surfaces the message when createComment rejects with a PayloadApiError', async () => {
+    vi.mocked(createComment).mockRejectedValue(
+      new PayloadApiError(422, '/comments', 'Duplicate comment'),
+    )
     const result = await submitComment(validData)
     expect(result).toMatchObject({ success: false, error: 'Duplicate comment' })
+  })
+
+  it('returns a generic message when createComment rejects with a non-API error', async () => {
+    vi.mocked(createComment).mockRejectedValue(new Error('No Payload tenant found for slug "x"'))
+    const result = await submitComment(validData)
+    expect(result).toMatchObject({
+      success: false,
+      error: 'Something went wrong submitting your comment. Please try again.',
+    })
   })
 })
