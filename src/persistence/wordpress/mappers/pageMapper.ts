@@ -1,5 +1,5 @@
 import type { WpPageDto } from '@/persistence/wordpress/types/wpPage.dto'
-import type { WpPage } from '@/domain/page/page.model'
+import type { Page } from '@/domain/page/page.model'
 import type { PostSeo } from '@/domain/post/post.model'
 
 const extractPageSeo = (dto: WpPageDto): PostSeo | null => {
@@ -12,7 +12,7 @@ const extractPageSeo = (dto: WpPageDto): PostSeo | null => {
   }
 }
 
-export const mapWpPageToWpPage = (dto: WpPageDto): WpPage => ({
+export const mapWpPageToPage = (dto: WpPageDto): Page => ({
   id: dto.id,
   slug: dto.slug,
   title: dto.title.rendered,

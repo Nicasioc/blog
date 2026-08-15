@@ -1,11 +1,11 @@
 import { wpFetch } from '@/persistence/wordpress/wpClient'
-import { mapWpPageToWpPage } from '@/persistence/wordpress/mappers/pageMapper'
+import { mapWpPageToPage } from '@/persistence/wordpress/mappers/pageMapper'
 import type { WpPageDto } from '@/persistence/wordpress/types/wpPage.dto'
-import type { WpPage } from '@/domain/page/page.model'
+import type { Page } from '@/domain/page/page.model'
 import { isNotFoundError } from '@/persistence/wordpress/wpError'
 import { serverEnv } from '@/lib/env.server'
 
-export const fetchPageBySlug = async (slug: string): Promise<WpPage | null> => {
+export const fetchPageBySlug = async (slug: string): Promise<Page | null> => {
   try {
     const result = await wpFetch<WpPageDto[]>('/wp/v2/pages', {
       params: { slug, status: 'publish' },
@@ -13,7 +13,7 @@ export const fetchPageBySlug = async (slug: string): Promise<WpPage | null> => {
       revalidate: serverEnv.REVALIDATE_PAGES,
     })
     const dto = result.data[0]
-    return dto ? mapWpPageToWpPage(dto) : null
+    return dto ? mapWpPageToPage(dto) : null
   } catch (error) {
     if (isNotFoundError(error)) return null
     throw error

@@ -1,6 +1,6 @@
 import type { PostSeo } from '@/domain/post/post.model'
 
-export type WpPage = {
+export type Page = {
   id: number
   slug: string
   title: string

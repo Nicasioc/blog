@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import type { Post } from '@/domain/post/post.model'
-import type { WpPage } from '@/domain/page/page.model'
+import type { Page } from '@/domain/page/page.model'
 import type { Category } from '@/domain/category/category.model'
 import type { Tag } from '@/domain/tag/tag.model'
 import type { SiteConfig } from '@/lib/siteConfig'
@@ -68,7 +68,7 @@ export const generateTagMetadata = (tag: Tag, siteConfig: SiteConfig): Metadata 
   }
 }
 
-export const generatePageMetadata = (page: WpPage, siteConfig: SiteConfig): Metadata => {
+export const generatePageMetadata = (page: Page, siteConfig: SiteConfig): Metadata => {
   const title = page.seo?.metaTitle ?? page.title
   const description = page.seo?.metaDescription ?? ''
   const ogImage = page.seo?.ogImage ?? null

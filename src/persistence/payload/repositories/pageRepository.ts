@@ -1,12 +1,10 @@
 import { payloadFetch } from '@/persistence/payload/payloadClient'
 import { mapPayloadPageToPage } from '@/persistence/payload/mappers/pageMapper'
 import type { PayloadPageDto } from '@/persistence/payload/types/payloadPage.dto'
-import type { WpPage } from '@/domain/page/page.model'
+import type { Page } from '@/domain/page/page.model'
 import { serverEnv } from '@/lib/env.server'
 
-// Domain type is still WpPage here — the WpPage -> Page rename is BLO-77, out of
-// scope for this layer.
-export const fetchPageBySlug = async (slug: string): Promise<WpPage | null> => {
+export const fetchPageBySlug = async (slug: string): Promise<Page | null> => {
   const result = await payloadFetch<PayloadPageDto>('/pages', {
     where: { slug: { equals: slug }, _status: { equals: 'published' } },
     limit: 1,
