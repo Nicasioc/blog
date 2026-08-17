@@ -20,6 +20,7 @@ export type PayloadPostDto = {
   // mapper only ever reads the HTML.
   contentHtml: string
   publishedAt?: string | null
+  featured?: boolean | null
   featuredImage?: number | PayloadMediaDto | null
   author: number | PayloadAuthorDto
   categories?: (number | PayloadCategoryDto)[] | null

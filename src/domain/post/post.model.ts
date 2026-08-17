@@ -23,6 +23,7 @@ export type Post = {
   content: string
   publishedAt: Date
   modifiedAt: Date
+  featured: boolean
   featuredImage: FeaturedImage | null
   author: Author
   categories: Category[]

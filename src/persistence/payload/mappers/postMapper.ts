@@ -75,6 +75,9 @@ export const mapPayloadPostToPost = (dto: PayloadPostDto, siteUrl: string): Post
   content: dto.contentHtml,
   publishedAt: dto.publishedAt ? new Date(dto.publishedAt) : new Date(dto.updatedAt),
   modifiedAt: new Date(dto.updatedAt),
+  // dto.featured is undefined on posts created before the field existed and may be
+  // null from the database — both must coerce to false, not leak through.
+  featured: dto.featured === true,
   featuredImage: extractFeaturedImage(dto),
   author: extractAuthor(dto),
   categories: extractCategories(dto),

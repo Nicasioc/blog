@@ -149,4 +149,24 @@ describe('mapPayloadPostToPost', () => {
     const post = mapPayloadPostToPost({ ...baseDto, excerpt: undefined }, SITE_URL)
     expect(post.excerpt).toBe('')
   })
+
+  it('maps featured true to true', () => {
+    const post = mapPayloadPostToPost({ ...baseDto, featured: true }, SITE_URL)
+    expect(post.featured).toBe(true)
+  })
+
+  it('maps featured false to false', () => {
+    const post = mapPayloadPostToPost({ ...baseDto, featured: false }, SITE_URL)
+    expect(post.featured).toBe(false)
+  })
+
+  it('maps featured undefined to false (posts created before the field existed)', () => {
+    const post = mapPayloadPostToPost({ ...baseDto, featured: undefined }, SITE_URL)
+    expect(post.featured).toBe(false)
+  })
+
+  it('maps featured null to false', () => {
+    const post = mapPayloadPostToPost({ ...baseDto, featured: null }, SITE_URL)
+    expect(post.featured).toBe(false)
+  })
 })
