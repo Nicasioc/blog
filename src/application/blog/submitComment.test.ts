@@ -96,7 +96,7 @@ describe('submitComment — createComment outcomes', () => {
     const result = await submitComment(validData)
     expect(result).toMatchObject({
       success: false,
-      error: 'Something went wrong submitting your comment. Please try again.',
+      error: 'Ocurrió un error al enviar tu comentario. Por favor, intenta de nuevo.',
     })
   })
 })

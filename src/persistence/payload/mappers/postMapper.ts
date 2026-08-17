@@ -33,7 +33,7 @@ const extractAuthor = (dto: PayloadPostDto): Author => {
   return {
     id: typeof dto.author === 'number' ? dto.author : 0,
     slug: '',
-    name: 'Unknown',
+    name: 'Desconocido',
     description: '',
     avatarUrl: null,
     profileUrl: '',

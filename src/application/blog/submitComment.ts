@@ -11,23 +11,24 @@ const MAX_CONTENT = 5000
 
 const validateSubmission = (data: CommentSubmission): string | null => {
   if (!data.authorName.trim() || data.authorName.length > MAX_NAME)
-    return 'Name is required and must be under 100 characters.'
+    return 'El nombre es obligatorio y debe tener menos de 100 caracteres.'
   if (!data.authorEmail.trim() || data.authorEmail.length > MAX_EMAIL)
-    return 'A valid email address is required.'
+    return 'Se requiere una dirección de correo electrónico válida.'
   if (!data.content.trim() || data.content.length > MAX_CONTENT)
-    return 'Comment must be between 1 and 5000 characters.'
+    return 'El comentario debe tener entre 1 y 5000 caracteres.'
   if (data.authorUrl) {
     try {
       const { protocol } = new URL(data.authorUrl)
-      if (protocol !== 'http:' && protocol !== 'https:') return 'URL must use http or https.'
+      if (protocol !== 'http:' && protocol !== 'https:') return 'La URL debe usar http o https.'
     } catch {
-      return 'Invalid URL format.'
+      return 'Formato de URL inválido.'
     }
   }
   return null
 }
 
-const GENERIC_FAILURE_MESSAGE = 'Something went wrong submitting your comment. Please try again.'
+const GENERIC_FAILURE_MESSAGE =
+  'Ocurrió un error al enviar tu comentario. Por favor, intenta de nuevo.'
 
 export const submitComment = async (data: CommentSubmission): Promise<SubmitCommentResult> => {
   const validationError = validateSubmission(data)

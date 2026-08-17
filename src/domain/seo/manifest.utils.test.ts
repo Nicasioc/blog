@@ -15,7 +15,7 @@ describe('buildSiteManifest', () => {
 
   it('generates description from siteName', () => {
     const manifest = buildSiteManifest(baseConfig)
-    expect(manifest.description).toBe('Test FC News — latest news and updates')
+    expect(manifest.description).toBe('Test FC News — últimas noticias y novedades')
   })
 
   it('sets theme_color from config', () => {

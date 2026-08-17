@@ -30,7 +30,7 @@ const extractAuthor = (dto: WpPostDto): Author => {
   return {
     id: dto.author,
     slug: '',
-    name: 'Unknown',
+    name: 'Desconocido',
     description: '',
     avatarUrl: null,
     profileUrl: '',

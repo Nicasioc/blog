@@ -20,7 +20,7 @@ export function buildSiteManifest(config: SiteManifestConfig): MetadataRoute.Man
   return {
     name: config.siteName,
     short_name: config.siteName,
-    description: `${config.siteName} — latest news and updates`,
+    description: `${config.siteName} — últimas noticias y novedades`,
     start_url: '/',
     display: 'standalone',
     background_color: '#ffffff',

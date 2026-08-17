@@ -3,7 +3,7 @@ import { formatPostDate, formatPostDateLong } from './postDate.utils'
 
 describe('formatPostDate', () => {
   it('formats a valid date with an abbreviated month', () => {
-    expect(formatPostDate(new Date('2026-03-05T12:00:00Z'))).toBe('Mar 5, 2026')
+    expect(formatPostDate(new Date('2026-03-05T12:00:00Z'))).toBe('5 mar 2026')
   })
 
   it('returns an empty string for an invalid date', () => {
@@ -19,7 +19,7 @@ describe('formatPostDate', () => {
 
 describe('formatPostDateLong', () => {
   it('formats a valid date with a full month name', () => {
-    expect(formatPostDateLong(new Date('2026-03-05T12:00:00Z'))).toBe('March 5, 2026')
+    expect(formatPostDateLong(new Date('2026-03-05T12:00:00Z'))).toBe('5 de marzo de 2026')
   })
 
   it('returns an empty string for an invalid date', () => {
