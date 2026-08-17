@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import Link from 'next/link'
 import {
   Breadcrumb as BreadcrumbRoot,
@@ -15,14 +16,16 @@ export const Breadcrumb = ({ items }: Props) => (
   <BreadcrumbRoot>
     <BreadcrumbList>
       {items.map((item, index) => (
-        <BreadcrumbItem key={item.name} className="inline-flex items-center gap-1">
-          {item.href ? (
-            <BreadcrumbLink render={<Link href={item.href} />}>{item.name}</BreadcrumbLink>
-          ) : (
-            <BreadcrumbPage>{item.name}</BreadcrumbPage>
-          )}
+        <Fragment key={`${index}-${item.name}`}>
+          <BreadcrumbItem>
+            {item.href ? (
+              <BreadcrumbLink render={<Link href={item.href} />}>{item.name}</BreadcrumbLink>
+            ) : (
+              <BreadcrumbPage>{item.name}</BreadcrumbPage>
+            )}
+          </BreadcrumbItem>
           {index < items.length - 1 && <BreadcrumbSeparator />}
-        </BreadcrumbItem>
+        </Fragment>
       ))}
     </BreadcrumbList>
   </BreadcrumbRoot>
