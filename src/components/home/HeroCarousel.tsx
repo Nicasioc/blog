@@ -70,7 +70,7 @@ export const HeroCarousel = ({ posts }: Props) => {
               className="w-full shrink-0 snap-center"
             >
               <Link href={`/blog/${post.slug}`} className="group block">
-                <div className="relative aspect-[16/9] overflow-hidden rounded-xl md:aspect-[21/9]">
+                <div className="relative aspect-[21/9] overflow-hidden rounded-xl md:aspect-[3/1]">
                   {post.featuredImage ? (
                     <>
                       <Image
