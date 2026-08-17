@@ -1,9 +1,13 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getPostBySlug } from '@/application/blog/getPostBySlug'
 import { fetchAllPostSlugs } from '@/persistence/payload/repositories/postRepository'
 import { generatePostMetadata } from '@/domain/seo/metadata.utils'
+import { formatPostDateLong } from '@/domain/post/postDate.utils'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
 import { siteConfig } from '@/lib/siteConfig'
 import { clientEnv } from '@/lib/env.client'
 import { PostJsonLd } from '@/components/seo/PostJsonLd'
@@ -50,9 +54,9 @@ export default async function PostPage({ params }: Props) {
           { name: post.title, url: post.canonicalUrl },
         ]}
       />
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_300px]">
-          <article>
+      <div className="container mx-auto px-4 py-10">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-12">
+          <article className="min-w-0">
             <Breadcrumb
               items={[
                 { name: 'Home', href: '/' },
@@ -60,22 +64,43 @@ export default async function PostPage({ params }: Props) {
                 { name: post.title },
               ]}
             />
-            <h1 className="mt-4 mb-2 text-3xl font-bold">{post.title}</h1>
-            <p className="text-muted-foreground mb-6 text-sm">
-              {post.publishedAt.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}{' '}
-              · {post.author.name}
-            </p>
+            <header className="mt-6 mb-8">
+              {post.categories.length > 0 && (
+                <div className="mb-3 flex flex-wrap gap-2">
+                  {post.categories.map((cat) => (
+                    <Badge key={cat.id} render={<Link href={`/category/${cat.slug}`} />}>
+                      {cat.name}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+              <h1 className="text-3xl leading-tight font-bold tracking-tight text-balance sm:text-4xl">
+                {post.title}
+              </h1>
+              <div className="text-muted-foreground mt-5 flex items-center gap-3 text-sm">
+                <Avatar size="sm">
+                  {post.author.avatarUrl && (
+                    <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
+                  )}
+                  <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <span>
+                  <span className="text-foreground font-medium">{post.author.name}</span>
+                  <span className="mx-1.5">&middot;</span>
+                  <time dateTime={post.publishedAt.toISOString()}>
+                    {formatPostDateLong(post.publishedAt)}
+                  </time>
+                </span>
+              </div>
+            </header>
             {post.featuredImage && (
               <Image
                 src={post.featuredImage.url}
                 alt={post.featuredImage.alt}
                 width={post.featuredImage.width}
                 height={post.featuredImage.height}
-                className="mb-6 w-full rounded-lg"
+                sizes="(min-width: 1024px) 66vw, 100vw"
+                className="ring-foreground/10 mb-10 w-full rounded-xl ring-1"
                 priority
               />
             )}

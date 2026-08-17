@@ -1,5 +1,6 @@
 import { getHomepageData } from '@/application/blog/getHomepageData'
 import { Sidebar } from '@/components/layout/Sidebar'
+import { SectionHeading } from '@/components/layout/SectionHeading'
 import { PostCard } from '@/components/post/PostCard'
 import { PostList } from '@/components/post/PostList'
 
@@ -8,19 +9,17 @@ export const revalidate = 1800
 export default async function HomePage() {
   const { featuredPost, recentPosts, categories } = await getHomepageData()
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_300px]">
-        <div className="space-y-8">
+    <div className="container mx-auto px-4 py-10">
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-12">
+        <div className="min-w-0 space-y-12">
           {featuredPost && (
             <section>
-              <h2 className="text-brand-secondary border-brand-secondary mb-3 border-l-4 pl-2 text-sm font-semibold tracking-wide uppercase">
-                Featured
-              </h2>
-              <PostCard post={featuredPost} />
+              <SectionHeading eyebrow="Featured" title="Editor's pick" />
+              <PostCard post={featuredPost} featured />
             </section>
           )}
           <section>
-            <h2 className="mb-4 text-xl font-bold">Latest Posts</h2>
+            <SectionHeading eyebrow="Fresh off the press" title="Latest posts" />
             <PostList posts={recentPosts} />
           </section>
         </div>
