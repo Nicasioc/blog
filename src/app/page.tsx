@@ -15,7 +15,7 @@ export default async function HomePage() {
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-12">
           <div className="min-w-0 space-y-12">
             <section>
-              <SectionHeading eyebrow="Fresh off the press" title="Latest posts" />
+              <SectionHeading title="Más Noticias" />
               <PostList posts={recentPosts} />
             </section>
           </div>
