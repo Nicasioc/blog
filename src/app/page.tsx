@@ -9,17 +9,19 @@ export const revalidate = 1800
 export default async function HomePage() {
   const { heroPosts, recentPosts, categories } = await getHomepageData()
   return (
-    <div className="container mx-auto px-4 py-10">
+    <>
       {heroPosts.length > 0 && <HeroCarousel posts={heroPosts} />}
-      <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-12">
-        <div className="min-w-0 space-y-12">
-          <section>
-            <SectionHeading eyebrow="Fresh off the press" title="Latest posts" />
-            <PostList posts={recentPosts} />
-          </section>
+      <div className="container mx-auto px-4 py-10">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-12">
+          <div className="min-w-0 space-y-12">
+            <section>
+              <SectionHeading eyebrow="Fresh off the press" title="Latest posts" />
+              <PostList posts={recentPosts} />
+            </section>
+          </div>
+          <Sidebar categories={categories} />
         </div>
-        <Sidebar categories={categories} />
       </div>
-    </div>
+    </>
   )
 }
