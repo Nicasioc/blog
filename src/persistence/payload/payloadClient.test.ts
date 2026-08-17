@@ -76,6 +76,28 @@ describe('payloadFetch', () => {
     expect(dataUrl.searchParams.get('select[slug]')).toBe('true')
   })
 
+  it('sets the sort param when provided', async () => {
+    const fetchMock = vi.mocked(fetch)
+    fetchMock.mockResolvedValueOnce(tenantResponse() as Response)
+    fetchMock.mockResolvedValueOnce(listResponse([]) as Response)
+
+    await payloadFetch('/posts', { sort: '-publishedAt' })
+
+    const dataUrl = new URL(fetchMock.mock.calls[1][0] as string)
+    expect(dataUrl.searchParams.get('sort')).toBe('-publishedAt')
+  })
+
+  it('omits the sort param when not provided', async () => {
+    const fetchMock = vi.mocked(fetch)
+    fetchMock.mockResolvedValueOnce(tenantResponse() as Response)
+    fetchMock.mockResolvedValueOnce(listResponse([]) as Response)
+
+    await payloadFetch('/posts')
+
+    const dataUrl = new URL(fetchMock.mock.calls[1][0] as string)
+    expect(dataUrl.searchParams.has('sort')).toBe(false)
+  })
+
   it('defaults depth to 2 and allows overriding it', async () => {
     const fetchMock = vi.mocked(fetch)
     fetchMock.mockResolvedValueOnce(listResponse([]) as Response)
