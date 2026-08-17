@@ -13,6 +13,7 @@ type PostsListParams = {
   perPage?: number
   categoryId?: number
   tagId?: number
+  featured?: boolean
 }
 
 export type PostsListResult = {
@@ -29,18 +30,27 @@ const POSTS_SORT = '-publishedAt'
 // scoping — WORDPRESS_CATEGORY_ID/TAG_ID's shared-instance-scoping role is now
 // handled automatically by payloadFetch's tenant filter, so unlike WP's version this
 // never defaults them from env.
-const buildPostsWhere = ({ categoryId, tagId }: { categoryId?: number; tagId?: number }) => {
+const buildPostsWhere = ({
+  categoryId,
+  tagId,
+  featured,
+}: {
+  categoryId?: number
+  tagId?: number
+  featured?: boolean
+}) => {
   const where: WhereClause = { _status: { equals: 'published' } }
   if (categoryId !== undefined) where.categories = { in: String(categoryId) }
   if (tagId !== undefined) where.tags = { in: String(tagId) }
+  if (featured === true) where.featured = { equals: true }
   return where
 }
 
 export const fetchPostsList = async (params: PostsListParams = {}): Promise<PostsListResult> => {
-  const { page = 1, perPage = 10, categoryId, tagId } = params
+  const { page = 1, perPage = 10, categoryId, tagId, featured } = params
 
   const result = await payloadFetch<PayloadPostDto>('/posts', {
-    where: buildPostsWhere({ categoryId, tagId }),
+    where: buildPostsWhere({ categoryId, tagId, featured }),
     page,
     limit: perPage,
     sort: POSTS_SORT,

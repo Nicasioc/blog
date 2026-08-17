@@ -75,6 +75,31 @@ describe('fetchPostsList', () => {
     )
   })
 
+  it('adds the featured where clause when featured is true', async () => {
+    vi.mocked(payloadFetch).mockResolvedValue(makeResult([]))
+
+    await fetchPostsList({ featured: true })
+
+    expect(payloadFetch).toHaveBeenCalledWith(
+      '/posts',
+      expect.objectContaining({
+        where: { _status: { equals: 'published' }, featured: { equals: true } },
+      }),
+    )
+  })
+
+  it('does not add the featured where clause when featured is false or omitted', async () => {
+    vi.mocked(payloadFetch).mockResolvedValue(makeResult([]))
+
+    await fetchPostsList({ featured: false })
+    await fetchPostsList()
+
+    expect(payloadFetch).toHaveBeenCalledWith(
+      '/posts',
+      expect.objectContaining({ where: { _status: { equals: 'published' } } }),
+    )
+  })
+
   it('maps and returns pagination metadata', async () => {
     vi.mocked(payloadFetch).mockResolvedValue(makeResult([{ slug: 'a' }], 25, 3))
 
