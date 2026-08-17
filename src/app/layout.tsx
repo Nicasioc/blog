@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     default: siteConfig.siteName,
     template: `%s | ${siteConfig.siteName}`,
   },
-  description: `${siteConfig.siteName} — latest news and updates`,
+  description: `${siteConfig.siteName} — últimas noticias y novedades`,
   robots: { index: true, follow: true },
   icons: {
     icon: serverEnv.SITE_FAVICON_URL ?? '/favicon.ico',
@@ -31,7 +31,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={inter.className}>
+    <html lang="es" className={inter.className}>
       <head>
         <style>{`
           :root {
