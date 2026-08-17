@@ -1,28 +1,27 @@
 import { ContentHtml } from './ContentHtml'
 import { AdSlot } from '@/components/ads/AdSlot'
+import { splitContentForAd } from '@/domain/post/splitContentForAd'
 
 type Props = { content: string }
 
-export const PostBody = ({ content }: Props) => {
-  const parts = content.split('</p>')
-  const splitAt = Math.min(3, Math.floor(parts.length / 2))
+const PROSE_CLASS = 'prose prose-lg prose-headings:tracking-tight max-w-[72ch]'
 
-  if (splitAt === 0) {
+export const PostBody = ({ content }: Props) => {
+  const split = splitContentForAd(content)
+
+  if (!split) {
     return (
-      <div className="prose prose-lg max-w-none">
+      <div className={PROSE_CLASS}>
         <ContentHtml html={content} />
       </div>
     )
   }
 
-  const before = parts.slice(0, splitAt).join('</p>') + '</p>'
-  const after = parts.slice(splitAt).join('</p>')
-
   return (
-    <div className="prose prose-lg max-w-none">
-      <ContentHtml html={before} />
+    <div className={PROSE_CLASS}>
+      <ContentHtml html={split.before} />
       <AdSlot placement="in-content" className="not-prose my-6" />
-      <ContentHtml html={after} />
+      <ContentHtml html={split.after} />
     </div>
   )
 }

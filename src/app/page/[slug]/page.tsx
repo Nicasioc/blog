@@ -5,6 +5,7 @@ import { fetchAllPageSlugs } from '@/persistence/payload/repositories/pageReposi
 import { generatePageMetadata } from '@/domain/seo/metadata.utils'
 import { siteConfig } from '@/lib/siteConfig'
 import { ContentHtml } from '@/components/post/ContentHtml'
+import { PageHeader } from '@/components/layout/PageHeader'
 
 export const revalidate = 86400
 
@@ -27,9 +28,9 @@ export default async function WpStaticPage({ params }: Props) {
   if (!page) notFound()
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-6 text-3xl font-bold">{page.title}</h1>
-      <div className="prose prose-lg max-w-none">
+    <div className="container mx-auto max-w-3xl px-4 py-10">
+      <PageHeader title={page.title} />
+      <div className="prose prose-lg prose-headings:tracking-tight max-w-none">
         <ContentHtml html={page.content} />
       </div>
     </div>

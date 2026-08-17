@@ -6,6 +6,7 @@ import { siteConfig } from '@/lib/siteConfig'
 import { clientEnv } from '@/lib/env.client'
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 import { Sidebar } from '@/components/layout/Sidebar'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { PostList } from '@/components/post/PostList'
 import { Breadcrumb } from '@/components/navigation/Breadcrumb'
 import { Pagination } from '@/components/navigation/Pagination'
@@ -42,11 +43,11 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           { name: data.category.name, url: `${siteUrl}/category/${slug}` },
         ]}
       />
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_300px]">
-          <div>
+      <div className="container mx-auto px-4 py-10">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-12">
+          <div className="min-w-0">
             <Breadcrumb items={[{ name: 'Home', href: '/' }, { name: data.category.name }]} />
-            <h1 className="mt-4 mb-6 text-3xl font-bold">{data.category.name}</h1>
+            <PageHeader className="mt-6" eyebrow="Category" title={data.category.name} />
             <PostList posts={data.posts} />
             <Pagination pagination={data.pagination} basePath={`/category/${slug}`} />
           </div>

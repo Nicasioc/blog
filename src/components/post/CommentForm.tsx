@@ -3,6 +3,10 @@ import { useState, useTransition } from 'react'
 import { submitComment } from '@/application/blog/submitComment'
 import type { CommentSubmission } from '@/domain/comment/comment.model'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { SectionHeading } from '@/components/layout/SectionHeading'
 
 type Props = { postId: number }
 
@@ -36,36 +40,48 @@ export const CommentForm = ({ postId }: Props) => {
   }
 
   return (
-    <section className="mt-12">
-      <h2 className="mb-4 text-xl font-bold">Leave a Comment</h2>
+    <section className="mt-16">
+      <SectionHeading eyebrow="Join in" title="Leave a comment" />
       {status === 'success' ? (
-        <p className="text-muted-foreground rounded-lg border p-4 text-sm">
+        <p className="bg-muted/40 ring-foreground/10 text-muted-foreground rounded-xl p-5 text-sm ring-1">
           Your comment has been submitted and is awaiting moderation. Thank you!
         </p>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-muted/40 ring-foreground/10 space-y-4 rounded-xl p-5 ring-1"
+        >
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <input
-              name="authorName"
+            <div className="space-y-2">
+              <Label htmlFor="authorName">Name</Label>
+              <Input id="authorName" name="authorName" required placeholder="Jane Doe" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="authorEmail">Email</Label>
+              <Input
+                id="authorEmail"
+                name="authorEmail"
+                type="email"
+                required
+                placeholder="jane@example.com"
+                aria-describedby="authorEmail-hint"
+              />
+              <p id="authorEmail-hint" className="text-muted-foreground text-xs">
+                Not displayed publicly.
+              </p>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="content">Comment</Label>
+            <Textarea
+              id="content"
+              name="content"
               required
-              placeholder="Name *"
-              className="focus:ring-brand-primary w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
-            />
-            <input
-              name="authorEmail"
-              type="email"
-              required
-              placeholder="Email * (not displayed)"
-              className="focus:ring-brand-primary w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+              rows={5}
+              placeholder="Share your thoughts…"
+              className="min-h-32"
             />
           </div>
-          <textarea
-            name="content"
-            required
-            rows={5}
-            placeholder="Your comment..."
-            className="focus:ring-brand-primary w-full resize-none rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
-          />
           {status === 'error' && <p className="text-destructive text-sm">{errorMessage}</p>}
           <Button type="submit" disabled={isPending}>
             {isPending ? 'Submitting…' : 'Post Comment'}
