@@ -48,20 +48,20 @@ describe('HeroCarousel', () => {
 
   it('renders one dot per post', () => {
     render(<HeroCarousel posts={[makePost({ id: 1 }), makePost({ id: 2 })]} />)
-    expect(screen.getAllByRole('button', { name: /Go to slide/ })).toHaveLength(2)
+    expect(screen.getAllByRole('button', { name: /Ir a la diapositiva/ })).toHaveLength(2)
   })
 
   it('hides arrows and dots for a single post', () => {
     render(<HeroCarousel posts={[makePost()]} />)
-    expect(screen.queryByLabelText('Previous slide')).not.toBeInTheDocument()
-    expect(screen.queryByLabelText('Next slide')).not.toBeInTheDocument()
-    expect(screen.queryByLabelText(/Go to slide/)).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Diapositiva anterior')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Diapositiva siguiente')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText(/Ir a la diapositiva/)).not.toBeInTheDocument()
   })
 
   it('disables the previous arrow on the first slide, not the next', () => {
     render(<HeroCarousel posts={[makePost({ id: 1 }), makePost({ id: 2 })]} />)
-    expect(screen.getByLabelText('Previous slide')).toBeDisabled()
-    expect(screen.getByLabelText('Next slide')).not.toBeDisabled()
+    expect(screen.getByLabelText('Diapositiva anterior')).toBeDisabled()
+    expect(screen.getByLabelText('Diapositiva siguiente')).not.toBeDisabled()
   })
 
   it('renders the bg-primary fallback when a post has no featured image', () => {

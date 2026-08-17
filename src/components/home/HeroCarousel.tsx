@@ -52,7 +52,7 @@ export const HeroCarousel = ({ posts }: Props) => {
   }
 
   return (
-    <section aria-roledescription="carousel" aria-label="Featured posts">
+    <section aria-roledescription="carousel" aria-label="Publicaciones destacadas">
       <div className="relative">
         <div
           ref={trackRef}
@@ -66,7 +66,7 @@ export const HeroCarousel = ({ posts }: Props) => {
               }}
               role="group"
               aria-roledescription="slide"
-              aria-label={`${index + 1} of ${posts.length}`}
+              aria-label={`${index + 1} de ${posts.length}`}
               className="w-full shrink-0 snap-center"
             >
               <Link href={`/blog/${post.slug}`} className="group block">
@@ -123,7 +123,7 @@ export const HeroCarousel = ({ posts }: Props) => {
             <Button
               variant="secondary"
               size="icon"
-              aria-label="Previous slide"
+              aria-label="Diapositiva anterior"
               disabled={activeIndex === 0}
               onClick={() => scrollToIndex(activeIndex - 1)}
               className="absolute top-1/2 left-2 -translate-y-1/2"
@@ -133,7 +133,7 @@ export const HeroCarousel = ({ posts }: Props) => {
             <Button
               variant="secondary"
               size="icon"
-              aria-label="Next slide"
+              aria-label="Diapositiva siguiente"
               disabled={activeIndex === posts.length - 1}
               onClick={() => scrollToIndex(activeIndex + 1)}
               className="absolute top-1/2 right-2 -translate-y-1/2"
@@ -150,7 +150,7 @@ export const HeroCarousel = ({ posts }: Props) => {
             <button
               key={post.id}
               type="button"
-              aria-label={`Go to slide ${index + 1}`}
+              aria-label={`Ir a la diapositiva ${index + 1}`}
               aria-current={index === activeIndex ? 'true' : undefined}
               onClick={() => scrollToIndex(index)}
               className={cn(
