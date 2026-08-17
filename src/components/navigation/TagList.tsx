@@ -9,7 +9,7 @@ export const TagList = ({ tags }: Props) => {
   return (
     <div className="mt-10 flex flex-wrap items-center gap-2 border-t pt-6">
       <span className="text-muted-foreground tracking-eyebrow mr-1 text-xs font-semibold uppercase">
-        Tags
+        Etiquetas
       </span>
       {tags.map((tag) => (
         <Badge
