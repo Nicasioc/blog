@@ -4,6 +4,7 @@ import {
   generateCategoryMetadata,
   generateTagMetadata,
   generatePageMetadata,
+  generateStaticPageMetadata,
 } from '@/domain/seo/metadata.utils'
 import type { Post } from '@/domain/post/post.model'
 import type { Page } from '@/domain/page/page.model'
@@ -15,6 +16,7 @@ const mockSiteConfig: SiteConfig = {
   siteName: 'Test FC News',
   siteUrl: 'https://testfc.com',
   logoUrl: '/logo.svg',
+  contactEmail: 'hola@testfc.com',
   theme: { primary: '#ffffff', secondary: '#000000', primaryForeground: '#000000' },
   adProvider: 'adsense',
   adSensePublisherId: undefined,
@@ -177,5 +179,27 @@ describe('generatePageMetadata', () => {
   it('sets canonical URL', () => {
     const meta = generatePageMetadata(page, mockSiteConfig)
     expect(meta.alternates?.canonical).toBe('https://testfc.com/page/about')
+  })
+})
+
+describe('generateStaticPageMetadata', () => {
+  const page = { href: '/privacy', title: 'Política de Privacidad' }
+
+  it('uses the page title and the provided description', () => {
+    const meta = generateStaticPageMetadata(page, 'Cómo tratamos tus datos.', mockSiteConfig)
+    expect(meta.title).toBe('Política de Privacidad')
+    expect(meta.description).toBe('Cómo tratamos tus datos.')
+  })
+
+  it('builds the canonical url from the site url and the page href', () => {
+    const meta = generateStaticPageMetadata(page, 'desc', mockSiteConfig)
+    expect(meta.alternates?.canonical).toBe('https://testfc.com/privacy')
+  })
+
+  it('exposes an open graph object pointing at the canonical url', () => {
+    const meta = generateStaticPageMetadata(page, 'desc', mockSiteConfig)
+    expect(meta.openGraph?.siteName).toBe('Test FC News')
+    expect(meta.openGraph?.url).toBe('https://testfc.com/privacy')
+    expect(meta.openGraph?.title).toBe('Política de Privacidad')
   })
 })

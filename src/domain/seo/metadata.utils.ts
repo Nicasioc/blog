@@ -4,6 +4,7 @@ import type { Page } from '@/domain/page/page.model'
 import type { Category } from '@/domain/category/category.model'
 import type { Tag } from '@/domain/tag/tag.model'
 import type { SiteConfig } from '@/lib/siteConfig'
+import type { StaticPage } from '@/lib/staticPages'
 
 export const generatePostMetadata = (post: Post, siteConfig: SiteConfig): Metadata => {
   const title = post.seo?.metaTitle ?? post.title
@@ -86,3 +87,20 @@ export const generatePageMetadata = (page: Page, siteConfig: SiteConfig): Metada
     },
   }
 }
+
+export const generateStaticPageMetadata = (
+  page: StaticPage,
+  description: string,
+  siteConfig: SiteConfig,
+): Metadata => ({
+  title: page.title,
+  description,
+  alternates: { canonical: `${siteConfig.siteUrl}${page.href}` },
+  openGraph: {
+    title: page.title,
+    description,
+    type: 'website',
+    url: `${siteConfig.siteUrl}${page.href}`,
+    siteName: siteConfig.siteName,
+  },
+})
