@@ -6,8 +6,15 @@ import Link from 'next/link'
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { formatPostDate } from '@/domain/post/postDate.utils'
 import { cn } from '@/lib/utils'
 import type { Post } from '@/domain/post/post.model'
+
+// Featured-image hosting is broken, so every slide renders the text-only treatment
+// below regardless of whether the post has a featuredImage. Flip this back to `true`
+// once hosting is restored — the <Image> path is untouched, this is a one-line revert.
+const SHOW_FEATURED_IMAGES: boolean = false
 
 type Props = { posts: Post[] }
 
@@ -71,7 +78,7 @@ export const HeroCarousel = ({ posts }: Props) => {
             >
               <Link href={`/blog/${post.slug}`} className="group block">
                 <div className="relative aspect-[21/9] overflow-hidden rounded-xl md:aspect-[3/1]">
-                  {post.featuredImage ? (
+                  {SHOW_FEATURED_IMAGES && post.featuredImage ? (
                     <>
                       <Image
                         src={post.featuredImage.url}
@@ -82,36 +89,58 @@ export const HeroCarousel = ({ posts }: Props) => {
                         className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                      <div className="absolute inset-x-0 bottom-0 p-6 md:p-8">
+                        {post.categories[0] && (
+                          <Badge variant="default" className="mb-3">
+                            {post.categories[0].name}
+                          </Badge>
+                        )}
+                        <h2 className="text-2xl font-bold text-balance text-white md:text-4xl">
+                          {post.title}
+                        </h2>
+                        <p className="mt-2 line-clamp-2 hidden text-white/80 md:block">
+                          {post.excerpt}
+                        </p>
+                      </div>
                     </>
                   ) : (
-                    <div className="bg-primary absolute inset-0" />
+                    <>
+                      <div className="bg-primary absolute inset-0" />
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/15" />
+                      <div className="ring-primary-foreground/15 absolute inset-0 rounded-xl ring-1 ring-inset" />
+                      <div className="relative flex h-full max-w-2xl flex-col justify-center gap-3 p-6 md:gap-4 md:p-10">
+                        {post.categories[0] && (
+                          <Badge variant="secondary" className="w-fit">
+                            {post.categories[0].name}
+                          </Badge>
+                        )}
+                        <div>
+                          <h2 className="text-primary-foreground text-2xl font-bold text-balance md:text-4xl">
+                            {post.title}
+                          </h2>
+                          <div className="bg-brand-secondary mt-3 h-0.5 w-10 rounded-full" />
+                        </div>
+                        <p className="text-primary-foreground/80 line-clamp-2 hidden md:block">
+                          {post.excerpt}
+                        </p>
+                        <div className="text-primary-foreground/70 mt-1 flex items-center gap-2 text-xs">
+                          <Avatar size="sm" aria-hidden="true">
+                            {post.author.avatarUrl && (
+                              <AvatarImage src={post.author.avatarUrl} alt="" />
+                            )}
+                            <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <span className="text-primary-foreground/90 font-medium">
+                            {post.author.name}
+                          </span>
+                          <span className="mx-0.5">&middot;</span>
+                          <time dateTime={post.publishedAt.toISOString()}>
+                            {formatPostDate(post.publishedAt)}
+                          </time>
+                        </div>
+                      </div>
+                    </>
                   )}
-                  <div className="absolute inset-x-0 bottom-0 p-6 md:p-8">
-                    {post.categories[0] && (
-                      <Badge
-                        variant={post.featuredImage ? 'default' : 'secondary'}
-                        className="mb-3"
-                      >
-                        {post.categories[0].name}
-                      </Badge>
-                    )}
-                    <h2
-                      className={cn(
-                        'text-2xl font-bold text-balance md:text-4xl',
-                        post.featuredImage ? 'text-white' : 'text-primary-foreground',
-                      )}
-                    >
-                      {post.title}
-                    </h2>
-                    <p
-                      className={cn(
-                        'mt-2 hidden line-clamp-2 md:block',
-                        post.featuredImage ? 'text-white/80' : 'text-primary-foreground/80',
-                      )}
-                    >
-                      {post.excerpt}
-                    </p>
-                  </div>
                 </div>
               </Link>
             </article>
