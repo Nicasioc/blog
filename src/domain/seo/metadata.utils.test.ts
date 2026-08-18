@@ -117,7 +117,7 @@ describe('generateCategoryMetadata', () => {
 
   it('falls back to generic description when category description is empty', () => {
     const meta = generateCategoryMetadata({ ...category, description: '' }, mockSiteConfig)
-    expect(meta.description).toBe('Latest Transfers news and updates.')
+    expect(meta.description).toBe('Últimas noticias y novedades de Transfers.')
   })
 
   it('sets canonical URL', () => {
@@ -142,7 +142,7 @@ describe('generateTagMetadata', () => {
 
   it('falls back to generic description when tag description is empty', () => {
     const meta = generateTagMetadata(tag, mockSiteConfig)
-    expect(meta.description).toBe('Latest articles tagged Champions League.')
+    expect(meta.description).toBe('Últimos artículos etiquetados con Champions League.')
   })
 
   it('sets canonical URL', () => {

@@ -11,7 +11,7 @@ export const AuthorCard = ({ author }: Props) => (
     </Avatar>
     <div className="min-w-0">
       <p className="text-brand-secondary tracking-eyebrow text-xs font-semibold uppercase">
-        Written by
+        Escrito por
       </p>
       <p className="mt-0.5 font-semibold">{author.name}</p>
       {author.description && (

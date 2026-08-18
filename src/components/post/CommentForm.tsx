@@ -41,10 +41,10 @@ export const CommentForm = ({ postId }: Props) => {
 
   return (
     <section className="mt-16">
-      <SectionHeading eyebrow="Join in" title="Leave a comment" />
+      <SectionHeading eyebrow="Comentarios" title="Dejar un comentario" />
       {status === 'success' ? (
         <p className="bg-muted/40 ring-foreground/10 text-muted-foreground rounded-xl p-5 text-sm ring-1">
-          Your comment has been submitted and is awaiting moderation. Thank you!
+          Tu comentario fue enviado y está a la espera de moderación. ¡Gracias!
         </p>
       ) : (
         <form
@@ -53,38 +53,38 @@ export const CommentForm = ({ postId }: Props) => {
         >
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="authorName">Name</Label>
-              <Input id="authorName" name="authorName" required placeholder="Jane Doe" />
+              <Label htmlFor="authorName">Nombre</Label>
+              <Input id="authorName" name="authorName" required placeholder="Juan Pérez" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="authorEmail">Email</Label>
+              <Label htmlFor="authorEmail">Correo electrónico</Label>
               <Input
                 id="authorEmail"
                 name="authorEmail"
                 type="email"
                 required
-                placeholder="jane@example.com"
+                placeholder="juan@ejemplo.com"
                 aria-describedby="authorEmail-hint"
               />
               <p id="authorEmail-hint" className="text-muted-foreground text-xs">
-                Not displayed publicly.
+                No se muestra públicamente.
               </p>
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="content">Comment</Label>
+            <Label htmlFor="content">Comentario</Label>
             <Textarea
               id="content"
               name="content"
               required
               rows={5}
-              placeholder="Share your thoughts…"
+              placeholder="Comparte tu opinión…"
               className="min-h-32"
             />
           </div>
           {status === 'error' && <p className="text-destructive text-sm">{errorMessage}</p>}
           <Button type="submit" disabled={isPending}>
-            {isPending ? 'Submitting…' : 'Post Comment'}
+            {isPending ? 'Enviando…' : 'Publicar comentario'}
           </Button>
         </form>
       )}

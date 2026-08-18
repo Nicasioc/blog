@@ -3,7 +3,7 @@ import { SiteLogo } from './SiteLogo'
 import { AdSlot } from '@/components/ads/AdSlot'
 
 const NAV_LINKS = [
-  { label: 'Home', href: '/' },
+  { label: 'Inicio', href: '/' },
   { label: 'Blog', href: '/blog' },
 ]
 

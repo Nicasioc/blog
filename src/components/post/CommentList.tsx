@@ -10,8 +10,8 @@ export const CommentList = ({ comments }: Props) => {
   return (
     <section className="mt-16">
       <SectionHeading
-        eyebrow="Discussion"
-        title={`${comments.length} ${comments.length === 1 ? 'comment' : 'comments'}`}
+        eyebrow="Comentarios"
+        title={`${comments.length} ${comments.length === 1 ? 'comentario' : 'comentarios'}`}
       />
       <div className="divide-border divide-y">
         {comments.map((comment) => (

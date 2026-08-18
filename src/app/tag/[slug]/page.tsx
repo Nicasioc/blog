@@ -35,8 +35,8 @@ export default async function TagPage({ params, searchParams }: Props) {
     <div className="container mx-auto px-4 py-10">
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-12">
         <div className="min-w-0">
-          <Breadcrumb items={[{ name: 'Home', href: '/' }, { name: data.tag.name }]} />
-          <PageHeader className="mt-6" eyebrow="Tag" title={data.tag.name} />
+          <Breadcrumb items={[{ name: 'Inicio', href: '/' }, { name: data.tag.name }]} />
+          <PageHeader className="mt-6" eyebrow="Etiqueta" title={data.tag.name} />
           <PostList posts={data.posts} />
           <Pagination pagination={data.pagination} basePath={`/tag/${slug}`} />
         </div>

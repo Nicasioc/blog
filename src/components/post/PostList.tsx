@@ -3,7 +3,7 @@ import type { Post } from '@/domain/post/post.model'
 
 type Props = { posts: Post[]; emptyMessage?: string }
 
-export const PostList = ({ posts, emptyMessage = 'No posts published yet.' }: Props) => {
+export const PostList = ({ posts, emptyMessage = 'Todavía no hay publicaciones.' }: Props) => {
   if (posts.length === 0) {
     return (
       <p className="bg-muted/40 ring-foreground/10 text-muted-foreground rounded-xl p-8 text-center text-sm ring-1">

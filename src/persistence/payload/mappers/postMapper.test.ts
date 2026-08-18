@@ -56,7 +56,7 @@ describe('mapPayloadPostToPost', () => {
     expect(post.author).toEqual({
       id: 7,
       slug: '',
-      name: 'Unknown',
+      name: 'Desconocido',
       description: '',
       avatarUrl: null,
       profileUrl: '',

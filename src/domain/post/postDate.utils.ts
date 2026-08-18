@@ -14,7 +14,7 @@ const isValidDate = (value: unknown): value is Date =>
   value instanceof Date && !Number.isNaN(value.getTime())
 
 const format = (value: Date, options: Intl.DateTimeFormatOptions): string =>
-  isValidDate(value) ? value.toLocaleDateString('en-US', options) : ''
+  isValidDate(value) ? value.toLocaleDateString('es', options) : ''
 
 export const formatPostDate = (value: Date): string => format(value, SHORT_FORMAT)
 

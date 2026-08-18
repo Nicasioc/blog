@@ -36,7 +36,7 @@ export const generatePostMetadata = (post: Post, siteConfig: SiteConfig): Metada
 
 export const generateCategoryMetadata = (category: Category, siteConfig: SiteConfig): Metadata => {
   const title = `${category.name} — ${siteConfig.siteName}`
-  const description = category.description || `Latest ${category.name} news and updates.`
+  const description = category.description || `Últimas noticias y novedades de ${category.name}.`
 
   return {
     title,
@@ -53,7 +53,7 @@ export const generateCategoryMetadata = (category: Category, siteConfig: SiteCon
 
 export const generateTagMetadata = (tag: Tag, siteConfig: SiteConfig): Metadata => {
   const title = `${tag.name} — ${siteConfig.siteName}`
-  const description = tag.description || `Latest articles tagged ${tag.name}.`
+  const description = tag.description || `Últimos artículos etiquetados con ${tag.name}.`
 
   return {
     title,

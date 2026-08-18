@@ -7,7 +7,7 @@ export const Footer = () => (
       <AdSlot placement="footer" />
     </div>
     <p className="text-primary-foreground/60 container mx-auto px-4 py-6 text-center text-xs">
-      &copy; {new Date().getFullYear()} {siteConfig.siteName}. All rights reserved.
+      &copy; {new Date().getFullYear()} {siteConfig.siteName}. Todos los derechos reservados.
     </p>
   </footer>
 )
