@@ -15,6 +15,7 @@ type PayloadFetchOptions = {
   depth?: number
   limit?: number
   page?: number
+  sort?: string
   select?: string[]
   tags?: string[]
   revalidate?: number
@@ -65,6 +66,7 @@ export const payloadFetch = async <T>(
     depth = 2,
     limit,
     page,
+    sort,
     select = [],
     tags = [],
     revalidate = serverEnv.REVALIDATE_POSTS,
@@ -80,6 +82,7 @@ export const payloadFetch = async <T>(
   url.searchParams.set('depth', String(depth))
   if (limit !== undefined) url.searchParams.set('limit', String(limit))
   if (page !== undefined) url.searchParams.set('page', String(page))
+  if (sort !== undefined) url.searchParams.set('sort', sort)
 
   Object.entries(effectiveWhere).forEach(([field, conditions]) => {
     Object.entries(conditions).forEach(([operator, value]) => {

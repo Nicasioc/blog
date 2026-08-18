@@ -40,7 +40,12 @@ describe('fetchPostsList', () => {
 
     expect(payloadFetch).toHaveBeenCalledWith(
       '/posts',
-      expect.objectContaining({ where: { _status: { equals: 'published' } }, page: 1, limit: 10 }),
+      expect.objectContaining({
+        where: { _status: { equals: 'published' } },
+        page: 1,
+        limit: 10,
+        sort: '-publishedAt',
+      }),
     )
   })
 
@@ -116,6 +121,7 @@ describe('fetchRelatedPosts', () => {
           _status: { equals: 'published' },
         },
         limit: 3,
+        sort: '-publishedAt',
       }),
     )
   })

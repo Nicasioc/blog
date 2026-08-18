@@ -21,6 +21,10 @@ export type PostsListResult = {
   totalPages: number
 }
 
+// Payload's default order is createdAt, not publishedAt — "latest" should mean
+// latest by publish date, not by the order rows happened to be inserted.
+const POSTS_SORT = '-publishedAt'
+
 // categoryId/tagId are archive-page filters (e.g. getCategoryArchive.ts), not tenant
 // scoping — WORDPRESS_CATEGORY_ID/TAG_ID's shared-instance-scoping role is now
 // handled automatically by payloadFetch's tenant filter, so unlike WP's version this
@@ -39,6 +43,7 @@ export const fetchPostsList = async (params: PostsListParams = {}): Promise<Post
     where: buildPostsWhere({ categoryId, tagId }),
     page,
     limit: perPage,
+    sort: POSTS_SORT,
     tags: ['posts'],
     revalidate: serverEnv.REVALIDATE_POSTS,
   })
@@ -75,6 +80,7 @@ export const fetchRelatedPosts = async (
       _status: { equals: 'published' },
     },
     limit: 3,
+    sort: POSTS_SORT,
     tags: ['posts'],
     revalidate: serverEnv.REVALIDATE_POSTS,
   })
