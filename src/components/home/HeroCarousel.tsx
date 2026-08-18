@@ -1,0 +1,195 @@
+'use client'
+
+import { useEffect, useRef, useState } from 'react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { formatPostDate } from '@/domain/post/postDate.utils'
+import { cn } from '@/lib/utils'
+import type { Post } from '@/domain/post/post.model'
+
+// Featured-image hosting is broken, so every slide renders the text-only treatment
+// below regardless of whether the post has a featuredImage. Flip this back to `true`
+// once hosting is restored — the <Image> path is untouched, this is a one-line revert.
+const SHOW_FEATURED_IMAGES: boolean = false
+
+type Props = { posts: Post[] }
+
+export const HeroCarousel = ({ posts }: Props) => {
+  const trackRef = useRef<HTMLDivElement>(null)
+  const slideRefs = useRef<(HTMLElement | null)[]>([])
+  const [activeIndex, setActiveIndex] = useState(0)
+
+  const showControls = posts.length > 1
+
+  useEffect(() => {
+    const track = trackRef.current
+    if (!track || !showControls) return
+
+    // Reports the visible slide directly from scroll position — correct whether the
+    // user clicked an arrow/dot or swiped natively, with no debouncing to get wrong.
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.find((entry) => entry.isIntersecting)
+        if (!visible) return
+        const index = slideRefs.current.findIndex((slide) => slide === visible.target)
+        if (index !== -1) setActiveIndex(index)
+      },
+      { root: track, threshold: 0.5 },
+    )
+
+    slideRefs.current.forEach((slide) => slide && observer.observe(slide))
+    return () => observer.disconnect()
+  }, [showControls])
+
+  if (posts.length === 0) return null
+
+  const scrollToIndex = (index: number) => {
+    const track = trackRef.current
+    if (!track) return
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    track.scrollTo({
+      left: index * track.clientWidth,
+      behavior: prefersReducedMotion ? 'auto' : 'smooth',
+    })
+  }
+
+  return (
+    <section aria-roledescription="carousel" aria-label="Publicaciones destacadas">
+      <div className="relative">
+        <div
+          ref={trackRef}
+          className="flex snap-x snap-mandatory [scrollbar-width:none] overflow-x-auto scroll-smooth [&::-webkit-scrollbar]:hidden"
+        >
+          {posts.map((post, index) => (
+            <article
+              key={post.id}
+              ref={(el) => {
+                slideRefs.current[index] = el
+              }}
+              role="group"
+              aria-roledescription="slide"
+              aria-label={`${index + 1} de ${posts.length}`}
+              className="w-full shrink-0 snap-center"
+            >
+              <Link href={`/blog/${post.slug}`} className="group block">
+                <div className="relative aspect-[21/9] overflow-hidden rounded-xl md:aspect-[3/1]">
+                  {SHOW_FEATURED_IMAGES && post.featuredImage ? (
+                    <>
+                      <Image
+                        src={post.featuredImage.url}
+                        alt={post.featuredImage.alt}
+                        fill
+                        sizes="(min-width: 1024px) 66vw, 100vw"
+                        priority={index === 0}
+                        className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                      <div className="absolute inset-x-0 bottom-0 p-6 md:p-8">
+                        {post.categories[0] && (
+                          <Badge variant="default" className="mb-3">
+                            {post.categories[0].name}
+                          </Badge>
+                        )}
+                        <h2 className="text-2xl font-bold text-balance text-white md:text-4xl">
+                          {post.title}
+                        </h2>
+                        <p className="mt-2 line-clamp-2 hidden text-white/80 md:block">
+                          {post.excerpt}
+                        </p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="bg-primary absolute inset-0" />
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/15" />
+                      <div className="ring-primary-foreground/15 absolute inset-0 rounded-xl ring-1 ring-inset" />
+                      <div className="relative flex h-full max-w-2xl flex-col justify-center gap-3 p-6 md:gap-4 md:p-10">
+                        {post.categories[0] && (
+                          <Badge variant="secondary" className="w-fit">
+                            {post.categories[0].name}
+                          </Badge>
+                        )}
+                        <div>
+                          <h2 className="text-primary-foreground text-2xl font-bold text-balance md:text-4xl">
+                            {post.title}
+                          </h2>
+                          <div className="bg-brand-secondary mt-3 h-0.5 w-10 rounded-full" />
+                        </div>
+                        <p className="text-primary-foreground/80 line-clamp-2 hidden md:block">
+                          {post.excerpt}
+                        </p>
+                        <div className="text-primary-foreground/70 mt-1 flex items-center gap-2 text-xs">
+                          <Avatar size="sm" aria-hidden="true">
+                            {post.author.avatarUrl && (
+                              <AvatarImage src={post.author.avatarUrl} alt="" />
+                            )}
+                            <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <span className="text-primary-foreground/90 font-medium">
+                            {post.author.name}
+                          </span>
+                          <span className="mx-0.5">&middot;</span>
+                          <time dateTime={post.publishedAt.toISOString()}>
+                            {formatPostDate(post.publishedAt)}
+                          </time>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </Link>
+            </article>
+          ))}
+        </div>
+
+        {showControls && (
+          <>
+            <Button
+              variant="secondary"
+              size="icon"
+              aria-label="Diapositiva anterior"
+              disabled={activeIndex === 0}
+              onClick={() => scrollToIndex(activeIndex - 1)}
+              className="absolute top-1/2 left-2 -translate-y-1/2"
+            >
+              <ChevronLeftIcon />
+            </Button>
+            <Button
+              variant="secondary"
+              size="icon"
+              aria-label="Diapositiva siguiente"
+              disabled={activeIndex === posts.length - 1}
+              onClick={() => scrollToIndex(activeIndex + 1)}
+              className="absolute top-1/2 right-2 -translate-y-1/2"
+            >
+              <ChevronRightIcon />
+            </Button>
+          </>
+        )}
+      </div>
+
+      {showControls && (
+        <div className="mt-3 flex justify-center gap-2">
+          {posts.map((post, index) => (
+            <button
+              key={post.id}
+              type="button"
+              aria-label={`Ir a la diapositiva ${index + 1}`}
+              aria-current={index === activeIndex ? 'true' : undefined}
+              onClick={() => scrollToIndex(index)}
+              className={cn(
+                'size-2 rounded-full transition-colors',
+                index === activeIndex ? 'bg-primary' : 'bg-muted-foreground/30',
+              )}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}
