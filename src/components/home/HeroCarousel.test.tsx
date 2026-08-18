@@ -64,9 +64,23 @@ describe('HeroCarousel', () => {
     expect(screen.getByLabelText('Diapositiva siguiente')).not.toBeDisabled()
   })
 
-  it('renders the bg-primary fallback when a post has no featured image', () => {
+  it('renders the text-only hero design when a post has no featured image', () => {
     const { container } = render(<HeroCarousel posts={[makePost({ featuredImage: null })]} />)
     expect(container.querySelector('.bg-primary')).toBeInTheDocument()
+  })
+
+  it('renders the text-only hero design even when a post has a featured image (hosting disabled)', () => {
+    const { container } = render(
+      <HeroCarousel
+        posts={[
+          makePost({
+            featuredImage: { url: '/x.jpg', alt: 'x', width: 800, height: 600 },
+          }),
+        ]}
+      />,
+    )
+    expect(container.querySelector('.bg-primary')).toBeInTheDocument()
+    expect(container.querySelector('img')).not.toBeInTheDocument()
   })
 
   it('links each slide to the post', () => {
