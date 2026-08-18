@@ -75,6 +75,8 @@ export const mapWpPostToPost = (dto: WpPostDto, siteUrl: string): Post => ({
   content: dto.content.rendered,
   publishedAt: new Date(dto.date_gmt + 'Z'),
   modifiedAt: new Date(dto.modified_gmt + 'Z'),
+  // WordPress has no editorial "featured" concept in this DTO.
+  featured: false,
   featuredImage: extractFeaturedImage(dto),
   author: extractAuthor(dto),
   categories: extractCategories(dto),

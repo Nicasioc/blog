@@ -28,6 +28,7 @@ const mockPost: Post = {
   content: '<p>Content</p>',
   publishedAt: new Date('2024-01-01'),
   modifiedAt: new Date('2024-01-02'),
+  featured: false,
   featuredImage: { url: 'https://example.com/img.jpg', alt: 'Image', width: 1200, height: 630 },
   author: {
     id: 1,
