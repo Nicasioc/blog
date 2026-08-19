@@ -21,6 +21,9 @@ export const metadata: Metadata = {
     icon: serverEnv.SITE_FAVICON_URL ?? '/favicon.ico',
     apple: serverEnv.SITE_APPLE_TOUCH_ICON_URL,
   },
+  ...(siteConfig.adSensePublisherId && {
+    other: { 'google-adsense-account': siteConfig.adSensePublisherId },
+  }),
 }
 
 export const viewport: Viewport = {
