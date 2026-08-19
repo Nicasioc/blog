@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { siteConfig } from '@/lib/siteConfig'
 import { STATIC_PAGES } from '@/lib/staticPages'
 import { AdSlot } from '@/components/ads/AdSlot'
+import { CookiePreferencesButton } from '@/components/consent/CookiePreferencesButton'
 
 export const Footer = () => (
   <footer className="bg-primary border-brand-secondary mt-16 border-t-4">
@@ -21,6 +22,7 @@ export const Footer = () => (
           {title}
         </Link>
       ))}
+      <CookiePreferencesButton />
     </nav>
     <p className="text-primary-foreground/60 container mx-auto px-4 pt-2 pb-6 text-center text-xs">
       &copy; {new Date().getFullYear()} {siteConfig.siteName}. Todos los derechos reservados.

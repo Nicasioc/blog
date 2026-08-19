@@ -57,6 +57,12 @@ export default function PrivacyPage() {
           analítica que utilizamos, y que se describen en el apartado siguiente.
         </li>
       </ul>
+      <p>
+        Al entrar por primera vez te mostramos un aviso para que decidas si aceptás o rechazás estas
+        cookies. Mientras no elijas &quot;Aceptar&quot;, no se cargan cookies de publicidad ni de
+        terceros. Podés cambiar tu decisión en cualquier momento desde &quot;Preferencias de
+        cookies&quot;, en el pie de página de cualquier sección del sitio.
+      </p>
 
       <h2>Publicidad de terceros</h2>
       <p>
@@ -105,10 +111,10 @@ export default function PrivacyPage() {
 
       <h2>Cómo desactivar las cookies</h2>
       <p>
-        Puedes bloquear o eliminar las cookies desde la configuración de tu navegador (Chrome,
-        Firefox, Safari, Edge y el resto ofrecen esta opción en su apartado de privacidad). Ten en
-        cuenta que desactivarlas por completo puede afectar al funcionamiento de algunas partes del
-        sitio.
+        Además de nuestro propio aviso de cookies, puedes bloquear o eliminar las cookies desde la
+        configuración de tu navegador (Chrome, Firefox, Safari, Edge y el resto ofrecen esta opción
+        en su apartado de privacidad). Ten en cuenta que desactivarlas por completo puede afectar al
+        funcionamiento de algunas partes del sitio.
       </p>
 
       <h2>Enlaces a otros sitios</h2>
