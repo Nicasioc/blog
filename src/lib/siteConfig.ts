@@ -4,6 +4,7 @@ export type SiteConfig = {
   siteName: string
   siteUrl: string
   logoUrl: string
+  contactEmail: string
   theme: {
     primary: string
     secondary: string
@@ -17,6 +18,7 @@ export const siteConfig: SiteConfig = {
   siteName: clientEnv.NEXT_PUBLIC_SITE_NAME,
   siteUrl: clientEnv.NEXT_PUBLIC_SITE_URL,
   logoUrl: clientEnv.NEXT_PUBLIC_SITE_LOGO_URL,
+  contactEmail: clientEnv.NEXT_PUBLIC_CONTACT_EMAIL,
   theme: {
     primary: clientEnv.NEXT_PUBLIC_PRIMARY_COLOR,
     secondary: clientEnv.NEXT_PUBLIC_SECONDARY_COLOR,

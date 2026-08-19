@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
-import Script from 'next/script'
 import { siteConfig } from '@/lib/siteConfig'
 import { serverEnv } from '@/lib/env.server'
 import { Header } from '@/components/layout/Header'
@@ -22,6 +21,9 @@ export const metadata: Metadata = {
     icon: serverEnv.SITE_FAVICON_URL ?? '/favicon.ico',
     apple: serverEnv.SITE_APPLE_TOUCH_ICON_URL,
   },
+  ...(siteConfig.adSensePublisherId && {
+    other: { 'google-adsense-account': siteConfig.adSensePublisherId },
+  }),
 }
 
 export const viewport: Viewport = {
@@ -47,13 +49,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main className="flex-1">{children}</main>
           <Footer />
         </Providers>
-        {siteConfig.adProvider === 'adsense' && siteConfig.adSensePublisherId && (
-          <Script
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${siteConfig.adSensePublisherId}`}
-            strategy="afterInteractive"
-            crossOrigin="anonymous"
-          />
-        )}
       </body>
     </html>
   )
