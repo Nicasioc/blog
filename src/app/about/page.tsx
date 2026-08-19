@@ -14,9 +14,13 @@ export default function AboutPage() {
     <StaticPageShell title={ABOUT_PAGE.title} description={DESCRIPTION}>
       <h2>Qué es {siteConfig.siteName}</h2>
       <p>
-        {siteConfig.siteName} es un medio digital independiente dedicado a la actualidad, el
-        análisis y las historias que rodean al deporte. Publicamos noticias, crónicas y artículos de
-        fondo pensados para quienes siguen el día a día de cerca y quieren algo más que el titular.
+        {siteConfig.siteName} es un medio digital dedicado a la actualidad, el análisis y las
+        historias que rodean al deporte. Publicamos noticias, crónicas y artículos de fondo pensados
+        para quienes siguen el día a día de cerca y quieren algo más que el titular.
+      </p>
+      <p>
+        {siteConfig.siteName} es propiedad de <strong>Vex Agency</strong>, empresa que opera el
+        sitio y es responsable de su contenido.
       </p>
 
       <h2>Cómo trabajamos</h2>

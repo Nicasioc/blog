@@ -14,9 +14,9 @@ export default function PrivacyPage() {
     <StaticPageShell title={PRIVACY_PAGE.title} description={DESCRIPTION}>
       <h2>Responsable del tratamiento</h2>
       <p>
-        El responsable del tratamiento de los datos recogidos a través de este sitio es{' '}
-        {siteConfig.siteName}, accesible en <a href={siteConfig.siteUrl}>{siteConfig.siteUrl}</a>.
-        Puedes contactarnos en cualquier momento escribiendo a{' '}
+        {siteConfig.siteName}, accesible en <a href={siteConfig.siteUrl}>{siteConfig.siteUrl}</a>,
+        es propiedad de <strong>Vex Agency</strong>, responsable del tratamiento de los datos
+        recogidos a través de este sitio. Puedes contactarnos en cualquier momento escribiendo a{' '}
         <a href={`mailto:${siteConfig.contactEmail}`}>{siteConfig.contactEmail}</a>.
       </p>
 
