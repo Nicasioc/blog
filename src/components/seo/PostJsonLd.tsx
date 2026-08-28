@@ -13,7 +13,11 @@ export const PostJsonLd = ({ post }: Props) => {
     dateModified: post.modifiedAt.toISOString(),
     author: { '@type': 'Person', name: post.author.name },
     publisher: { '@type': 'Organization', name: siteConfig.siteName },
-    ...(post.featuredImage && { image: post.featuredImage.url }),
+    // JSON-LD needs an absolute URL. `featuredImage.url` is the CMS media proxy
+    // path, served from this origin via the rewrite in next.config.ts.
+    ...(post.featuredImage && {
+      image: new URL(post.featuredImage.url, siteConfig.siteUrl).href,
+    }),
     url: post.canonicalUrl,
   }
 

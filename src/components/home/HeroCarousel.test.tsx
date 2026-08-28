@@ -69,18 +69,20 @@ describe('HeroCarousel', () => {
     expect(container.querySelector('.bg-primary')).toBeInTheDocument()
   })
 
-  it('renders the text-only hero design even when a post has a featured image (hosting disabled)', () => {
+  it('renders the featured image (not the text-only fallback) when a post has one', () => {
     const { container } = render(
       <HeroCarousel
         posts={[
           makePost({
-            featuredImage: { url: '/x.jpg', alt: 'x', width: 800, height: 600 },
+            featuredImage: { url: '/api/media/file/x.jpg', alt: 'x', width: 800, height: 600 },
           }),
         ]}
       />,
     )
-    expect(container.querySelector('.bg-primary')).toBeInTheDocument()
-    expect(container.querySelector('img')).not.toBeInTheDocument()
+    const img = container.querySelector('img')
+    expect(img).toBeInTheDocument()
+    expect(img).toHaveAttribute('alt', 'x')
+    expect(container.querySelector('.bg-primary')).not.toBeInTheDocument()
   })
 
   it('links each slide to the post', () => {

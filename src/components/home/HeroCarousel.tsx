@@ -11,11 +11,6 @@ import { formatPostDate } from '@/domain/post/postDate.utils'
 import { cn } from '@/lib/utils'
 import type { Post } from '@/domain/post/post.model'
 
-// Featured-image hosting is broken, so every slide renders the text-only treatment
-// below regardless of whether the post has a featuredImage. Flip this back to `true`
-// once hosting is restored — the <Image> path is untouched, this is a one-line revert.
-const SHOW_FEATURED_IMAGES: boolean = false
-
 type Props = { posts: Post[] }
 
 export const HeroCarousel = ({ posts }: Props) => {
@@ -78,7 +73,7 @@ export const HeroCarousel = ({ posts }: Props) => {
             >
               <Link href={`/blog/${post.slug}`} className="group block">
                 <div className="relative aspect-[21/9] overflow-hidden rounded-xl md:aspect-[3/1]">
-                  {SHOW_FEATURED_IMAGES && post.featuredImage ? (
+                  {post.featuredImage ? (
                     <>
                       <Image
                         src={post.featuredImage.url}
