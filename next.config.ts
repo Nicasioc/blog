@@ -12,15 +12,22 @@ const csp = [
   "connect-src 'self'",
 ].join('; ')
 
+// The Payload CMS serves media from `<origin>/api/media/file/<name>`. Access
+// control stays on there, so `media.url` is that proxy route (not a raw
+// Cloudinary URL) and comes back root-relative. We rewrite `/api/media/file/*`
+// on this domain through to the CMS so `next/image` can treat it as a local path.
+const cmsOrigin = new URL(process.env.PAYLOAD_API_URL ?? 'https://blog-cms-snowy.vercel.app/api')
+  .origin
+
 const nextConfig: NextConfig = {
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '*.public.blob.vercel-storage.com',
-      },
-    ],
+    // Only used if a media URL is ever absolute (e.g. the CMS sets `serverURL`);
+    // the rewrite below keeps the common case a local path.
+    remotePatterns: [{ protocol: 'https', hostname: new URL(cmsOrigin).hostname }],
     formats: ['image/avif', 'image/webp'],
+  },
+  async rewrites() {
+    return [{ source: '/api/media/file/:path*', destination: `${cmsOrigin}/api/media/file/:path*` }]
   },
   async headers() {
     return [
