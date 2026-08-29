@@ -14,7 +14,7 @@ export const mapPayloadAuthorToAuthor = (dto: PayloadAuthorDto): Author => ({
   name: dto.name,
   description: dto.description ?? '',
   avatarUrl: extractAvatarUrl(dto.avatar),
-  // Payload has no public author-profile URL equivalent to WP's `link`, and nothing
-  // in this app reads Author.profileUrl today — see BLO-76 plan decision 4.
+  // Payload has no public author-profile URL, and nothing in this app reads
+  // Author.profileUrl today — see BLO-76 plan decision 4.
   profileUrl: '',
 })

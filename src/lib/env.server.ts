@@ -2,11 +2,9 @@ import 'server-only'
 import { z } from 'zod'
 
 const serverSchema = z.object({
-  WORDPRESS_API_URL: z.string().url(),
-  WORDPRESS_CATEGORY_ID: z.coerce.number().optional(),
-  WORDPRESS_TAG_ID: z.coerce.number().optional(),
-  // Payload CMS (BLO-76): additive alongside WORDPRESS_* — the full swap is BLO-78.
+  // Payload CMS REST API base (must end in `/api`).
   PAYLOAD_API_URL: z.string().url(),
+  // Tenant slug — every read and write is scoped to this tenant.
   PAYLOAD_TENANT_SLUG: z.string().min(1),
   // Required, not just for writes — every read resolves PAYLOAD_TENANT_SLUG to a
   // numeric id via the Tenants collection, which isn't publicly readable (it holds

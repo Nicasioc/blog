@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return generatePageMetadata(page, siteConfig)
 }
 
-export default async function WpStaticPage({ params }: Props) {
+export default async function StaticPage({ params }: Props) {
   const { slug } = await params
   const page = await getPageBySlug(slug)
   if (!page) notFound()

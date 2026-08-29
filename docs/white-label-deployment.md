@@ -8,14 +8,11 @@ One GitHub repo, one Vercel project per team. Each project has its own env vars 
 
 | Variable                    | Required        | Purpose                                                                                                                             | Example                               |
 | --------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
-| `WORDPRESS_API_URL`         | ✅              | WordPress REST API base URL                                                                                                         | `https://realmadrid.com/wp-json`      |
-| `WORDPRESS_CATEGORY_ID`     | optional        | Scope all post feeds to a single WP category ID                                                                                     | `5`                                   |
-| `WORDPRESS_TAG_ID`          | optional        | Scope all post feeds to a single WP tag ID                                                                                          | `7`                                   |
 | `PAYLOAD_API_URL`           | ✅              | Payload CMS REST API base URL (must end in `/api`)                                                                                  | `https://admin.vex-agency.com/api`    |
 | `PAYLOAD_TENANT_SLUG`       | ✅              | Tenant slug used to scope all Payload reads/writes                                                                                  | `realmadrid`                          |
 | `PAYLOAD_API_KEY`           | ✅              | Per-tenant API key — required even for reads, since resolving `PAYLOAD_TENANT_SLUG` to an id hits the non-public Tenants collection | `pk_live_...`                         |
 | `REVALIDATE_POSTS`          | default: 3600   | ISR TTL for posts (seconds)                                                                                                         | `3600`                                |
-| `REVALIDATE_PAGES`          | default: 86400  | ISR TTL for WP pages (seconds)                                                                                                      | `86400`                               |
+| `REVALIDATE_PAGES`          | default: 86400  | ISR TTL for CMS pages (seconds)                                                                                                     | `86400`                               |
 | `REVALIDATE_SECRET`         | ✅ min 16 chars | Authenticates the ISR webhook                                                                                                       | `my-super-secret-key-32chars`         |
 | `SITE_FAVICON_URL`          | optional        | Browser tab favicon path                                                                                                            | `/debate-cuervo/favicon.ico`          |
 | `SITE_APPLE_TOUCH_ICON_URL` | optional        | iOS home screen icon path                                                                                                           | `/debate-cuervo/apple-touch-icon.png` |
@@ -131,29 +128,34 @@ Logos render in their natural colors. Provide a logo variant that is legible on 
 1. **Go to Vercel** → Add New Project → Import from GitHub (same repo)
 2. **Add tenant assets** under `public/<tenant-slug>/` and commit them
 3. **Set environment variables** in the Vercel project settings (copy from `.env.example`, fill in team values)
-4. **Add WP image domain** to `next.config.ts` → `images.remotePatterns`:
-   ```typescript
-   { protocol: 'https', hostname: 'media.yourwp.com' }
-   ```
-   Commit this change — `next/image` will 500 on images from unlisted domains.
-5. **Assign a custom domain** in Vercel project settings — done
+4. **Assign a custom domain** in Vercel project settings — done
+
+No image-domain step: all media is served through the `/api/media/file/*` rewrite to
+`PAYLOAD_API_URL` (see below), so `next/image` treats it as a local path — nothing to add
+to `next.config.ts` per tenant.
 
 ---
 
-## next.config.ts — remotePatterns
+## next.config.ts — media
 
-The current config allows `**.wordpress.com`. For self-hosted WordPress, add the media server hostname:
+Media is **not** loaded from a remote image host. `media.url` from the CMS is the proxy path
+`/api/media/file/<name>` (Payload access control stays on there), and `next.config.ts`
+rewrites `/api/media/file/*` on this domain through to the CMS origin derived from
+`PAYLOAD_API_URL`:
 
 ```typescript
+const cmsOrigin = new URL(process.env.PAYLOAD_API_URL ?? '…').origin
+
 images: {
-  remotePatterns: [
-    { protocol: 'https', hostname: '**.wordpress.com' },
-    { protocol: 'https', hostname: 'media.yourclub.com' },  // add per deployment
-  ],
-}
+  // Only used if a media URL is ever absolute; the rewrite keeps the common case local.
+  remotePatterns: [{ protocol: 'https', hostname: new URL(cmsOrigin).hostname }],
+},
+async rewrites() {
+  return [{ source: '/api/media/file/:path*', destination: `${cmsOrigin}/api/media/file/:path*` }]
+},
 ```
 
-If images are served from a different subdomain than the WP install (common with object storage CDNs), add that hostname too.
+This is derived from `PAYLOAD_API_URL` alone — there is nothing to configure per tenant.
 
 ---
 
@@ -161,41 +163,50 @@ If images are served from a different subdomain than the WP install (common with
 
 **Hobby plan prohibits commercial use.** Since the goal is ad revenue, use **Vercel Pro ($20/month)** for any site running live ads. Use Hobby for development and staging.
 
-ISR works out of the box on Vercel — `revalidate` constants map to Edge Cache TTLs. On-demand revalidation via `revalidateTag()` (triggered from the WordPress webhook) is supported on all paid plans.
+ISR works out of the box on Vercel — `revalidate` constants map to Edge Cache TTLs. On-demand revalidation via `revalidateTag()` (triggered from the CMS revalidation webhook) is supported on all paid plans.
 
 ---
 
-## Post Scoping (Shared WordPress Instance)
+## Tenant Scoping (Shared Payload CMS)
 
-When two or more tenants share the same `WORDPRESS_API_URL`, set one of the scoping vars to
-restrict this site to only its own content:
+Every tenant blog reads from the **same** Payload CMS at `PAYLOAD_API_URL`. What keeps this
+deployment showing only its own team's content is `PAYLOAD_TENANT_SLUG` — there are no
+optional per-taxonomy scoping vars to set. It is required, not optional.
 
 ```
-WORDPRESS_CATEGORY_ID=5   # show only posts in WP category ID 5
-# — or —
-WORDPRESS_TAG_ID=7        # show only posts tagged with WP tag ID 7
+PAYLOAD_TENANT_SLUG=realmadrid   # this deployment only ever sees the "realmadrid" tenant's content
 ```
 
-Both are optional and independent. If neither is set, all published posts are returned (the
-default behaviour when each tenant has its own WordPress instance).
+How it works (full detail in `docs/payload-integration.md`):
 
-**Prefer `WORDPRESS_TAG_ID` for multi-tenant setups.** WordPress ANDs different taxonomy
-params (`?tags=SCOPE&categories=BROWSE`), so tag-based scoping combines correctly with
-category-archive pages. Category-based scoping uses a single `categories` param and the
-archive category replaces the scope in those pages — posts outside the tenant scope may
-appear. See the WordPress Integration doc for the full technical explanation.
+```
+serverEnv.PAYLOAD_TENANT_SLUG
+  → resolveTenantId()          # GET /tenants?where[slug][equals]=… (authenticated with PAYLOAD_API_KEY)
+  → payloadFetch adds where[tenant][equals]=<id> to every content request
+```
+
+This is not a taxonomy filter layered on top of a shared feed — it is applied to **every**
+read (posts, pages, categories, tags, authors, comments), so there is no "AND vs OR"
+interaction with archive pages to reason about. The
+per-tenant `PAYLOAD_API_KEY` is required even though content reads are otherwise
+unauthenticated, because resolving the slug to an id hits the non-public Tenants collection.
+
+> Server-side enforcement of the `tenant` filter (so the CMS rejects a cross-tenant query
+> rather than trusting the `where` clause the blog sends) is tracked in BLO-130. Today the
+> scoping is applied client-side in `payloadClient.ts`.
 
 **What is affected:**
 
-| Page / feature                                | Scoped?                                              |
-| --------------------------------------------- | ---------------------------------------------------- |
-| Homepage post feed                            | ✅                                                   |
-| Paginated post archive                        | ✅                                                   |
-| Static slug generation (sitemap / pre-render) | ✅                                                   |
-| Category archive                              | tag-scope ✅ / category-scope ⚠️                     |
-| Tag archive                                   | ✅ (tag-scope only affects pages not archive itself) |
-| Single post page                              | — (fetched by slug, no scope needed)                 |
-| Related posts                                 | — (derived from the post's own categories)           |
+| Page / feature                                | Scoped?                                                          |
+| --------------------------------------------- | ---------------------------------------------------------------- |
+| Homepage post feed                            | ✅                                                               |
+| Paginated post archive                        | ✅                                                               |
+| Static slug generation (sitemap / pre-render) | ✅                                                               |
+| Category archive                              | ✅ (tenant filter + the archive's category filter)               |
+| Tag archive                                   | ✅ (tenant filter + the archive's tag filter)                    |
+| Single post / page                            | ✅ (slug lookup still carries the tenant filter)                 |
+| Related posts                                 | ✅ (derived from the post's own categories, still tenant-scoped) |
+| Comments                                      | ✅                                                               |
 
 ---
 
@@ -203,7 +214,7 @@ appear. See the WordPress Integration doc for the full technical explanation.
 
 Each Vercel project is fully isolated:
 
-- Own env vars (different WP instance, different colors, different AdSense account)
+- Own env vars (different tenant slug, different colors, different AdSense account)
 - Own domain
 - Own Edge Cache
 - Shared codebase from the same GitHub repo

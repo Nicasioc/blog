@@ -19,9 +19,8 @@ export const fetchCommentsByPostId = async (postId: number): Promise<Comment[]> 
   return buildCommentTree(flat)
 }
 
-// New in this layer — closes the architecture violation where submitComment.ts
-// bypasses the repository pattern and calls fetch directly (WP today). Wiring
-// submitComment.ts to actually call this is BLO-79, out of scope here.
+// Called by submitComment.ts (the 'use server' action) — keeps the write path
+// inside the repository layer rather than issuing fetch from the use case.
 export const createComment = async (data: CommentSubmission): Promise<Comment> => {
   const dto = await payloadMutate<PayloadCommentDto>('/comments', {
     method: 'POST',

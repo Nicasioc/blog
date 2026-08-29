@@ -13,8 +13,7 @@ export const fetchCategoryBySlug = async (slug: string): Promise<Category | null
   return dto ? mapPayloadCategoryToCategory(dto) : null
 }
 
-// Tenant-scoped by payloadFetch, unlike WP's fetchAllCategories which had no tenant
-// filtering at all — this is the cross-tenant leak fix the project description calls out.
+// Tenant-scoped by payloadFetch — the cross-tenant leak fix the project description calls out.
 export const fetchAllCategories = async (): Promise<Category[]> => {
   const result = await payloadFetch<PayloadCategoryDto>('/categories', {
     limit: 100,
