@@ -16,8 +16,7 @@ const csp = [
 // control stays on there, so `media.url` is that proxy route (not a raw
 // Cloudinary URL) and comes back root-relative. We rewrite `/api/media/file/*`
 // on this domain through to the CMS so `next/image` can treat it as a local path.
-const cmsOrigin = new URL(process.env.PAYLOAD_API_URL ?? 'https://blog-cms-snowy.vercel.app/api')
-  .origin
+const cmsOrigin = new URL(process.env.PAYLOAD_API_URL ?? 'https://admin.vex-agency.com/api').origin
 
 const nextConfig: NextConfig = {
   images: {
