@@ -1,6 +1,6 @@
 # Soccer Blog Platform
 
-A white-label Next.js 16 blog that pulls content from a WordPress REST API. One codebase deploys once per soccer team, each with its own environment variables for branding, WordPress instance, and AdSense account.
+A white-label Next.js 16 blog that pulls content from a shared Payload CMS over its REST API. One codebase deploys once per soccer team, each with its own environment variables for branding, tenant, and AdSense account.
 
 ## Tech Stack
 
@@ -8,7 +8,7 @@ A white-label Next.js 16 blog that pulls content from a WordPress REST API. One 
 | ---------- | ----------------------------------------------- |
 | Framework  | Next.js 16.2.6 (App Router, TypeScript)         |
 | UI         | shadcn (New York style) + Tailwind v4 + Base UI |
-| Data       | WordPress REST API via `fetch` with ISR         |
+| Data       | Payload CMS REST API via `fetch` with ISR       |
 | Ads        | AdSense (pluggable — Prebid stub included)      |
 | Testing    | Vitest + React Testing Library                  |
 | Deployment | Vercel (one project per team)                   |
@@ -21,13 +21,13 @@ npm install
 
 # 2. Configure environment
 cp .env.example .env.local
-# Edit .env.local — fill in your WordPress URL, site name, colors, etc.
+# Edit .env.local — fill in PAYLOAD_API_URL / PAYLOAD_TENANT_SLUG / PAYLOAD_API_KEY, site name, colors, etc.
 
 # 3. Start dev server
 npm run dev
 ```
 
-The app starts at `http://localhost:3000`. It will error on startup if any required env vars are missing — the Zod schema in `src/lib/env.ts` validates everything at boot time.
+The app starts at `http://localhost:3000`. It will error on startup if any required env vars are missing — the Zod schemas in `src/lib/env.server.ts` / `src/lib/env.client.ts` validate everything at boot time.
 
 ## Scripts
 
@@ -51,7 +51,7 @@ The app starts at `http://localhost:3000`. It will error on startup if any requi
 | -------------------------------------------------------- | ----------------------------------------------------- |
 | [Architecture](docs/architecture.md)                     | Layered architecture, dependency rules, file patterns |
 | [White-Label Deployment](docs/white-label-deployment.md) | Setting up new team sites on Vercel                   |
-| [WordPress Integration](docs/wordpress-integration.md)   | WP REST API, ISR webhook, WP config                   |
+| [Payload CMS Integration](docs/payload-integration.md)   | REST API shape, tenant scoping, ISR webhook, media    |
 | [Ad System](docs/ad-system.md)                           | AdSense setup, provider abstraction, Prebid migration |
 | [Development Guide](docs/development.md)                 | Day-to-day dev workflow, testing, gotchas             |
 
@@ -70,13 +70,13 @@ src/
 │   └── ui/                 # shadcn auto-generated — DO NOT edit
 ├── domain/                 # Pure TypeScript models — no framework deps
 ├── lib/                    # Env validation, siteConfig, cn() helper
-├── persistence/            # WordPress REST API client, DTOs, mappers, repos
+├── persistence/            # Payload CMS REST client, DTOs, mappers, repos
 ├── services/               # Ad config (placement types + slot IDs)
 └── utils/                  # Shared type guards, structured logger
 ```
 
 ## White-Label in One Line
 
-Set `NEXT_PUBLIC_SITE_NAME`, `NEXT_PUBLIC_PRIMARY_COLOR`, `NEXT_PUBLIC_SECONDARY_COLOR`, `WORDPRESS_API_URL`, and `NEXT_PUBLIC_ADSENSE_PUBLISHER_ID` — everything else inherits from there. See [White-Label Deployment](docs/white-label-deployment.md).
+Set `NEXT_PUBLIC_SITE_NAME`, `NEXT_PUBLIC_PRIMARY_COLOR`, `NEXT_PUBLIC_SECONDARY_COLOR`, `PAYLOAD_TENANT_SLUG`, and `NEXT_PUBLIC_ADSENSE_PUBLISHER_ID` — everything else inherits from there. See [White-Label Deployment](docs/white-label-deployment.md).
 
-If multiple tenants share one WordPress instance, also set `WORDPRESS_CATEGORY_ID` or `WORDPRESS_TAG_ID` to scope which posts this site shows. See [Multi-Tenant Post Scoping](docs/wordpress-integration.md#multi-tenant-post-scoping).
+All tenants share one Payload CMS; `PAYLOAD_TENANT_SLUG` is what scopes this site to its own content. See [Payload CMS Integration → Tenant scoping](docs/payload-integration.md#tenant-scoping).

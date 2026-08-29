@@ -6,7 +6,7 @@
 src/app/
     └──► src/application/
               └──► src/domain/          (pure models, no deps)
-              └──► src/persistence/     (Payload CMS REST; legacy WP REST alongside)
+              └──► src/persistence/     (Payload CMS REST — the only data source)
               └──► src/services/        (ad config)
 
 src/components/
@@ -49,8 +49,8 @@ app/
 ├── blog/[slug]/page.tsx    # Post detail (revalidate: 3600)
 ├── category/[slug]/page.tsx
 ├── tag/[slug]/page.tsx
-├── page/[slug]/page.tsx    # WP static pages (revalidate: 86400)
-└── api/revalidate/route.ts # ISR webhook — POST from WordPress
+├── page/[slug]/page.tsx    # CMS static pages (revalidate: 86400)
+└── api/revalidate/route.ts # ISR webhook — POST from the CMS (per-tenant secret)
 ```
 
 ### `src/application/` — Use Cases
@@ -70,7 +70,7 @@ application/
 │   ├── getPostBySlug.ts        # fetch post, then relatedPosts + comments in parallel
 │   ├── getCategoryArchive.ts   # resolve slug→ID, then paginated posts
 │   ├── getTagArchive.ts        # same pattern as category
-│   └── submitComment.ts       # 'use server' Server Action; posts to WP REST
+│   └── submitComment.ts       # 'use server' Server Action; creates a Comment via the CMS
 └── page/
     └── getPageBySlug.ts        # thin pass-through (keeps routes clean)
 ```
@@ -85,7 +85,7 @@ domain/
 ├── category/category.model.ts
 ├── tag/tag.model.ts
 ├── post/post.model.ts          # Post, FeaturedImage, PostSeo
-├── page/page.model.ts          # WpPage (named to avoid clash with Next.js Page)
+├── page/page.model.ts          # Page (a CMS "page" content type)
 ├── comment/comment.model.ts    # Comment (tree), CommentSubmission
 ├── shared/pagination.model.ts  # PaginationInfo
 └── seo/
@@ -94,65 +94,26 @@ domain/
                                 # (only allowed domain/ file to import from next)
 ```
 
-### `src/persistence/payload/` — primary data source
+### `src/persistence/payload/` — data access
 
-Payload CMS over REST. Base URL from `PAYLOAD_API_URL` (production:
-`https://admin.vex-agency.com/api`); every read is scoped to `PAYLOAD_TENANT_SLUG` and
-authenticated with the per-tenant `PAYLOAD_API_KEY`. Same DTO → mapper → repository shape as
-the WordPress layer below. Media (`featuredImage.url`) is the CMS proxy path
-`/api/media/file/<name>`, resolved to the CMS origin by the `/api/media/file/*` rewrite in
-`next.config.ts`.
+Payload CMS over REST — the only data source. Full details in `docs/payload-integration.md`.
 
-### `src/persistence/wordpress/` — legacy data access (migration in progress)
+- **`payloadClient.ts`** — `payloadFetch<T>(endpoint, options)`. Builds the query
+  (`depth`, `where[field][op]`, `select`, `sort`), adds the `where[tenant][equals]=<id>`
+  filter to every request (`PAYLOAD_TENANT_SLUG` → `resolveTenantId`), sets Next ISR tags,
+  and normalises the `{ docs, totalDocs, totalPages }` body to `PayloadFetchResult<T>`.
+  `payloadWriteClient.ts` is the authenticated equivalent for writes. `payloadError.ts` —
+  `PayloadApiError`.
+- **`types/`** — `payload<Entity>.dto.ts`, mirroring the API response shape.
+- **`mappers/`** — pure functions, DTO → domain model (`postMapper`, `authorMapper`,
+  `categoryMapper`, `tagMapper`, `pageMapper`, `commentMapper` — the last also builds the
+  comment tree). No async, no side effects.
+- **`repositories/`** — call `payloadFetch`, apply mappers, return domain types
+  (`postRepository`, `categoryRepository`, `tagRepository`, `authorRepository`,
+  `pageRepository`, `commentRepository`).
 
-WP REST API integration. Three sub-layers:
-
-**Types (DTOs)** — mirror WP API responses exactly, no transformation:
-
-```
-types/
-├── wpPost.dto.ts       # WpPostDto, WpYoastHeadDto
-├── wpAuthor.dto.ts
-├── wpMedia.dto.ts      # embedded featured image shape
-├── wpCategory.dto.ts
-├── wpTag.dto.ts
-├── wpPage.dto.ts
-└── wpComment.dto.ts
-```
-
-**Client** — single fetch wrapper all repositories use:
-
-```
-wpClient.ts    # wpFetch<T>(endpoint, options) → WpFetchResult<T>
-               # always adds ?_embed=1
-               # extracts X-WP-Total / X-WP-TotalPages from response headers
-               # throws WpApiError on non-ok responses
-wpError.ts     # WpApiError class, isNotFoundError() helper
-```
-
-**Mappers** — pure functions, no async, no side effects:
-
-```
-mappers/
-├── postMapper.ts       # most complex: UTC dates, embed extraction, Yoast SEO
-├── authorMapper.ts
-├── categoryMapper.ts
-├── tagMapper.ts
-├── pageMapper.ts
-└── commentMapper.ts    # also exports buildCommentTree()
-```
-
-**Repositories** — call `wpFetch`, apply mappers, return domain types:
-
-```
-repositories/
-├── postRepository.ts       # fetchPostsList, fetchPostBySlug, fetchRelatedPosts, fetchAllPostSlugs
-├── categoryRepository.ts   # fetchCategoryBySlug, fetchAllCategories
-├── tagRepository.ts        # fetchTagBySlug
-├── authorRepository.ts     # fetchAuthorById
-├── pageRepository.ts       # fetchPageBySlug, fetchAllPageSlugs
-└── commentRepository.ts    # fetchCommentsByPostId (returns tree via buildCommentTree)
-```
+Media: `featuredImage.url` is the CMS proxy path `/api/media/file/<name>`, resolved to the
+CMS origin by the `/api/media/file/*` rewrite in `next.config.ts`.
 
 ### `src/components/` — UI Only
 

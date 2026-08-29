@@ -4,7 +4,7 @@
 
 - Node.js 20+ (`node --version`)
 - npm 10+ (comes with Node 20)
-- A running WordPress instance with REST API enabled (or use a public WP.com site for development)
+- Access to the Payload CMS REST API + a per-tenant API key (see `docs/payload-integration.md`)
 
 ## First-Run Setup
 
@@ -16,7 +16,9 @@ npm install
 cp .env.example .env.local
 
 # 3. Fill in at minimum:
-#    WORDPRESS_API_URL — e.g. https://demo.wp-api.org/wp-json
+#    PAYLOAD_API_URL — https://admin.vex-agency.com/api
+#    PAYLOAD_TENANT_SLUG — this site's tenant slug (e.g. debate-cuervo)
+#    PAYLOAD_API_KEY — this tenant's API key
 #    NEXT_PUBLIC_SITE_NAME — any name
 #    NEXT_PUBLIC_SITE_URL — http://localhost:3000
 #    NEXT_PUBLIC_SITE_LOGO_URL — any image URL or /favicon.ico
@@ -34,7 +36,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-The app fails fast on startup if required env vars are missing — the Zod schema in `src/lib/env.ts` throws a clear error listing what's wrong.
+The app fails fast on startup if required env vars are missing — the Zod schemas in `src/lib/env.server.ts` / `src/lib/env.client.ts` throw a clear error listing what's wrong.
 
 ## Scripts
 
@@ -56,23 +58,24 @@ The app fails fast on startup if required env vars are missing — the Zod schem
 
 **What we test:** Domain models, mappers, utility functions, and application use cases. These are pure functions with no framework dependencies and give the highest confidence per test.
 
-**What we don't test:** UI components (visual correctness is verified by running the app), route files (thin wiring), repository functions (network calls — verify manually against a real WP instance).
+**What we don't test:** UI components (visual correctness is verified by running the app), route files (thin wiring), repository functions (network calls — verify manually against the CMS).
 
 **Test file locations:**
 
 ```
-src/utils/checks.test.ts                              ← type guards
-src/domain/seo/metadata.utils.test.ts                 ← metadata generation
-src/persistence/wordpress/mappers/postMapper.test.ts  ← WP mapper (most complex)
-src/persistence/wordpress/mappers/categoryMapper.test.ts
-src/persistence/wordpress/mappers/commentMapper.test.ts
-src/application/blog/getHomepageData.test.ts          ← use case (mocked repos)
+src/utils/checks.test.ts                                   ← type guards
+src/domain/seo/metadata.utils.test.ts                      ← metadata generation
+src/persistence/payload/mappers/postMapper.test.ts         ← mapper (most complex)
+src/persistence/payload/mappers/categoryMapper.test.ts
+src/persistence/payload/mappers/commentMapper.test.ts
+src/persistence/payload/payloadClient.test.ts              ← fetch wrapper / tenant scoping
+src/application/blog/getHomepageData.test.ts               ← use case (mocked repos)
 ```
 
 **Running a specific test file:**
 
 ```bash
-npx vitest run src/persistence/wordpress/mappers/postMapper.test.ts
+npx vitest run src/persistence/payload/mappers/postMapper.test.ts
 ```
 
 **Mock strategy:** Use `vi.mock()` at the module level for true external boundaries (repository functions in use-case tests). Never mock the persistence layer when testing mappers — mappers are pure functions that don't need mocks.
@@ -122,12 +125,12 @@ This project uses Tailwind v4 which is configured entirely in `src/app/globals.c
 
 ## Where to Add Things
 
-### New WP data type (e.g. WP Events)
+### New Payload collection (e.g. Events)
 
-1. `src/persistence/wordpress/types/wpEvent.dto.ts` — DTO mirroring WP REST response
+1. `src/persistence/payload/types/payloadEvent.dto.ts` — DTO mirroring the API response
 2. `src/domain/event/event.model.ts` — clean domain model
-3. `src/persistence/wordpress/mappers/eventMapper.ts` + `eventMapper.test.ts`
-4. `src/persistence/wordpress/repositories/eventRepository.ts`
+3. `src/persistence/payload/mappers/eventMapper.ts` + `eventMapper.test.ts` (pure function)
+4. `src/persistence/payload/repositories/eventRepository.ts` — `payloadFetch<PayloadEventDto>('/events', …)`
 5. `src/application/blog/getEventsList.ts` (if needed)
 6. `src/app/events/page.tsx` (if a route is needed)
 
@@ -154,14 +157,14 @@ This project uses Tailwind v4 which is configured entirely in `src/app/globals.c
 
 ```typescript
 // ❌ Wrong
-const apiUrl = process.env.WORDPRESS_API_URL
+const apiUrl = process.env.PAYLOAD_API_URL
 
 // ✅ Correct
-import { serverEnv } from '@/lib/env'
-const apiUrl = serverEnv.WORDPRESS_API_URL
+import { serverEnv } from '@/lib/env.server'
+const apiUrl = serverEnv.PAYLOAD_API_URL
 ```
 
-The Zod schema in `src/lib/env.ts` validates all vars at startup and provides TypeScript types. `serverEnv` is for server-only vars; `clientEnv` is for `NEXT_PUBLIC_` vars.
+The Zod schemas in `src/lib/env.server.ts` / `src/lib/env.client.ts` validate all vars at startup and provide TypeScript types. `serverEnv` is for server-only vars; `clientEnv` is for `NEXT_PUBLIC_` vars.
 
 ---
 
@@ -173,7 +176,7 @@ Never use `console.log` in application code. Use the structured logger:
 import { logger } from '@/utils/logger'
 
 logger.error('Something broke', { postId, error: err.message })
-logger.warn('WP returned unexpected shape', { endpoint, field })
+logger.warn('Payload returned unexpected shape', { endpoint, field })
 logger.info('Cache revalidated', { tag, slug })
 logger.debug('Mapper output', { post })
 ```
@@ -193,5 +196,5 @@ npm run lint        # zero errors (warnings about Tailwind custom classes are OK
 Architecture boundary check:
 
 - No `import` from `@/persistence/` in any component or route body
-- No `process.env` outside `src/lib/env.ts`
+- No `process.env` outside `src/lib/env.server.ts` / `src/lib/env.client.ts`
 - No `console.log` in any `.ts`/`.tsx` file

@@ -27,9 +27,8 @@ export type PostsListResult = {
 const POSTS_SORT = '-publishedAt'
 
 // categoryId/tagId are archive-page filters (e.g. getCategoryArchive.ts), not tenant
-// scoping — WORDPRESS_CATEGORY_ID/TAG_ID's shared-instance-scoping role is now
-// handled automatically by payloadFetch's tenant filter, so unlike WP's version this
-// never defaults them from env.
+// scoping — a tenant's content is isolated automatically by payloadFetch's tenant
+// filter (PAYLOAD_TENANT_SLUG), so these are never defaulted from env.
 const buildPostsWhere = ({
   categoryId,
   tagId,
