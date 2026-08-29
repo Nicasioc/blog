@@ -6,7 +6,7 @@
 src/app/
     └──► src/application/
               └──► src/domain/          (pure models, no deps)
-              └──► src/persistence/     (WP REST API)
+              └──► src/persistence/     (Payload CMS REST; legacy WP REST alongside)
               └──► src/services/        (ad config)
 
 src/components/
@@ -18,6 +18,7 @@ src/lib/          ◄── shared by everything (env, siteConfig, utils)
 ```
 
 **Rules:**
+
 - `domain/` must not import from `app/`, `application/`, `persistence/`, `components/`, or `services/`
 - `persistence/` imports from `domain/` for output types only — never the reverse
 - `components/` never imports from `persistence/` directly
@@ -30,6 +31,7 @@ src/lib/          ◄── shared by everything (env, siteConfig, utils)
 ### `src/app/` — Routes & Framework Wiring
 
 Next.js App Router files only. Each route file:
+
 - Exports `revalidate` constant
 - Calls one or more use cases from `src/application/`
 - Calls `notFound()` when the use case returns `null`
@@ -54,6 +56,7 @@ app/
 ### `src/application/` — Use Cases
 
 Thin orchestration layer. Each function:
+
 - Calls one or more repository functions
 - Owns null/not-found logic (returns `null`, never throws)
 - Uses `Promise.all` for parallel fetches
@@ -91,11 +94,21 @@ domain/
                                 # (only allowed domain/ file to import from next)
 ```
 
-### `src/persistence/wordpress/` — Data Access
+### `src/persistence/payload/` — primary data source
+
+Payload CMS over REST. Base URL from `PAYLOAD_API_URL` (production:
+`https://admin.vex-agency.com/api`); every read is scoped to `PAYLOAD_TENANT_SLUG` and
+authenticated with the per-tenant `PAYLOAD_API_KEY`. Same DTO → mapper → repository shape as
+the WordPress layer below. Media (`featuredImage.url`) is the CMS proxy path
+`/api/media/file/<name>`, resolved to the CMS origin by the `/api/media/file/*` rewrite in
+`next.config.ts`.
+
+### `src/persistence/wordpress/` — legacy data access (migration in progress)
 
 WP REST API integration. Three sub-layers:
 
 **Types (DTOs)** — mirror WP API responses exactly, no transformation:
+
 ```
 types/
 ├── wpPost.dto.ts       # WpPostDto, WpYoastHeadDto
@@ -108,6 +121,7 @@ types/
 ```
 
 **Client** — single fetch wrapper all repositories use:
+
 ```
 wpClient.ts    # wpFetch<T>(endpoint, options) → WpFetchResult<T>
                # always adds ?_embed=1
@@ -117,6 +131,7 @@ wpError.ts     # WpApiError class, isNotFoundError() helper
 ```
 
 **Mappers** — pure functions, no async, no side effects:
+
 ```
 mappers/
 ├── postMapper.ts       # most complex: UTC dates, embed extraction, Yoast SEO
@@ -128,6 +143,7 @@ mappers/
 ```
 
 **Repositories** — call `wpFetch`, apply mappers, return domain types:
+
 ```
 repositories/
 ├── postRepository.ts       # fetchPostsList, fetchPostBySlug, fetchRelatedPosts, fetchAllPostSlugs
@@ -175,6 +191,7 @@ components/
 This project uses shadcn with the **New York** style and `@base-ui/react` as the primitive layer (not Radix UI). This means:
 
 - `Badge` and `BreadcrumbLink` use a `render` prop instead of `asChild`:
+
   ```tsx
   // ✅ Correct
   <Badge variant="outline" render={<Link href="/category/foo" />}>Football</Badge>
@@ -182,6 +199,7 @@ This project uses shadcn with the **New York** style and `@base-ui/react` as the
   // ❌ Wrong (asChild doesn't exist here)
   <Badge asChild><Link href="/category/foo">Football</Link></Badge>
   ```
+
 - `Avatar` uses `AvatarPrimitive` from `@base-ui/react/avatar`; `AvatarFallback` auto-hides when image loads
 - `Separator` comes from `@base-ui/react/separator`
 - Do **not** edit files in `src/components/ui/` directly — re-run `npx shadcn@latest add <component>` to update
@@ -190,8 +208,8 @@ This project uses shadcn with the **New York** style and `@base-ui/react` as the
 
 ## Accepted Rule Exceptions
 
-| File | Exception | Reason |
-|------|-----------|--------|
-| `src/domain/seo/metadata.utils.ts` | Imports `Metadata` from `next` | Type-only import; zero runtime impact |
-| `app/blog/[slug]/page.tsx` | Imports `fetchAllPostSlugs` from persistence | `generateStaticParams` only; not in page body |
-| `app/page/[slug]/page.tsx` | Imports `fetchAllPageSlugs` from persistence | Same — `generateStaticParams` only |
+| File                               | Exception                                    | Reason                                        |
+| ---------------------------------- | -------------------------------------------- | --------------------------------------------- |
+| `src/domain/seo/metadata.utils.ts` | Imports `Metadata` from `next`               | Type-only import; zero runtime impact         |
+| `app/blog/[slug]/page.tsx`         | Imports `fetchAllPostSlugs` from persistence | `generateStaticParams` only; not in page body |
+| `app/page/[slug]/page.tsx`         | Imports `fetchAllPageSlugs` from persistence | Same — `generateStaticParams` only            |
