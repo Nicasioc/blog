@@ -10,7 +10,8 @@ import { PageHeader } from '@/components/layout/PageHeader'
 export const revalidate = 86400
 
 export async function generateStaticParams() {
-  return fetchAllPageSlugs()
+  const pages = await fetchAllPageSlugs()
+  return pages.map(({ slug }) => ({ slug }))
 }
 
 type Props = { params: Promise<{ slug: string }> }

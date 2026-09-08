@@ -24,7 +24,8 @@ import { CommentForm } from '@/components/post/CommentForm'
 export const revalidate = 3600
 
 export async function generateStaticParams() {
-  return fetchAllPostSlugs()
+  const posts = await fetchAllPostSlugs()
+  return posts.map(({ slug }) => ({ slug }))
 }
 
 type Props = { params: Promise<{ slug: string }> }

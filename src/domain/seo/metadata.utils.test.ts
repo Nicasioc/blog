@@ -105,6 +105,7 @@ describe('generateCategoryMetadata', () => {
     name: 'Transfers',
     description: 'Transfer news.',
     postCount: 42,
+    updatedAt: new Date('2026-01-01T00:00:00.000Z'),
   }
 
   it('builds title from category name and site name', () => {

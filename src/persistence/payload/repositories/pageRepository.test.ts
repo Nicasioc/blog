@@ -44,17 +44,26 @@ describe('fetchPageBySlug', () => {
 describe('fetchAllPageSlugs', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('returns published page slugs only', async () => {
+  it('returns published page slugs with parsed updatedAt only', async () => {
     vi.mocked(payloadFetch).mockResolvedValue(
-      makeResult([{ slug: 'about-us' }, { slug: 'contact' }]),
+      makeResult([
+        { slug: 'about-us', updatedAt: '2026-03-03T00:00:00.000Z' },
+        { slug: 'contact', updatedAt: null },
+      ]),
     )
 
     const slugs = await fetchAllPageSlugs()
 
     expect(payloadFetch).toHaveBeenCalledWith(
       '/pages',
-      expect.objectContaining({ where: { _status: { equals: 'published' } }, select: ['slug'] }),
+      expect.objectContaining({
+        where: { _status: { equals: 'published' } },
+        select: ['slug', 'updatedAt'],
+      }),
     )
-    expect(slugs).toEqual([{ slug: 'about-us' }, { slug: 'contact' }])
+    expect(slugs).toEqual([
+      { slug: 'about-us', updatedAt: new Date('2026-03-03T00:00:00.000Z') },
+      { slug: 'contact', updatedAt: new Date(0) },
+    ])
   })
 })

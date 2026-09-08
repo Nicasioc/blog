@@ -7,6 +7,7 @@ const baseDto: PayloadCategoryDto = {
   slug: 'football',
   name: 'Football',
   description: 'All things football',
+  updatedAt: '2026-02-03T04:05:06.000Z',
 }
 
 describe('mapPayloadCategoryToCategory', () => {
@@ -24,4 +25,17 @@ describe('mapPayloadCategoryToCategory', () => {
     const category = mapPayloadCategoryToCategory(baseDto)
     expect(category.postCount).toBe(0)
   })
+
+  it('parses updatedAt into a Date', () => {
+    const category = mapPayloadCategoryToCategory(baseDto)
+    expect(category.updatedAt.toISOString()).toBe('2026-02-03T04:05:06.000Z')
+  })
+
+  it.each([undefined, null, 'not-a-date'])(
+    'falls back to the epoch when updatedAt is %o',
+    (updatedAt) => {
+      const category = mapPayloadCategoryToCategory({ ...baseDto, updatedAt } as PayloadCategoryDto)
+      expect(category.updatedAt.getTime()).toBe(0)
+    },
+  )
 })
