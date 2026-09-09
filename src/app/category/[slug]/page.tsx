@@ -8,6 +8,7 @@ import { isNonEmptyString } from '@/utils/checks'
 import { siteConfig } from '@/lib/siteConfig'
 import { clientEnv } from '@/lib/env.client'
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
+import { CollectionJsonLd } from '@/components/seo/CollectionJsonLd'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { PostList } from '@/components/post/PostList'
@@ -48,6 +49,12 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           { name: 'Inicio', url: siteUrl },
           { name: data.category.name, url: `${siteUrl}/category/${slug}` },
         ]}
+      />
+      <CollectionJsonLd
+        category={data.category}
+        posts={data.posts}
+        page={data.pagination.currentPage}
+        perPage={data.pagination.perPage}
       />
       <div className="container mx-auto px-4 py-10">
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-12">
