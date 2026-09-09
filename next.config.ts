@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next'
+import { permanentRedirects } from './src/lib/redirects'
 
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -24,6 +25,9 @@ const nextConfig: NextConfig = {
     // the rewrite below keeps the common case a local path.
     remotePatterns: [{ protocol: 'https', hostname: new URL(cmsOrigin).hostname }],
     formats: ['image/avif', 'image/webp'],
+  },
+  async redirects() {
+    return permanentRedirects
   },
   async rewrites() {
     return [{ source: '/api/media/file/:path*', destination: `${cmsOrigin}/api/media/file/:path*` }]
