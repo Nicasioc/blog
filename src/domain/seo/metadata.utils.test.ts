@@ -68,6 +68,11 @@ describe('generatePostMetadata', () => {
     expect(meta.alternates?.canonical).toBe('https://testfc.com/blog/test-post')
   })
 
+  it('leaves robots unset so posts stay indexable', () => {
+    const meta = generatePostMetadata(mockPost, mockSiteConfig)
+    expect(meta.robots).toBeUndefined()
+  })
+
   it('includes featured image in OG when present', () => {
     const meta = generatePostMetadata(mockPost, mockSiteConfig)
     expect((meta.openGraph?.images as Array<{ url: string }>)[0].url).toBe(
@@ -127,6 +132,11 @@ describe('generateCategoryMetadata', () => {
     const meta = generateCategoryMetadata(category, mockSiteConfig)
     expect(meta.alternates?.canonical).toBe('https://testfc.com/category/transfers')
   })
+
+  it('leaves robots unset so category pages stay indexable', () => {
+    const meta = generateCategoryMetadata(category, mockSiteConfig)
+    expect(meta.robots).toBeUndefined()
+  })
 })
 
 describe('generateTagMetadata', () => {
@@ -151,6 +161,11 @@ describe('generateTagMetadata', () => {
   it('sets canonical URL', () => {
     const meta = generateTagMetadata(tag, mockSiteConfig)
     expect(meta.alternates?.canonical).toBe('https://testfc.com/tag/champions-league')
+  })
+
+  it('marks tag archives noindex, follow', () => {
+    const meta = generateTagMetadata(tag, mockSiteConfig)
+    expect(meta.robots).toEqual({ index: false, follow: true })
   })
 })
 

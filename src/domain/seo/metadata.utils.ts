@@ -59,6 +59,11 @@ export const generateTagMetadata = (tag: Tag, siteConfig: SiteConfig): Metadata 
   return {
     title,
     description,
+    // Tag archives render the same list UI as category pages with no unique copy
+    // and are near-duplicates of each other. Keep them crawlable for link
+    // discovery (follow) but out of the index so they don't compete with posts
+    // and categories for crawl budget. They are also excluded from the sitemap.
+    robots: { index: false, follow: true },
     alternates: { canonical: `${siteConfig.siteUrl}/tag/${tag.slug}` },
     openGraph: {
       title,
