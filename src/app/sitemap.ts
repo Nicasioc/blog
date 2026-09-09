@@ -2,14 +2,15 @@ import type { MetadataRoute } from 'next'
 import { fetchAllPostSlugs } from '@/persistence/payload/repositories/postRepository'
 import { fetchAllPageSlugs } from '@/persistence/payload/repositories/pageRepository'
 import { fetchAllCategories } from '@/persistence/payload/repositories/categoryRepository'
-import { clientEnv } from '@/lib/env.client'
+import { siteConfig } from '@/lib/siteConfig'
 import { STATIC_PAGES } from '@/lib/staticPages'
 import { latestDate } from '@/utils/date'
 
 export const revalidate = 86400
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const siteUrl = clientEnv.NEXT_PUBLIC_SITE_URL
+  // Normalised (no trailing slash) — see siteConfig.
+  const siteUrl = siteConfig.siteUrl
   const buildTime = new Date()
 
   // The mappers use the epoch as "no usable date". Surfacing 1970 in <lastmod>

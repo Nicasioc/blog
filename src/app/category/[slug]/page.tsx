@@ -22,11 +22,13 @@ type Props = {
   searchParams: Promise<{ page?: string }>
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { slug } = await params
-  const data = await getCategoryArchive({ slug })
+  const { page: pageParam } = await searchParams
+  const page = Math.max(1, Number(pageParam ?? '1'))
+  const data = await getCategoryArchive({ slug, page })
   if (!data) return {}
-  return generateCategoryMetadata(data.category, siteConfig)
+  return generateCategoryMetadata(data.category, siteConfig, page)
 }
 
 export default async function CategoryPage({ params, searchParams }: Props) {

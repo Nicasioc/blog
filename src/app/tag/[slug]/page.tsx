@@ -17,11 +17,13 @@ type Props = {
   searchParams: Promise<{ page?: string }>
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { slug } = await params
+  const { page: pageParam } = await searchParams
+  const page = Math.max(1, Number(pageParam ?? '1'))
   const data = await getTagArchive({ slug })
   if (!data) return {}
-  return generateTagMetadata(data.tag, siteConfig)
+  return generateTagMetadata(data.tag, siteConfig, page)
 }
 
 export default async function TagPage({ params, searchParams }: Props) {

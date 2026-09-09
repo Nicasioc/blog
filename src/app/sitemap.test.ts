@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-vi.mock('@/lib/env.client', () => ({
-  clientEnv: { NEXT_PUBLIC_SITE_URL: 'https://site.example.com' },
+vi.mock('@/lib/siteConfig', () => ({
+  siteConfig: { siteUrl: 'https://site.example.com' },
 }))
 
 vi.mock('@/persistence/payload/repositories/postRepository', () => ({

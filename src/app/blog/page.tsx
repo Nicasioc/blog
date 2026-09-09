@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { getPostsList } from '@/application/blog/getPostsList'
 import { getSidebarData } from '@/application/blog/getSidebarData'
+import { buildCanonicalUrl } from '@/domain/seo/metadata.utils'
 import { siteConfig } from '@/lib/siteConfig'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -9,11 +10,17 @@ import { Pagination } from '@/components/navigation/Pagination'
 
 export const revalidate = 1800
 
-export async function generateMetadata(): Promise<Metadata> {
-  return { title: 'Blog', description: `Últimas publicaciones de ${siteConfig.siteName}` }
-}
-
 type Props = { searchParams: Promise<{ page?: string }> }
+
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const { page: pageParam } = await searchParams
+  const page = Math.max(1, Number(pageParam ?? '1'))
+  return {
+    title: 'Blog',
+    description: `Últimas publicaciones de ${siteConfig.siteName}`,
+    alternates: { canonical: buildCanonicalUrl(siteConfig.siteUrl, '/blog', page) },
+  }
+}
 
 export default async function BlogPage({ searchParams }: Props) {
   const { page: pageParam } = await searchParams
