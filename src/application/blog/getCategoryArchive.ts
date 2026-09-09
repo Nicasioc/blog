@@ -2,6 +2,7 @@ import { fetchCategoryBySlug } from '@/persistence/payload/repositories/category
 import { fetchPostsList } from '@/persistence/payload/repositories/postRepository'
 import type { Category } from '@/domain/category/category.model'
 import type { Post } from '@/domain/post/post.model'
+import { ARCHIVE_PAGE_SIZE } from '@/domain/shared/pagination.model'
 import type { PaginationInfo } from '@/domain/shared/pagination.model'
 
 export type CategoryArchiveData = {
@@ -19,7 +20,7 @@ type GetCategoryArchiveParams = {
 export const getCategoryArchive = async (
   params: GetCategoryArchiveParams,
 ): Promise<CategoryArchiveData | null> => {
-  const { slug, page = 1, perPage = 10 } = params
+  const { slug, page = 1, perPage = ARCHIVE_PAGE_SIZE } = params
 
   const category = await fetchCategoryBySlug(slug)
   if (!category) return null

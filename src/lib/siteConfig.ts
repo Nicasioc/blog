@@ -16,7 +16,9 @@ export type SiteConfig = {
 
 export const siteConfig: SiteConfig = {
   siteName: clientEnv.NEXT_PUBLIC_SITE_NAME,
-  siteUrl: clientEnv.NEXT_PUBLIC_SITE_URL,
+  // Canonical URLs, the sitemap and metadataBase all build on this, so keep it
+  // free of a trailing slash regardless of how the env var is set.
+  siteUrl: clientEnv.NEXT_PUBLIC_SITE_URL.replace(/\/+$/, ''),
   logoUrl: clientEnv.NEXT_PUBLIC_SITE_LOGO_URL,
   contactEmail: clientEnv.NEXT_PUBLIC_CONTACT_EMAIL,
   theme: {

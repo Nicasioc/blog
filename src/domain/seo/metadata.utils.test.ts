@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
+  buildCanonicalUrl,
   generatePostMetadata,
   generateCategoryMetadata,
   generateTagMetadata,
@@ -46,6 +47,37 @@ const mockPost: Post = {
   seo: null,
 }
 
+describe('buildCanonicalUrl', () => {
+  it('joins the site URL and path', () => {
+    expect(buildCanonicalUrl('https://testfc.com', '/blog/hello')).toBe(
+      'https://testfc.com/blog/hello',
+    )
+  })
+
+  it('returns the bare site URL for the root path', () => {
+    expect(buildCanonicalUrl('https://testfc.com', '/')).toBe('https://testfc.com')
+  })
+
+  it('strips a trailing slash from the site URL', () => {
+    expect(buildCanonicalUrl('https://testfc.com/', '/blog')).toBe('https://testfc.com/blog')
+  })
+
+  it('omits the page query for page 1 and adds it for page >= 2', () => {
+    expect(buildCanonicalUrl('https://testfc.com', '/category/x', 1)).toBe(
+      'https://testfc.com/category/x',
+    )
+    expect(buildCanonicalUrl('https://testfc.com', '/category/x', 3)).toBe(
+      'https://testfc.com/category/x?page=3',
+    )
+  })
+
+  it('tolerates a malformed page value', () => {
+    expect(buildCanonicalUrl('https://testfc.com', '/blog', Number.NaN)).toBe(
+      'https://testfc.com/blog',
+    )
+  })
+})
+
 describe('generatePostMetadata', () => {
   it('falls back to post title and excerpt when seo is null', () => {
     const meta = generatePostMetadata(mockPost, mockSiteConfig)
@@ -66,6 +98,11 @@ describe('generatePostMetadata', () => {
   it('sets canonical URL', () => {
     const meta = generatePostMetadata(mockPost, mockSiteConfig)
     expect(meta.alternates?.canonical).toBe('https://testfc.com/blog/test-post')
+  })
+
+  it('leaves robots unset so posts stay indexable', () => {
+    const meta = generatePostMetadata(mockPost, mockSiteConfig)
+    expect(meta.robots).toBeUndefined()
   })
 
   it('includes featured image in OG when present', () => {
@@ -105,6 +142,7 @@ describe('generateCategoryMetadata', () => {
     name: 'Transfers',
     description: 'Transfer news.',
     postCount: 42,
+    updatedAt: new Date('2026-01-01T00:00:00.000Z'),
   }
 
   it('builds title from category name and site name', () => {
@@ -122,9 +160,22 @@ describe('generateCategoryMetadata', () => {
     expect(meta.description).toBe('Últimas noticias y novedades de Transfers.')
   })
 
-  it('sets canonical URL', () => {
+  it('sets a self-referencing canonical URL', () => {
     const meta = generateCategoryMetadata(category, mockSiteConfig)
     expect(meta.alternates?.canonical).toBe('https://testfc.com/category/transfers')
+  })
+
+  it('makes the canonical page-aware for page >= 2', () => {
+    const meta = generateCategoryMetadata(category, mockSiteConfig, 3)
+    expect(meta.alternates?.canonical).toBe('https://testfc.com/category/transfers?page=3')
+    expect(meta.openGraph && 'url' in meta.openGraph && meta.openGraph.url).toBe(
+      'https://testfc.com/category/transfers?page=3',
+    )
+  })
+
+  it('leaves robots unset so category pages stay indexable', () => {
+    const meta = generateCategoryMetadata(category, mockSiteConfig)
+    expect(meta.robots).toBeUndefined()
   })
 })
 
@@ -147,9 +198,18 @@ describe('generateTagMetadata', () => {
     expect(meta.description).toBe('Últimos artículos etiquetados con Champions League.')
   })
 
-  it('sets canonical URL', () => {
+  it('sets a self-referencing canonical URL, page-aware', () => {
+    expect(generateTagMetadata(tag, mockSiteConfig).alternates?.canonical).toBe(
+      'https://testfc.com/tag/champions-league',
+    )
+    expect(generateTagMetadata(tag, mockSiteConfig, 2).alternates?.canonical).toBe(
+      'https://testfc.com/tag/champions-league?page=2',
+    )
+  })
+
+  it('marks tag archives noindex, follow', () => {
     const meta = generateTagMetadata(tag, mockSiteConfig)
-    expect(meta.alternates?.canonical).toBe('https://testfc.com/tag/champions-league')
+    expect(meta.robots).toEqual({ index: false, follow: true })
   })
 })
 

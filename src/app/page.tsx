@@ -1,10 +1,18 @@
+import type { Metadata } from 'next'
+import Link from 'next/link'
 import { getHomepageData } from '@/application/blog/getHomepageData'
+import { buildCanonicalUrl } from '@/domain/seo/metadata.utils'
+import { siteConfig } from '@/lib/siteConfig'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { SectionHeading } from '@/components/layout/SectionHeading'
 import { PostList } from '@/components/post/PostList'
 import { HeroCarousel } from '@/components/home/HeroCarousel'
 
 export const revalidate = 1800
+
+export const metadata: Metadata = {
+  alternates: { canonical: buildCanonicalUrl(siteConfig.siteUrl, '/') },
+}
 
 export default async function HomePage() {
   const { heroPosts, recentPosts, categories } = await getHomepageData()
@@ -17,6 +25,12 @@ export default async function HomePage() {
             <section>
               <SectionHeading title="Más Noticias" />
               <PostList posts={recentPosts} />
+              <Link
+                href="/blog"
+                className="text-primary hover:text-brand-secondary mt-6 inline-block text-sm font-semibold transition-colors"
+              >
+                Ver todas las publicaciones &rarr;
+              </Link>
             </section>
           </div>
           <Sidebar categories={categories} />

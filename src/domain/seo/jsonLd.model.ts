@@ -46,3 +46,29 @@ export type WebSiteJsonLd = {
   url: string
   description?: string
 }
+
+export type ListItemJsonLd = {
+  '@type': 'ListItem'
+  position: number
+  url: string
+}
+
+export type ItemListJsonLd = {
+  '@type': 'ItemList'
+  numberOfItems: number
+  itemListElement: ListItemJsonLd[]
+}
+
+export type CollectionPageJsonLd = {
+  '@context': 'https://schema.org'
+  '@type': 'CollectionPage'
+  name: string
+  url: string
+  isPartOf: {
+    '@type': 'WebSite'
+    name: string
+    url: string
+  }
+  description?: string
+  mainEntity: ItemListJsonLd
+}

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getTagArchive } from '@/application/blog/getTagArchive'
+import { getSidebarData } from '@/application/blog/getSidebarData'
 import { generateTagMetadata } from '@/domain/seo/metadata.utils'
 import { siteConfig } from '@/lib/siteConfig'
 import { Sidebar } from '@/components/layout/Sidebar'
@@ -16,11 +17,13 @@ type Props = {
   searchParams: Promise<{ page?: string }>
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { slug } = await params
+  const { page: pageParam } = await searchParams
+  const page = Math.max(1, Number(pageParam ?? '1'))
   const data = await getTagArchive({ slug })
   if (!data) return {}
-  return generateTagMetadata(data.tag, siteConfig)
+  return generateTagMetadata(data.tag, siteConfig, page)
 }
 
 export default async function TagPage({ params, searchParams }: Props) {
@@ -28,7 +31,10 @@ export default async function TagPage({ params, searchParams }: Props) {
   const { page: pageParam } = await searchParams
   const page = Math.max(1, Number(pageParam ?? '1'))
 
-  const data = await getTagArchive({ slug, page })
+  const [data, { categories }] = await Promise.all([
+    getTagArchive({ slug, page }),
+    getSidebarData(),
+  ])
   if (!data) notFound()
 
   return (
@@ -40,7 +46,7 @@ export default async function TagPage({ params, searchParams }: Props) {
           <PostList posts={data.posts} />
           <Pagination pagination={data.pagination} basePath={`/tag/${slug}`} />
         </div>
-        <Sidebar categories={[]} />
+        <Sidebar categories={categories} />
       </div>
     </div>
   )

@@ -155,24 +155,54 @@ describe('fetchRelatedPosts', () => {
 describe('fetchAllPostSlugs', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('returns slugs from a single page', async () => {
-    vi.mocked(payloadFetch).mockResolvedValue(makeResult([{ slug: 'a' }, { slug: 'b' }], 2, 1))
+  it('returns slug + parsed updatedAt from a single page and selects both fields', async () => {
+    vi.mocked(payloadFetch).mockResolvedValue(
+      makeResult(
+        [
+          { slug: 'a', updatedAt: '2026-01-01T00:00:00.000Z' },
+          { slug: 'b', updatedAt: '2026-02-01T00:00:00.000Z' },
+        ],
+        2,
+        1,
+      ),
+    )
 
     const slugs = await fetchAllPostSlugs()
 
-    expect(slugs).toEqual([{ slug: 'a' }, { slug: 'b' }])
+    expect(slugs).toEqual([
+      { slug: 'a', updatedAt: new Date('2026-01-01T00:00:00.000Z') },
+      { slug: 'b', updatedAt: new Date('2026-02-01T00:00:00.000Z') },
+    ])
+    expect(payloadFetch).toHaveBeenCalledWith(
+      '/posts',
+      expect.objectContaining({ select: ['slug', 'updatedAt'] }),
+    )
     expect(payloadFetch).toHaveBeenCalledTimes(1)
+  })
+
+  it('falls back to the epoch when a post has no usable updatedAt', async () => {
+    vi.mocked(payloadFetch).mockResolvedValue(makeResult([{ slug: 'a', updatedAt: null }], 1, 1))
+
+    const [entry] = await fetchAllPostSlugs()
+
+    expect(entry.updatedAt.getTime()).toBe(0)
   })
 
   it('fans out across remaining pages and flattens the results', async () => {
     vi.mocked(payloadFetch)
-      .mockResolvedValueOnce(makeResult([{ slug: 'a' }], 3, 3))
-      .mockResolvedValueOnce(makeResult([{ slug: 'b' }], 3, 3))
-      .mockResolvedValueOnce(makeResult([{ slug: 'c' }], 3, 3))
+      .mockResolvedValueOnce(
+        makeResult([{ slug: 'a', updatedAt: '2026-01-01T00:00:00.000Z' }], 3, 3),
+      )
+      .mockResolvedValueOnce(
+        makeResult([{ slug: 'b', updatedAt: '2026-01-02T00:00:00.000Z' }], 3, 3),
+      )
+      .mockResolvedValueOnce(
+        makeResult([{ slug: 'c', updatedAt: '2026-01-03T00:00:00.000Z' }], 3, 3),
+      )
 
     const slugs = await fetchAllPostSlugs()
 
-    expect(slugs).toEqual([{ slug: 'a' }, { slug: 'b' }, { slug: 'c' }])
+    expect(slugs.map((s) => s.slug)).toEqual(['a', 'b', 'c'])
     expect(payloadFetch).toHaveBeenCalledTimes(3)
   })
 })

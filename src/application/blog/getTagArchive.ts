@@ -2,6 +2,7 @@ import { fetchTagBySlug } from '@/persistence/payload/repositories/tagRepository
 import { fetchPostsList } from '@/persistence/payload/repositories/postRepository'
 import type { Tag } from '@/domain/tag/tag.model'
 import type { Post } from '@/domain/post/post.model'
+import { ARCHIVE_PAGE_SIZE } from '@/domain/shared/pagination.model'
 import type { PaginationInfo } from '@/domain/shared/pagination.model'
 
 export type TagArchiveData = {
@@ -19,7 +20,7 @@ type GetTagArchiveParams = {
 export const getTagArchive = async (
   params: GetTagArchiveParams,
 ): Promise<TagArchiveData | null> => {
-  const { slug, page = 1, perPage = 10 } = params
+  const { slug, page = 1, perPage = ARCHIVE_PAGE_SIZE } = params
 
   const tag = await fetchTagBySlug(slug)
   if (!tag) return null

@@ -3,4 +3,6 @@ export type PayloadCategoryDto = {
   name: string
   slug: string
   description?: string | null
+  // Payload maintains this on every collection; used for sitemap <lastmod>.
+  updatedAt?: string | null
 }
