@@ -16,8 +16,8 @@ describe('mapPayloadCategoryToCategory', () => {
     expect(category).toMatchObject({ id: 2, slug: 'football', name: 'Football' })
   })
 
-  it('falls back to empty description when missing', () => {
-    const category = mapPayloadCategoryToCategory({ ...baseDto, description: undefined })
+  it.each([undefined, null])('falls back to empty description when %o', (description) => {
+    const category = mapPayloadCategoryToCategory({ ...baseDto, description })
     expect(category.description).toBe('')
   })
 

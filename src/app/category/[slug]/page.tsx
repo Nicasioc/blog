@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation'
 import { getCategoryArchive } from '@/application/blog/getCategoryArchive'
 import { getSidebarData } from '@/application/blog/getSidebarData'
 import { generateCategoryMetadata } from '@/domain/seo/metadata.utils'
+import { formatPostCount } from '@/domain/post/postCount.utils'
+import { isNonEmptyString } from '@/utils/checks'
 import { siteConfig } from '@/lib/siteConfig'
 import { clientEnv } from '@/lib/env.client'
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
@@ -51,7 +53,14 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-12">
           <div className="min-w-0">
             <Breadcrumb items={[{ name: 'Inicio', href: '/' }, { name: data.category.name }]} />
-            <PageHeader className="mt-6" eyebrow="Categoría" title={data.category.name} />
+            <PageHeader
+              className="mt-6"
+              eyebrow={`Categoría · ${formatPostCount(data.pagination.totalItems)}`}
+              title={data.category.name}
+              description={
+                isNonEmptyString(data.category.description) ? data.category.description : undefined
+              }
+            />
             <PostList posts={data.posts} />
             <Pagination pagination={data.pagination} basePath={`/category/${slug}`} />
           </div>
