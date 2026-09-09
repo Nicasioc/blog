@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getCategoryArchive } from '@/application/blog/getCategoryArchive'
+import { getSidebarData } from '@/application/blog/getSidebarData'
 import { generateCategoryMetadata } from '@/domain/seo/metadata.utils'
 import { siteConfig } from '@/lib/siteConfig'
 import { clientEnv } from '@/lib/env.client'
@@ -30,7 +31,10 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const { page: pageParam } = await searchParams
   const page = Math.max(1, Number(pageParam ?? '1'))
 
-  const data = await getCategoryArchive({ slug, page })
+  const [data, { categories }] = await Promise.all([
+    getCategoryArchive({ slug, page }),
+    getSidebarData(),
+  ])
   if (!data) notFound()
 
   const siteUrl = clientEnv.NEXT_PUBLIC_SITE_URL
@@ -51,7 +55,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
             <PostList posts={data.posts} />
             <Pagination pagination={data.pagination} basePath={`/category/${slug}`} />
           </div>
-          <Sidebar categories={[]} />
+          <Sidebar categories={categories} />
         </div>
       </div>
     </>

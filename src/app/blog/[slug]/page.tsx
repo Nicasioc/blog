@@ -3,6 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getPostBySlug } from '@/application/blog/getPostBySlug'
+import { getSidebarData } from '@/application/blog/getSidebarData'
 import { fetchAllPostSlugs } from '@/persistence/payload/repositories/postRepository'
 import { generatePostMetadata } from '@/domain/seo/metadata.utils'
 import { formatPostDateLong } from '@/domain/post/postDate.utils'
@@ -39,7 +40,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PostPage({ params }: Props) {
   const { slug } = await params
-  const result = await getPostBySlug(slug)
+  const [result, { categories }] = await Promise.all([getPostBySlug(slug), getSidebarData()])
   if (!result) notFound()
 
   const { post, relatedPosts, comments } = result
@@ -112,7 +113,7 @@ export default async function PostPage({ params }: Props) {
             <CommentList comments={comments} />
             <CommentForm postId={post.id} />
           </article>
-          <Sidebar categories={[]} />
+          <Sidebar categories={categories} />
         </div>
       </div>
     </>

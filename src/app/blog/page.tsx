@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { getPostsList } from '@/application/blog/getPostsList'
+import { getSidebarData } from '@/application/blog/getSidebarData'
 import { siteConfig } from '@/lib/siteConfig'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -17,7 +18,7 @@ type Props = { searchParams: Promise<{ page?: string }> }
 export default async function BlogPage({ searchParams }: Props) {
   const { page: pageParam } = await searchParams
   const page = Math.max(1, Number(pageParam ?? '1'))
-  const data = await getPostsList({ page })
+  const [data, { categories }] = await Promise.all([getPostsList({ page }), getSidebarData()])
 
   return (
     <div className="container mx-auto px-4 py-10">
@@ -31,7 +32,7 @@ export default async function BlogPage({ searchParams }: Props) {
           <PostList posts={data.posts} />
           <Pagination pagination={data.pagination} basePath="/blog" />
         </div>
-        <Sidebar categories={[]} />
+        <Sidebar categories={categories} />
       </div>
     </div>
   )
