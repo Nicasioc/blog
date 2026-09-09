@@ -1,5 +1,6 @@
 import { fetchPostsList } from '@/persistence/payload/repositories/postRepository'
 import type { Post } from '@/domain/post/post.model'
+import { ARCHIVE_PAGE_SIZE } from '@/domain/shared/pagination.model'
 import type { PaginationInfo } from '@/domain/shared/pagination.model'
 
 export type PostsListData = {
@@ -15,7 +16,7 @@ type GetPostsListParams = {
 }
 
 export const getPostsList = async (params: GetPostsListParams = {}): Promise<PostsListData> => {
-  const { page = 1, perPage = 10, categoryId, tagId } = params
+  const { page = 1, perPage = ARCHIVE_PAGE_SIZE, categoryId, tagId } = params
 
   const result = await fetchPostsList({ page, perPage, categoryId, tagId })
 

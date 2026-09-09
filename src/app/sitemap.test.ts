@@ -6,6 +6,7 @@ vi.mock('@/lib/siteConfig', () => ({
 
 vi.mock('@/persistence/payload/repositories/postRepository', () => ({
   fetchAllPostSlugs: vi.fn(),
+  fetchPostCountByCategory: vi.fn(),
 }))
 vi.mock('@/persistence/payload/repositories/pageRepository', () => ({
   fetchAllPageSlugs: vi.fn(),
@@ -15,7 +16,10 @@ vi.mock('@/persistence/payload/repositories/categoryRepository', () => ({
 }))
 
 import sitemap from './sitemap'
-import { fetchAllPostSlugs } from '@/persistence/payload/repositories/postRepository'
+import {
+  fetchAllPostSlugs,
+  fetchPostCountByCategory,
+} from '@/persistence/payload/repositories/postRepository'
 import { fetchAllPageSlugs } from '@/persistence/payload/repositories/pageRepository'
 import { fetchAllCategories } from '@/persistence/payload/repositories/categoryRepository'
 
@@ -41,6 +45,7 @@ describe('sitemap', () => {
     vi.mocked(fetchAllPostSlugs).mockResolvedValue([])
     vi.mocked(fetchAllPageSlugs).mockResolvedValue([])
     vi.mocked(fetchAllCategories).mockResolvedValue([])
+    vi.mocked(fetchPostCountByCategory).mockResolvedValue(0)
   })
 
   it('emits a valid lastModified Date on every entry', async () => {
@@ -129,6 +134,39 @@ describe('sitemap', () => {
     expect(
       withinBuildWindow(entryFor(entries, 'https://site.example.com').lastModified as Date),
     ).toBe(true)
+  })
+
+  it('lists page 2..N of the /blog archive but not page 1 twice', async () => {
+    // 25 posts at page size 10 -> 3 pages
+    vi.mocked(fetchAllPostSlugs).mockResolvedValue(
+      Array.from({ length: 25 }, (_, i) => post(`p${i}`, new Date('2026-01-01T00:00:00.000Z'))),
+    )
+
+    const urls = (await sitemap()).map((e) => e.url)
+
+    expect(urls).toContain('https://site.example.com/blog')
+    expect(urls).toContain('https://site.example.com/blog?page=2')
+    expect(urls).toContain('https://site.example.com/blog?page=3')
+    expect(urls).not.toContain('https://site.example.com/blog?page=1')
+    expect(urls).not.toContain('https://site.example.com/blog?page=4')
+  })
+
+  it('lists paginated category archive URLs based on the category post count', async () => {
+    vi.mocked(fetchAllCategories).mockResolvedValue([
+      category('plantel', new Date('2026-01-01T00:00:00.000Z')),
+      category('humor', new Date('2026-01-01T00:00:00.000Z')),
+    ])
+    // plantel: 21 posts -> 3 pages; humor: 4 posts -> 1 page
+    vi.mocked(fetchPostCountByCategory).mockResolvedValueOnce(21).mockResolvedValueOnce(4)
+
+    const urls = (await sitemap()).map((e) => e.url)
+
+    expect(urls).toContain('https://site.example.com/category/plantel')
+    expect(urls).toContain('https://site.example.com/category/plantel?page=2')
+    expect(urls).toContain('https://site.example.com/category/plantel?page=3')
+    expect(urls).not.toContain('https://site.example.com/category/plantel?page=4')
+    expect(urls).toContain('https://site.example.com/category/humor')
+    expect(urls).not.toContain('https://site.example.com/category/humor?page=2')
   })
 
   it('always includes the static legal pages', async () => {

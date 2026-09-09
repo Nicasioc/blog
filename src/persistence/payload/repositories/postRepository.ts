@@ -122,6 +122,18 @@ export const fetchAllPostSlugs = async (): Promise<SlugWithDate[]> => {
   return [...firstPage.data.map(toSlugWithDate), ...rest.flatMap((r) => r.data.map(toSlugWithDate))]
 }
 
+// Total published posts in a category, for the sitemap's paginated archive URLs.
+export const fetchPostCountByCategory = async (categoryId: number): Promise<number> => {
+  const result = await payloadFetch<PayloadPostDto>('/posts', {
+    where: buildPostsWhere({ categoryId }),
+    limit: 1,
+    select: ['slug'],
+    tags: ['posts'],
+    revalidate: serverEnv.REVALIDATE_PAGES,
+  })
+  return result.totalItems
+}
+
 export const createPost = async (input: PayloadPostWriteDto): Promise<Post> => {
   const dto = await payloadMutate<PayloadPostDto>('/posts', {
     method: 'POST',
