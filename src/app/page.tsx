@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { getHomepageData } from '@/application/blog/getHomepageData'
 import { buildCanonicalUrl } from '@/domain/seo/metadata.utils'
 import { siteConfig } from '@/lib/siteConfig'
@@ -24,6 +25,12 @@ export default async function HomePage() {
             <section>
               <SectionHeading title="Más Noticias" />
               <PostList posts={recentPosts} />
+              <Link
+                href="/blog"
+                className="text-primary hover:text-brand-secondary mt-6 inline-block text-sm font-semibold transition-colors"
+              >
+                Ver todas las publicaciones &rarr;
+              </Link>
             </section>
           </div>
           <Sidebar categories={categories} />
