@@ -14,6 +14,7 @@ export const AD_PLACEMENTS: Record<AdPlacement, AdSlotConfig> = {
     sizes: [
       [728, 90],
       [970, 90],
+      [970, 250],
     ],
     adUnitId: siteConfig.ads.slots['header-leaderboard'],
   },
@@ -30,6 +31,7 @@ export const AD_PLACEMENTS: Record<AdPlacement, AdSlotConfig> = {
     sizes: [
       [300, 250],
       [300, 600],
+      [160, 600],
     ],
     adUnitId: siteConfig.ads.slots.sidebar,
   },
@@ -38,6 +40,7 @@ export const AD_PLACEMENTS: Record<AdPlacement, AdSlotConfig> = {
     sizes: [
       [728, 90],
       [970, 90],
+      [970, 250],
     ],
     adUnitId: siteConfig.ads.slots.footer,
   },
