@@ -13,8 +13,11 @@ export const Footer = async () => {
 
   return (
     <footer className="bg-primary border-brand-secondary mt-16 border-t-4">
-      <div className="container mx-auto flex justify-center px-4 py-4 empty:hidden">
+      <div className="container mx-auto hidden justify-center px-4 py-4 empty:hidden md:flex">
         <AdSlot placement="footer" />
+      </div>
+      <div className="container mx-auto flex justify-center px-4 py-4 empty:hidden md:hidden">
+        <AdSlot placement="mobile-banner" fallbackPlacement="footer" />
       </div>
 
       {(categories.length > 0 || recentPosts.length > 0) && (

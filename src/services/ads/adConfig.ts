@@ -1,6 +1,11 @@
 import { siteConfig } from '@/lib/siteConfig'
 
-export type AdPlacement = 'header-leaderboard' | 'in-content' | 'sidebar' | 'footer'
+export type AdPlacement =
+  | 'header-leaderboard'
+  | 'in-content'
+  | 'sidebar'
+  | 'footer'
+  | 'mobile-banner'
 
 export type AdSlotConfig = {
   placement: AdPlacement
@@ -43,5 +48,13 @@ export const AD_PLACEMENTS: Record<AdPlacement, AdSlotConfig> = {
       [970, 250],
     ],
     adUnitId: siteConfig.ads.slots.footer,
+  },
+  'mobile-banner': {
+    placement: 'mobile-banner',
+    sizes: [
+      [320, 50],
+      [320, 100],
+    ],
+    adUnitId: siteConfig.ads.slots['mobile-banner'],
   },
 }
