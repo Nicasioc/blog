@@ -20,7 +20,12 @@ export const PostBody = ({ content }: Props) => {
   return (
     <div className={PROSE_CLASS}>
       <ContentHtml html={split.before} />
-      <AdSlot placement="in-content" className="not-prose my-6" />
+      <AdSlot placement="in-content" className="not-prose my-6 hidden md:block" />
+      <AdSlot
+        placement="mobile-banner"
+        fallbackPlacement="in-content"
+        className="not-prose my-6 md:hidden"
+      />
       <ContentHtml html={split.after} />
     </div>
   )

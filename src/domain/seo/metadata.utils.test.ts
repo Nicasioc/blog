@@ -22,7 +22,13 @@ const mockSiteConfig: SiteConfig = {
   ads: {
     provider: 'adsense',
     adSensePublisherId: undefined,
-    slots: { 'header-leaderboard': '', 'in-content': '', sidebar: '', footer: '' },
+    slots: {
+      'header-leaderboard': '',
+      'in-content': '',
+      sidebar: '',
+      footer: '',
+      'mobile-banner': '',
+    },
   },
 }
 
