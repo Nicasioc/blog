@@ -19,14 +19,15 @@ AdSenseSlot | PrebidSlot | null
 
 ### Key Files
 
-| File                                               | Role                                                                   |
-| -------------------------------------------------- | ---------------------------------------------------------------------- |
-| `src/services/ads/adConfig.ts`                     | Defines `AdPlacement` type and `AD_PLACEMENTS` config                  |
-| `src/components/ads/AdProvider.tsx`                | React context; reads `NEXT_PUBLIC_AD_PROVIDER`; exposes `renderSlot()` |
-| `src/components/ads/AdSlot.tsx`                    | Thin 'use client' wrapper — call `useAdProvider().renderSlot()`        |
-| `src/components/ads/providers/AdSenseProvider.tsx` | `<ins>` element + `adsbygoogle.push()` in `useEffect`                  |
-| `src/components/ads/providers/PrebidProvider.tsx`  | Stub — empty div for future GAM/Prebid                                 |
-| `src/app/providers.tsx`                            | Wraps children with `<AdProvider>` for the whole app                   |
+| File                                               | Role                                                                                            |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `src/lib/siteConfig.ts`                            | Single read surface for ad config — `siteConfig.ads.{provider,adSensePublisherId,slots}`        |
+| `src/services/ads/adConfig.ts`                     | Defines `AdPlacement` type and `AD_PLACEMENTS`; `adUnitId` resolved from `siteConfig.ads.slots` |
+| `src/components/ads/AdProvider.tsx`                | React context; reads `siteConfig.ads.provider`; exposes `renderSlot()`                          |
+| `src/components/ads/AdSlot.tsx`                    | Thin 'use client' wrapper — call `useAdProvider().renderSlot()`                                 |
+| `src/components/ads/providers/AdSenseProvider.tsx` | `<ins>` element + `adsbygoogle.push()` in `useEffect`                                           |
+| `src/components/ads/providers/PrebidProvider.tsx`  | Stub — empty div for future GAM/Prebid                                                          |
+| `src/app/providers.tsx`                            | Wraps children with `<AdProvider>` for the whole app                                            |
 
 ---
 
@@ -66,15 +67,19 @@ NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR=1122334455
 NEXT_PUBLIC_ADSENSE_SLOT_FOOTER=5544332211
 ```
 
+These are read once, at boot, into `siteConfig.ads` (`src/lib/siteConfig.ts`) —
+`AdProvider`, `AdSenseScript`, `AdSenseProvider`, and `adConfig.ts` all read
+`siteConfig.ads.*`, never `clientEnv` directly.
+
 ### 2. The AdSense script
 
 `layout.tsx` conditionally loads the adsbygoogle script when both `publisherId` and `provider=adsense` are set:
 
 ```tsx
 {
-  siteConfig.adProvider === 'adsense' && siteConfig.adSensePublisherId && (
+  siteConfig.ads.provider === 'adsense' && siteConfig.ads.adSensePublisherId && (
     <Script
-      src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${siteConfig.adSensePublisherId}`}
+      src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${siteConfig.ads.adSensePublisherId}`}
       strategy="afterInteractive"
       crossOrigin="anonymous"
     />
@@ -103,7 +108,7 @@ The `try/catch` handles the race condition where the component mounts before the
 
 ### 4. Slot renders `null` when unconfigured
 
-`AdSenseSlot` returns `null` if `config.adUnitId` is empty or `siteConfig.adSensePublisherId` is not set. This prevents broken `<ins>` elements in development or deployments without AdSense configured.
+`AdSenseSlot` returns `null` if `config.adUnitId` is empty or `siteConfig.ads.adSensePublisherId` is not set. This prevents broken `<ins>` elements in development or deployments without AdSense configured.
 
 ---
 

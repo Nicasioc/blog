@@ -3,7 +3,7 @@ import { siteConfig } from '@/lib/siteConfig'
 import { buildAdsTxtContent } from '@/domain/ads/adsTxt.utils'
 
 export function GET() {
-  const content = buildAdsTxtContent(siteConfig.adSensePublisherId)
+  const content = buildAdsTxtContent(siteConfig.ads.adSensePublisherId)
 
   if (!content) {
     return new NextResponse(null, { status: 404 })

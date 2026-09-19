@@ -1,4 +1,4 @@
-import { clientEnv } from '@/lib/env.client'
+import { siteConfig } from '@/lib/siteConfig'
 
 export type AdPlacement = 'header-leaderboard' | 'in-content' | 'sidebar' | 'footer'
 
@@ -15,7 +15,7 @@ export const AD_PLACEMENTS: Record<AdPlacement, AdSlotConfig> = {
       [728, 90],
       [970, 90],
     ],
-    adUnitId: clientEnv.NEXT_PUBLIC_ADSENSE_SLOT_HEADER,
+    adUnitId: siteConfig.ads.slots['header-leaderboard'],
   },
   'in-content': {
     placement: 'in-content',
@@ -23,7 +23,7 @@ export const AD_PLACEMENTS: Record<AdPlacement, AdSlotConfig> = {
       [300, 250],
       [336, 280],
     ],
-    adUnitId: clientEnv.NEXT_PUBLIC_ADSENSE_SLOT_IN_CONTENT,
+    adUnitId: siteConfig.ads.slots['in-content'],
   },
   sidebar: {
     placement: 'sidebar',
@@ -31,7 +31,7 @@ export const AD_PLACEMENTS: Record<AdPlacement, AdSlotConfig> = {
       [300, 250],
       [300, 600],
     ],
-    adUnitId: clientEnv.NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR,
+    adUnitId: siteConfig.ads.slots.sidebar,
   },
   footer: {
     placement: 'footer',
@@ -39,6 +39,6 @@ export const AD_PLACEMENTS: Record<AdPlacement, AdSlotConfig> = {
       [728, 90],
       [970, 90],
     ],
-    adUnitId: clientEnv.NEXT_PUBLIC_ADSENSE_SLOT_FOOTER,
+    adUnitId: siteConfig.ads.slots.footer,
   },
 }

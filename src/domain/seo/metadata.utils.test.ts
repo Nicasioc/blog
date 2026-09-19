@@ -19,8 +19,11 @@ const mockSiteConfig: SiteConfig = {
   logoUrl: '/logo.svg',
   contactEmail: 'hola@testfc.com',
   theme: { primary: '#ffffff', secondary: '#000000', primaryForeground: '#000000' },
-  adProvider: 'adsense',
-  adSensePublisherId: undefined,
+  ads: {
+    provider: 'adsense',
+    adSensePublisherId: undefined,
+    slots: { 'header-leaderboard': '', 'in-content': '', sidebar: '', footer: '' },
+  },
 }
 
 const mockPost: Post = {

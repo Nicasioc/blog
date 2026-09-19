@@ -18,14 +18,14 @@ export const AdSenseSlot = ({ placement, className }: Props) => {
     }
   }, [])
 
-  if (!config.adUnitId || !siteConfig.adSensePublisherId) return null
+  if (!config.adUnitId || !siteConfig.ads.adSensePublisherId) return null
 
   return (
     <div className={className}>
       <ins
         className="adsbygoogle"
         style={{ display: 'block' }}
-        data-ad-client={siteConfig.adSensePublisherId}
+        data-ad-client={siteConfig.ads.adSensePublisherId}
         data-ad-slot={config.adUnitId}
         data-ad-format="auto"
         data-full-width-responsive="true"
