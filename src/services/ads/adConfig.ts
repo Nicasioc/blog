@@ -6,6 +6,7 @@ export type AdPlacement =
   | 'sidebar'
   | 'footer'
   | 'mobile-banner'
+  | 'in-feed'
 
 export type AdSlotConfig = {
   placement: AdPlacement
@@ -56,5 +57,13 @@ export const AD_PLACEMENTS: Record<AdPlacement, AdSlotConfig> = {
       [320, 100],
     ],
     adUnitId: siteConfig.ads.slots['mobile-banner'],
+  },
+  'in-feed': {
+    placement: 'in-feed',
+    sizes: [
+      [300, 250],
+      [336, 280],
+    ],
+    adUnitId: siteConfig.ads.slots['in-feed'],
   },
 }

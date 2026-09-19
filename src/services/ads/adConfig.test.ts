@@ -16,6 +16,7 @@ vi.mock('@/lib/siteConfig', () => ({
         sidebar: 'slot-sidebar',
         footer: 'slot-footer',
         'mobile-banner': 'slot-mobile-banner',
+        'in-feed': 'slot-in-feed',
       },
     },
   },
@@ -36,6 +37,7 @@ describe('AD_PLACEMENTS', () => {
     expect(AD_PLACEMENTS.sidebar.adUnitId).toBe('slot-sidebar')
     expect(AD_PLACEMENTS.footer.adUnitId).toBe('slot-footer')
     expect(AD_PLACEMENTS['mobile-banner'].adUnitId).toBe('slot-mobile-banner')
+    expect(AD_PLACEMENTS['in-feed'].adUnitId).toBe('slot-in-feed')
   })
 
   it('gives every placement at least one configured size', () => {
@@ -48,6 +50,13 @@ describe('AD_PLACEMENTS', () => {
     expect(AD_PLACEMENTS['mobile-banner'].sizes).toEqual([
       [320, 50],
       [320, 100],
+    ])
+  })
+
+  it('configures in-feed with rectangle sizes matching in-content (BLO-189)', () => {
+    expect(AD_PLACEMENTS['in-feed'].sizes).toEqual([
+      [300, 250],
+      [336, 280],
     ])
   })
 })

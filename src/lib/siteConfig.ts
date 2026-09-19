@@ -39,6 +39,7 @@ export const siteConfig: SiteConfig = {
       sidebar: clientEnv.NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR,
       footer: clientEnv.NEXT_PUBLIC_ADSENSE_SLOT_FOOTER,
       'mobile-banner': clientEnv.NEXT_PUBLIC_ADSENSE_SLOT_MOBILE_BANNER,
+      'in-feed': clientEnv.NEXT_PUBLIC_ADSENSE_SLOT_IN_FEED,
     },
   },
 }

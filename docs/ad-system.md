@@ -33,15 +33,16 @@ AdSenseSlot | PrebidSlot | null
 
 ## Ad Placements
 
-Five named placements, each with configured sizes:
+Six named placements, each with configured sizes:
 
-| Placement            | Location                       | Default sizes             |
-| -------------------- | ------------------------------ | ------------------------- |
-| `header-leaderboard` | Below navigation               | 728×90, 970×90, 970×250   |
-| `in-content`         | Mid-article (after 3rd `</p>`) | 300×250, 336×280          |
-| `sidebar`            | Right column                   | 300×250, 300×600, 160×600 |
-| `footer`             | Above copyright                | 728×90, 970×90, 970×250   |
-| `mobile-banner`      | `<md` swap for the above three | 320×50, 320×100           |
+| Placement            | Location                        | Default sizes             |
+| -------------------- | ------------------------------- | ------------------------- |
+| `header-leaderboard` | Below navigation                | 728×90, 970×90, 970×250   |
+| `in-content`         | Mid-article (after 3rd `</p>`)  | 300×250, 336×280          |
+| `sidebar`            | Right column                    | 300×250, 300×600, 160×600 |
+| `footer`             | Above copyright                 | 728×90, 970×90, 970×250   |
+| `mobile-banner`      | `<md` swap for the above three  | 320×50, 320×100           |
+| `in-feed`            | Post list grid (after 3rd card) | 300×250, 336×280          |
 
 Usage anywhere in the component tree:
 
@@ -66,6 +67,19 @@ desktop unit, swapped in) rather than nothing:
 ```tsx
 <AdSlot placement="mobile-banner" fallbackPlacement="header-leaderboard" />
 ```
+
+### List pages (in-feed)
+
+`PostList.tsx` (used by home, `/blog`, category, and tag archives) inserts
+one `in-feed` cell into the `PostCard` grid — after the 3rd card, so it
+lands at the end of a full row on `lg` — via a pure helper,
+`insertAdMarker` (`src/domain/post/insertAdIntoList.ts`). The marker is a
+plain sentinel object, not a `Post`, so `PostList` type-guards it with
+`isAdMarker` and renders `<AdSlot placement="in-feed">` in its place,
+styled with the same `rounded-xl`/`ring-1` treatment as `PostCard` so it
+reads as a card in the grid. Lists with 3 or fewer posts get no marker;
+an unconfigured `in-feed` slot renders nothing (the existing
+`AdSenseSlot` null-guard) and the grid simply has one fewer cell.
 
 ---
 
