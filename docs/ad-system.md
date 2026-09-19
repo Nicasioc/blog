@@ -110,6 +110,21 @@ The `try/catch` handles the race condition where the component mounts before the
 
 `AdSenseSlot` returns `null` if `config.adUnitId` is empty or `siteConfig.ads.adSensePublisherId` is not set. This prevents broken `<ins>` elements in development or deployments without AdSense configured.
 
+### 5. Reserved layout space (CLS)
+
+Once a slot passes the null-guard above, `getReservedAdDimensions`
+(`src/domain/ads/adSize.utils.ts`) derives a conservative box from the
+placement's configured `sizes` — `minHeightPx` is the smallest configured
+height, `maxWidthPx` the largest configured width — applied to the wrapper
+`<div>` as `minHeight` / `maxWidth` / `marginInline: 'auto'`. Placements with
+no ad configured stay zero-footprint, since the reservation only runs after
+the null-guard.
+
+This is conservative, not exact: a placement whose sizes vary in height
+(`header-leaderboard` is `90px`–`250px`) can still shift by the difference
+once a taller creative fills. `PrebidProvider.tsx`'s stub wrapper applies
+the same reservation so the future GAM provider inherits it.
+
 ---
 
 ## Content Security Policy
