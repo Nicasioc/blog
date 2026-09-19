@@ -19,14 +19,14 @@ AdSenseSlot | PrebidSlot | null
 
 ### Key Files
 
-| File | Role |
-|------|------|
-| `src/services/ads/adConfig.ts` | Defines `AdPlacement` type and `AD_PLACEMENTS` config |
-| `src/components/ads/AdProvider.tsx` | React context; reads `NEXT_PUBLIC_AD_PROVIDER`; exposes `renderSlot()` |
-| `src/components/ads/AdSlot.tsx` | Thin 'use client' wrapper — call `useAdProvider().renderSlot()` |
-| `src/components/ads/providers/AdSenseProvider.tsx` | `<ins>` element + `adsbygoogle.push()` in `useEffect` |
-| `src/components/ads/providers/PrebidProvider.tsx` | Stub — empty div for future GAM/Prebid |
-| `src/app/providers.tsx` | Wraps children with `<AdProvider>` for the whole app |
+| File                                               | Role                                                                   |
+| -------------------------------------------------- | ---------------------------------------------------------------------- |
+| `src/services/ads/adConfig.ts`                     | Defines `AdPlacement` type and `AD_PLACEMENTS` config                  |
+| `src/components/ads/AdProvider.tsx`                | React context; reads `NEXT_PUBLIC_AD_PROVIDER`; exposes `renderSlot()` |
+| `src/components/ads/AdSlot.tsx`                    | Thin 'use client' wrapper — call `useAdProvider().renderSlot()`        |
+| `src/components/ads/providers/AdSenseProvider.tsx` | `<ins>` element + `adsbygoogle.push()` in `useEffect`                  |
+| `src/components/ads/providers/PrebidProvider.tsx`  | Stub — empty div for future GAM/Prebid                                 |
+| `src/app/providers.tsx`                            | Wraps children with `<AdProvider>` for the whole app                   |
 
 ---
 
@@ -34,14 +34,15 @@ AdSenseSlot | PrebidSlot | null
 
 Four named placements, each with configured sizes:
 
-| Placement | Location | Default sizes |
-|-----------|----------|--------------|
-| `header-leaderboard` | Below navigation | 728×90, 970×90 |
-| `in-content` | Mid-article (after 3rd `</p>`) | 300×250, 336×280 |
-| `sidebar` | Right column | 300×250, 300×600 |
-| `footer` | Above copyright | 728×90, 970×90 |
+| Placement            | Location                       | Default sizes    |
+| -------------------- | ------------------------------ | ---------------- |
+| `header-leaderboard` | Below navigation               | 728×90, 970×90   |
+| `in-content`         | Mid-article (after 3rd `</p>`) | 300×250, 336×280 |
+| `sidebar`            | Right column                   | 300×250, 300×600 |
+| `footer`             | Above copyright                | 728×90, 970×90   |
 
 Usage anywhere in the component tree:
+
 ```tsx
 <AdSlot placement="in-content" className="my-6" />
 ```
@@ -70,13 +71,15 @@ NEXT_PUBLIC_ADSENSE_SLOT_FOOTER=5544332211
 `layout.tsx` conditionally loads the adsbygoogle script when both `publisherId` and `provider=adsense` are set:
 
 ```tsx
-{siteConfig.adProvider === 'adsense' && siteConfig.adSensePublisherId && (
-  <Script
-    src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${siteConfig.adSensePublisherId}`}
-    strategy="afterInteractive"
-    crossOrigin="anonymous"
-  />
-)}
+{
+  siteConfig.adProvider === 'adsense' && siteConfig.adSensePublisherId && (
+    <Script
+      src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${siteConfig.adSensePublisherId}`}
+      strategy="afterInteractive"
+      crossOrigin="anonymous"
+    />
+  )
+}
 ```
 
 `strategy="afterInteractive"` is required — `adsbygoogle` cannot run during SSR.
@@ -101,6 +104,47 @@ The `try/catch` handles the race condition where the component mounts before the
 ### 4. Slot renders `null` when unconfigured
 
 `AdSenseSlot` returns `null` if `config.adUnitId` is empty or `siteConfig.adSensePublisherId` is not set. This prevents broken `<ins>` elements in development or deployments without AdSense configured.
+
+---
+
+## Content Security Policy
+
+AdSense loads a script, renders ad iframes, and pings a traffic-verification
+beacon from several Google-owned hosts. `next.config.ts`'s `headers()` sets a
+strict `Content-Security-Policy` (built by `src/lib/csp.ts`), so each of
+those hosts must be explicitly allow-listed or the browser blocks the
+request.
+
+| Directive     | Google hosts added for AdSense                                                                                                                         | Why                                                                                                                                                            |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `script-src`  | `pagead2.googlesyndication.com`, `partner.googleadservices.com`, `tpc.googlesyndication.com`, `*.adtrafficquality.google`, `www.googletagservices.com` | Loads the AdSense/GPT bootstrap script and the sodar traffic-quality script                                                                                    |
+| `frame-src`   | `googleads.g.doubleclick.net`, `tpc.googlesyndication.com`, `*.adtrafficquality.google`, `www.google.com`                                              | AdSense renders each ad unit as a sandboxed iframe                                                                                                             |
+| `connect-src` | `pagead2.googlesyndication.com`, `googleads.g.doubleclick.net`, `*.adtrafficquality.google`, `*.google.com`, `*.googlesyndication.com`                 | The sodar beacon (`ep1.adtrafficquality.google/getconfig/sodar`) reports invalid-traffic signals; blocking it risks impressions being discounted as unverified |
+
+`*.google.com`, `*.googlesyndication.com`, and `*.adtrafficquality.google`
+are wildcarded because AdSense rotates the exact subdomain it uses — most
+recently the numbered `adtrafficquality` "sodar" endpoints (`ep1`, `ep2`,
+…), which is exactly what broke production and led to
+[BLO-195](https://linear.app/vex-agency/issue/BLO-195). Every other
+directive (`default-src`, `style-src`, `img-src`, `font-src`) is unrelated
+to ads and stays untouched.
+
+The allow-list lives in `src/lib/csp.ts` (unit-tested in `csp.test.ts`), not
+inline in `next.config.ts`, so it can be reviewed and tested independently —
+see `src/lib/redirects.ts` for the same pattern applied to redirects.
+
+**Known limitation:** Google's current guidance
+([support.google.com/adsense/answer/16283098](https://support.google.com/adsense/answer/16283098))
+says they only _officially_ support nonce-based "strict CSP," not a domain
+allowlist, and warns a stale allowlist can disrupt ad serving. This
+allowlist is a pragmatic stopgap that matches the rest of this repo's static
+`next.config.ts` header — revisit with a nonce-based CSP (requires
+middleware, not a static header) if AdSense CSP violations recur.
+
+**Not yet added:** BLO-139 (Google Publisher Tag / GAM, milestone M2) will
+need `securepubads.g.doubleclick.net` in `script-src`/`connect-src` and
+`*.safeframe.googlesyndication.com` in `frame-src`. Add those when that
+ticket lands, not before.
 
 ---
 
@@ -147,6 +191,7 @@ The `AdSlot` → `useAdProvider().renderSlot()` → provider switch is the only 
 ## Disabling Ads Per Deployment
 
 To deploy a team site without ads:
+
 - Leave `NEXT_PUBLIC_ADSENSE_PUBLISHER_ID` unset, or
 - Set slot IDs to empty strings
 
