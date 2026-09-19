@@ -2,7 +2,7 @@
 import { createContext, useContext, type ReactNode } from 'react'
 import { AdSenseSlot } from './providers/AdSenseProvider'
 import type { AdPlacement } from '@/services/ads/adConfig'
-import { clientEnv } from '@/lib/env.client'
+import { siteConfig } from '@/lib/siteConfig'
 import { useConsent } from '@/components/consent/ConsentContext'
 
 type AdProviderContextValue = {
@@ -14,7 +14,7 @@ const AdContext = createContext<AdProviderContextValue>({ renderSlot: () => null
 export const useAdProvider = () => useContext(AdContext)
 
 export const AdProvider = ({ children }: { children: ReactNode }) => {
-  const provider = clientEnv.NEXT_PUBLIC_AD_PROVIDER
+  const provider = siteConfig.ads.provider
   const { status } = useConsent()
 
   const renderSlot = (placement: AdPlacement, className?: string): ReactNode => {

@@ -1,4 +1,5 @@
 import { clientEnv } from '@/lib/env.client'
+import type { AdPlacement } from '@/services/ads/adConfig'
 
 export type SiteConfig = {
   siteName: string
@@ -10,8 +11,11 @@ export type SiteConfig = {
     secondary: string
     primaryForeground: string
   }
-  adProvider: 'adsense' | 'gam' | 'prebid'
-  adSensePublisherId: string | undefined
+  ads: {
+    provider: 'adsense' | 'gam' | 'prebid'
+    adSensePublisherId: string | undefined
+    slots: Record<AdPlacement, string>
+  }
 }
 
 export const siteConfig: SiteConfig = {
@@ -26,6 +30,14 @@ export const siteConfig: SiteConfig = {
     secondary: clientEnv.NEXT_PUBLIC_SECONDARY_COLOR,
     primaryForeground: clientEnv.NEXT_PUBLIC_PRIMARY_FOREGROUND,
   },
-  adProvider: clientEnv.NEXT_PUBLIC_AD_PROVIDER,
-  adSensePublisherId: clientEnv.NEXT_PUBLIC_ADSENSE_PUBLISHER_ID,
+  ads: {
+    provider: clientEnv.NEXT_PUBLIC_AD_PROVIDER,
+    adSensePublisherId: clientEnv.NEXT_PUBLIC_ADSENSE_PUBLISHER_ID,
+    slots: {
+      'header-leaderboard': clientEnv.NEXT_PUBLIC_ADSENSE_SLOT_HEADER,
+      'in-content': clientEnv.NEXT_PUBLIC_ADSENSE_SLOT_IN_CONTENT,
+      sidebar: clientEnv.NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR,
+      footer: clientEnv.NEXT_PUBLIC_ADSENSE_SLOT_FOOTER,
+    },
+  },
 }
