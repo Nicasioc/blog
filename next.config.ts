@@ -1,17 +1,10 @@
 import type { NextConfig } from 'next'
 import { permanentRedirects } from './src/lib/redirects'
+import { buildCsp } from './src/lib/csp'
 
 const isDev = process.env.NODE_ENV === 'development'
 
-const csp = [
-  "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''} https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com`,
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: https:",
-  "font-src 'self'",
-  'frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com',
-  "connect-src 'self'",
-].join('; ')
+const csp = buildCsp(isDev)
 
 // The Payload CMS serves media from `<origin>/api/media/file/<name>`. Access
 // control stays on there, so `media.url` is that proxy route (not a raw
