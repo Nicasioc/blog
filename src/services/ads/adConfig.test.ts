@@ -15,6 +15,7 @@ vi.mock('@/lib/siteConfig', () => ({
         'in-content': 'slot-in-content',
         sidebar: 'slot-sidebar',
         footer: 'slot-footer',
+        'mobile-banner': 'slot-mobile-banner',
       },
     },
   },
@@ -34,11 +35,19 @@ describe('AD_PLACEMENTS', () => {
     expect(AD_PLACEMENTS['in-content'].adUnitId).toBe('slot-in-content')
     expect(AD_PLACEMENTS.sidebar.adUnitId).toBe('slot-sidebar')
     expect(AD_PLACEMENTS.footer.adUnitId).toBe('slot-footer')
+    expect(AD_PLACEMENTS['mobile-banner'].adUnitId).toBe('slot-mobile-banner')
   })
 
   it('gives every placement at least one configured size', () => {
     for (const config of Object.values(AD_PLACEMENTS)) {
       expect(config.sizes.length).toBeGreaterThan(0)
     }
+  })
+
+  it('configures mobile-banner with the IAB mobile sizes (BLO-133)', () => {
+    expect(AD_PLACEMENTS['mobile-banner'].sizes).toEqual([
+      [320, 50],
+      [320, 100],
+    ])
   })
 })

@@ -23,8 +23,11 @@ export const Header = () => (
         ))}
       </nav>
     </div>
-    <div className="container mx-auto flex justify-center px-4 pb-2 empty:hidden">
+    <div className="container mx-auto hidden justify-center px-4 pb-2 empty:hidden md:flex">
       <AdSlot placement="header-leaderboard" />
+    </div>
+    <div className="container mx-auto flex justify-center px-4 pb-2 empty:hidden md:hidden">
+      <AdSlot placement="mobile-banner" fallbackPlacement="header-leaderboard" />
     </div>
   </header>
 )

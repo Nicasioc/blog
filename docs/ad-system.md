@@ -33,7 +33,7 @@ AdSenseSlot | PrebidSlot | null
 
 ## Ad Placements
 
-Four named placements, each with configured sizes:
+Five named placements, each with configured sizes:
 
 | Placement            | Location                       | Default sizes             |
 | -------------------- | ------------------------------ | ------------------------- |
@@ -41,6 +41,7 @@ Four named placements, each with configured sizes:
 | `in-content`         | Mid-article (after 3rd `</p>`) | 300×250, 336×280          |
 | `sidebar`            | Right column                   | 300×250, 300×600, 160×600 |
 | `footer`             | Above copyright                | 728×90, 970×90, 970×250   |
+| `mobile-banner`      | `<md` swap for the above three | 320×50, 320×100           |
 
 Usage anywhere in the component tree:
 
@@ -49,6 +50,22 @@ Usage anywhere in the component tree:
 ```
 
 `AdSlot` must be rendered inside `<Providers>` (which wraps the whole app via `layout.tsx`).
+
+### Responsive desktop/mobile swap + fallback
+
+`header-leaderboard`, `footer`, and `in-content` each render alongside a
+`mobile-banner` sibling: the desktop unit is `hidden md:block` (or
+`md:flex`), the mobile unit is the reverse (`md:hidden`) — both stay in the
+DOM, only one is visible at a given breakpoint. `AdSlot` takes an optional
+`fallbackPlacement`: if the primary placement's slot id isn't configured
+(`AD_PLACEMENTS[placement].adUnitId` is empty), it renders the fallback
+placement instead. This means a tenant that hasn't set
+`NEXT_PUBLIC_ADSENSE_SLOT_MOBILE_BANNER` still gets an ad on mobile (the
+desktop unit, swapped in) rather than nothing:
+
+```tsx
+<AdSlot placement="mobile-banner" fallbackPlacement="header-leaderboard" />
+```
 
 ---
 
