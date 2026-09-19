@@ -35,12 +35,12 @@ AdSenseSlot | PrebidSlot | null
 
 Four named placements, each with configured sizes:
 
-| Placement            | Location                       | Default sizes    |
-| -------------------- | ------------------------------ | ---------------- |
-| `header-leaderboard` | Below navigation               | 728×90, 970×90   |
-| `in-content`         | Mid-article (after 3rd `</p>`) | 300×250, 336×280 |
-| `sidebar`            | Right column                   | 300×250, 300×600 |
-| `footer`             | Above copyright                | 728×90, 970×90   |
+| Placement            | Location                       | Default sizes             |
+| -------------------- | ------------------------------ | ------------------------- |
+| `header-leaderboard` | Below navigation               | 728×90, 970×90, 970×250   |
+| `in-content`         | Mid-article (after 3rd `</p>`) | 300×250, 336×280          |
+| `sidebar`            | Right column                   | 300×250, 300×600, 160×600 |
+| `footer`             | Above copyright                | 728×90, 970×90, 970×250   |
 
 Usage anywhere in the component tree:
 
