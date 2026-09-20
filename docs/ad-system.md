@@ -33,16 +33,17 @@ AdSenseSlot | PrebidSlot | null
 
 ## Ad Placements
 
-Six named placements, each with configured sizes:
+Seven named placements, each with configured sizes:
 
-| Placement            | Location                        | Default sizes             |
-| -------------------- | ------------------------------- | ------------------------- |
-| `header-leaderboard` | Below navigation                | 728×90, 970×90, 970×250   |
-| `in-content`         | Mid-article (after 3rd `</p>`)  | 300×250, 336×280          |
-| `sidebar`            | Right column                    | 300×250, 300×600, 160×600 |
-| `footer`             | Above copyright                 | 728×90, 970×90, 970×250   |
-| `mobile-banner`      | `<md` swap for the above three  | 320×50, 320×100           |
-| `in-feed`            | Post list grid (after 3rd card) | 300×250, 336×280          |
+| Placement            | Location                              | Default sizes             |
+| -------------------- | ------------------------------------- | ------------------------- |
+| `header-leaderboard` | Below navigation                      | 728×90, 970×90, 970×250   |
+| `in-content`         | Mid-article (1–2 per post, long-form) | 300×250, 336×280          |
+| `sidebar`            | Right column                          | 300×250, 300×600, 160×600 |
+| `footer`             | Above copyright                       | 728×90, 970×90, 970×250   |
+| `mobile-banner`      | `<md` swap for the above three        | 320×50, 320×100           |
+| `in-feed`            | Post list grid (after 3rd card)       | 300×250, 336×280          |
+| `below-content`      | Below the article, above tags         | 336×280, 300×250, 728×90  |
 
 Usage anywhere in the component tree:
 
@@ -199,22 +200,50 @@ ticket lands, not before.
 
 ---
 
-## `PostBody` In-Content Ad
+## `PostBody` In-Content Ads + Below-Content
 
-`PostBody.tsx` splits post content at the 3rd `</p>` tag and inserts an `<AdSlot>` between the halves:
-
-```typescript
-const parts = content.split('</p>')
-const splitAt = Math.min(3, Math.floor(parts.length / 2))
-const before = parts.slice(0, splitAt).join('</p>') + '</p>'
-const after = parts.slice(splitAt).join('</p>')
-```
-
-The `not-prose` class on the `AdSlot` wrapper prevents Tailwind Typography from applying article styles to the ad container:
+`splitContentForAds` (`src/domain/post/splitContentForAd.ts`) splits post
+content into fragments at fixed paragraph boundaries — after the 3rd
+paragraph, then every 8 paragraphs after that, capped at 2 splits (3
+fragments) — and never splits inside the trailing 2 paragraphs of the post.
+A short post (too few paragraphs to reach the first split point) comes back
+as a single-element array, so `PostBody` renders it with no ads interleaved:
 
 ```tsx
-<AdSlot placement="in-content" className="my-6 not-prose" />
+const fragments = splitContentForAds(content)
+// fragments.map(...) renders each fragment, with an in-content AdSlot pair
+// (desktop + mobile-banner fallback) between every pair of fragments
 ```
+
+Same wrapper-unwrap/re-wrap rule as the original single-split helper
+(`splitContentForAd`, kept for backwards compatibility) so every fragment
+stays hydration-safe — a `<div>`/`<section>`/`<article>` wrapper is
+detected once, stripped before splitting, and re-applied to each fragment.
+
+Each in-content position renders the desktop/mobile responsive pair, same
+as Header/Footer:
+
+```tsx
+<AdSlot placement="in-content" className="not-prose my-6 hidden md:block" />
+<AdSlot
+  placement="mobile-banner"
+  fallbackPlacement="in-content"
+  className="not-prose my-6 md:hidden"
+/>
+```
+
+The `not-prose` class prevents Tailwind Typography from applying article
+styles to the ad container.
+
+A separate `below-content` placement renders once, between `<PostBody>` and
+`<TagList>` in `src/app/blog/[slug]/page.tsx` — the highest-attention
+position after the reader finishes the article:
+
+```tsx
+<AdSlot placement="below-content" className="my-8" />
+```
+
+Policy guardrail: at most 2 in-content + 1 below-content per article.
 
 ---
 

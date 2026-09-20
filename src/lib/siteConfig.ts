@@ -40,6 +40,7 @@ export const siteConfig: SiteConfig = {
       footer: clientEnv.NEXT_PUBLIC_ADSENSE_SLOT_FOOTER,
       'mobile-banner': clientEnv.NEXT_PUBLIC_ADSENSE_SLOT_MOBILE_BANNER,
       'in-feed': clientEnv.NEXT_PUBLIC_ADSENSE_SLOT_IN_FEED,
+      'below-content': clientEnv.NEXT_PUBLIC_ADSENSE_SLOT_BELOW_CONTENT,
     },
   },
 }

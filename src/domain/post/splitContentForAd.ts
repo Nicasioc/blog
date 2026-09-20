@@ -62,3 +62,67 @@ export const splitContentForAd = (content: string, maxParagraphs = 3): ContentSp
     after: `${wrapper.openTag}${split.after}${wrapper.closeTag}`,
   }
 }
+
+export type SplitAdsOptions = {
+  firstAfter?: number
+  everyParagraphs?: number
+  max?: number
+}
+
+// A post never splits into its trailing paragraphs — a split point this
+// close to the end would put an ad right before the article's conclusion.
+const TRAILING_GUARD = 2
+
+const computeSplitPoints = (
+  paragraphCount: number,
+  { firstAfter, everyParagraphs, max }: Required<SplitAdsOptions>,
+): number[] => {
+  const points: number[] = []
+  let next = firstAfter
+  while (points.length < max && next <= paragraphCount - TRAILING_GUARD) {
+    points.push(next)
+    next += everyParagraphs
+  }
+  return points
+}
+
+// Splits `html` (paragraphs only, no wrapper) into `points.length + 1`
+// well-formed fragments at the given 0-based paragraph boundaries.
+const splitAtPoints = (html: string, points: number[]): string[] => {
+  const parts = html.split(PARAGRAPH_CLOSE)
+  const boundaries = [0, ...points]
+
+  return boundaries.map((start, i) => {
+    const end = boundaries[i + 1]
+    return end === undefined
+      ? parts.slice(start).join(PARAGRAPH_CLOSE)
+      : parts.slice(start, end).join(PARAGRAPH_CLOSE) + PARAGRAPH_CLOSE
+  })
+}
+
+/*
+ * Splits post content into fragments for interleaving multiple in-content
+ * ads on long posts — a fixed single split (splitContentForAd) gives a
+ * 30-paragraph article the same inventory as a 6-paragraph one. Returns a
+ * single-element array (the content unchanged) when there aren't enough
+ * paragraphs to split into, so the caller can always render
+ * `fragments.map(...)` uniformly with no null-branch.
+ */
+export const splitContentForAds = (
+  content: string,
+  { firstAfter = 3, everyParagraphs = 8, max = 2 }: SplitAdsOptions = {},
+): string[] => {
+  if (typeof content !== 'string' || content.trim() === '') return [content ?? '']
+
+  const wrapper = unwrap(content)
+  const inner = wrapper ? wrapper.inner : content
+  const paragraphCount = inner.split(PARAGRAPH_CLOSE).length - 1
+  const points = computeSplitPoints(paragraphCount, { firstAfter, everyParagraphs, max })
+
+  if (points.length === 0) return [content]
+
+  const fragments = splitAtPoints(inner, points)
+  if (!wrapper) return fragments
+
+  return fragments.map((fragment) => `${wrapper.openTag}${fragment}${wrapper.closeTag}`)
+}

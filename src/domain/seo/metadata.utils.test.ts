@@ -29,6 +29,7 @@ const mockSiteConfig: SiteConfig = {
       footer: '',
       'mobile-banner': '',
       'in-feed': '',
+      'below-content': '',
     },
   },
 }
