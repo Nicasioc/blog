@@ -1,13 +1,12 @@
 'use client'
 import Script from 'next/script'
 import { siteConfig } from '@/lib/siteConfig'
-import { useConsent } from '@/components/consent/ConsentContext'
 
+// Loads for every visitor once provider/publisher/ads.enabled allow it —
+// consent no longer gates the script itself, only ad personalization
+// (see AdSenseProvider.tsx / getAdPersonalization). See BLO-193.
 export const AdSenseScript = () => {
-  const { status } = useConsent()
-
   if (!siteConfig.ads.enabled) return null
-  if (status !== 'accepted') return null
   if (siteConfig.ads.provider !== 'adsense' || !siteConfig.ads.adSensePublisherId) return null
 
   return (

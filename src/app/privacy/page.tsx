@@ -59,8 +59,10 @@ export default function PrivacyPage() {
       </ul>
       <p>
         Al entrar por primera vez te mostramos un aviso para que decidas si aceptás o rechazás estas
-        cookies. Mientras no elijas &quot;Aceptar&quot;, no se cargan cookies de publicidad ni de
-        terceros. Podés cambiar tu decisión en cualquier momento desde &quot;Preferencias de
+        cookies. Mientras no elijas &quot;Aceptar&quot;, no se muestran anuncios personalizados:
+        solo anuncios genéricos, no basados en tu actividad de navegación. Google igualmente utiliza
+        cookies en ese caso para fines como la limitación de frecuencia de anuncios y la detección
+        de fraude. Podés cambiar tu decisión en cualquier momento desde &quot;Preferencias de
         cookies&quot;, en el pie de página de cualquier sección del sitio.
       </p>
 

@@ -157,6 +157,38 @@ This is conservative, not exact: a placement whose sizes vary in height
 once a taller creative fills. `PrebidProvider.tsx`'s stub wrapper applies
 the same reservation so the future GAM provider inherits it.
 
+### 6. Consent gating: personalization, not blocking
+
+Decided 2026-09-19 (project owner): an unanswered consent banner or an
+explicit reject no longer blocks ads outright — only an explicit **accept**
+earns personalized ads; `null` (unanswered) and `rejected` both get
+**non-personalized** ads, never zero ads. `AdSenseScript` loads
+`adsbygoogle.js` for every visitor (once provider/publisher/`ads.enabled`
+allow it) regardless of consent status — consent no longer gates the script
+itself.
+
+`src/domain/consent/adPersonalization.ts` — `getAdPersonalization(status)` —
+is the single consent → personalization decision for the whole project;
+GPT (BLO-146) reuses the same helper, don't create a second one.
+`AdProvider` derives `personalization` once per render and passes it to
+`AdSenseSlot`, which sets `window.adsbygoogle.requestNonPersonalizedAds`
+(`1` or `0`) immediately before its own `push({})`:
+
+```tsx
+const adsbygoogle = (window.adsbygoogle = window.adsbygoogle ?? [])
+adsbygoogle.requestNonPersonalizedAds = personalization === 'non-personalized' ? 1 : 0
+adsbygoogle.push({})
+```
+
+The effect that does this runs once on mount (empty dependency array), so
+if a visitor accepts consent _after_ a unit has already rendered, that
+unit keeps whatever personalization it started with until the next full
+navigation remounts it — a deliberate simplification, not a bug.
+
+Google still sets cookies in non-personalized mode (frequency capping,
+invalid-traffic detection), so the privacy page and consent banner copy
+describe this as "no personalized ads," not "no ads" / "no cookies."
+
 ---
 
 ## Content Security Policy
