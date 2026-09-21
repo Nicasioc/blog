@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react'
 
 let mockEnabled = true
 let mockStatus: 'accepted' | 'rejected' | null = 'accepted'
+let mockProvider: 'adsense' | 'gam' | 'prebid' = 'adsense'
 
 vi.mock('@/lib/siteConfig', () => ({
   siteConfig: {
@@ -10,7 +11,9 @@ vi.mock('@/lib/siteConfig', () => ({
       get enabled() {
         return mockEnabled
       },
-      provider: 'adsense',
+      get provider() {
+        return mockProvider
+      },
     },
   },
 }))
@@ -40,6 +43,7 @@ describe('AdProvider', () => {
   beforeEach(() => {
     mockEnabled = true
     mockStatus = 'accepted'
+    mockProvider = 'adsense'
   })
 
   it('renders the active provider slot, personalized, when ads are enabled and consent is accepted', () => {
@@ -88,4 +92,17 @@ describe('AdProvider', () => {
       'non-personalized',
     )
   })
+
+  it.each(['gam', 'prebid'] as const)(
+    'renders nothing for an unimplemented provider (%s)',
+    (provider) => {
+      mockProvider = provider
+      render(
+        <AdProvider>
+          <Probe />
+        </AdProvider>,
+      )
+      expect(screen.queryByTestId('adsense-slot')).not.toBeInTheDocument()
+    },
+  )
 })
