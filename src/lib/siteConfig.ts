@@ -12,6 +12,7 @@ export type SiteConfig = {
     primaryForeground: string
   }
   ads: {
+    enabled: boolean
     provider: 'adsense' | 'gam' | 'prebid'
     adSensePublisherId: string | undefined
     slots: Record<AdPlacement, string>
@@ -31,6 +32,7 @@ export const siteConfig: SiteConfig = {
     primaryForeground: clientEnv.NEXT_PUBLIC_PRIMARY_FOREGROUND,
   },
   ads: {
+    enabled: clientEnv.NEXT_PUBLIC_ADS_ENABLED,
     provider: clientEnv.NEXT_PUBLIC_AD_PROVIDER,
     adSensePublisherId: clientEnv.NEXT_PUBLIC_ADSENSE_PUBLISHER_ID,
     slots: {

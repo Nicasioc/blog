@@ -37,6 +37,19 @@ describe('siteConfig.ads', () => {
     expect(siteConfig.ads.provider).toBe('gam')
   })
 
+  it('defaults enabled to true when NEXT_PUBLIC_ADS_ENABLED is unset (BLO-135)', async () => {
+    stubRequiredEnv()
+    const { siteConfig } = await import('@/lib/siteConfig')
+    expect(siteConfig.ads.enabled).toBe(true)
+  })
+
+  it('reads enabled as false from NEXT_PUBLIC_ADS_ENABLED=false (BLO-135)', async () => {
+    stubRequiredEnv()
+    vi.stubEnv('NEXT_PUBLIC_ADS_ENABLED', 'false')
+    const { siteConfig } = await import('@/lib/siteConfig')
+    expect(siteConfig.ads.enabled).toBe(false)
+  })
+
   it('leaves adSensePublisherId undefined when unset', async () => {
     stubRequiredEnv()
     const { siteConfig } = await import('@/lib/siteConfig')

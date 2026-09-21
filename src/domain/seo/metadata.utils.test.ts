@@ -20,6 +20,7 @@ const mockSiteConfig: SiteConfig = {
   contactEmail: 'hola@testfc.com',
   theme: { primary: '#ffffff', secondary: '#000000', primaryForeground: '#000000' },
   ads: {
+    enabled: true,
     provider: 'adsense',
     adSensePublisherId: undefined,
     slots: {
