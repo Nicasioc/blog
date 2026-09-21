@@ -27,7 +27,8 @@ AdSenseSlot | PrebidSlot | null
 | `src/components/ads/AdSlot.tsx`                    | Thin 'use client' wrapper — call `useAdProvider().renderSlot()`                                 |
 | `src/components/ads/providers/AdSenseProvider.tsx` | `<ins>` element + `adsbygoogle.push()` in `useEffect`                                           |
 | `src/components/ads/providers/PrebidProvider.tsx`  | Stub — empty div for future GAM/Prebid                                                          |
-| `src/app/providers.tsx`                            | Wraps children with `<AdProvider>` for the whole app                                            |
+| `src/components/ads/AdSenseScript.tsx`             | Loads `adsbygoogle.js` once, gated on `ads.enabled`/provider/publisher id                       |
+| `src/app/providers.tsx`                            | Wraps children with `<AdProvider>` and mounts `<AdSenseScript>`, for the whole app              |
 
 ---
 
@@ -105,11 +106,17 @@ These are read once, at boot, into `siteConfig.ads` (`src/lib/siteConfig.ts`) �
 
 ### 2. The AdSense script
 
-`layout.tsx` conditionally loads the adsbygoogle script when both `publisherId` and `provider=adsense` are set:
+`src/components/ads/AdSenseScript.tsx`, mounted once via `src/app/providers.tsx`
+(wraps the whole app, alongside `<AdProvider>`), loads the adsbygoogle script
+when `ads.enabled`, `provider === 'adsense'`, and `adSensePublisherId` are all
+set:
 
 ```tsx
-{
-  siteConfig.ads.provider === 'adsense' && siteConfig.ads.adSensePublisherId && (
+export const AdSenseScript = () => {
+  if (!siteConfig.ads.enabled) return null
+  if (siteConfig.ads.provider !== 'adsense' || !siteConfig.ads.adSensePublisherId) return null
+
+  return (
     <Script
       src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${siteConfig.ads.adSensePublisherId}`}
       strategy="afterInteractive"
@@ -119,24 +126,38 @@ These are read once, at boot, into `siteConfig.ads` (`src/lib/siteConfig.ts`) �
 }
 ```
 
-`strategy="afterInteractive"` is required — `adsbygoogle` cannot run during SSR.
+`strategy="afterInteractive"` is required — `adsbygoogle` cannot run during
+SSR. The script loads for every visitor regardless of consent status — see
+"Consent gating" below for what consent actually controls.
 
 ### 3. Why `adsbygoogle.push` is in `useEffect`
 
-`adsbygoogle.push({})` must run **client-side only** after the `<ins>` element is mounted. Calling it during SSR throws `window is not defined`. The `useEffect` in `AdSenseProvider` runs only after hydration:
+`adsbygoogle.push({})` must run **client-side only** after the `<ins>` element
+is mounted. Calling it during SSR throws `window is not defined`. The
+`useEffect` in `AdSenseProvider` runs only after hydration, and a `hasPushed`
+ref guards against pushing more than once per slot even though the effect
+itself re-runs whenever `personalization` changes (see "Consent gating"
+below for why it needs to):
 
 ```typescript
+const hasPushed = useRef(false)
+
 useEffect(() => {
   try {
-    ;(window as {...}).adsbygoogle = (window as {...}).adsbygoogle ?? []
-    ;((window as {...}).adsbygoogle as unknown[]).push({})
+    const adsbygoogle = (window.adsbygoogle = window.adsbygoogle ?? [])
+    adsbygoogle.requestNonPersonalizedAds = personalization === 'non-personalized' ? 1 : 0
+    if (!hasPushed.current) {
+      hasPushed.current = true
+      adsbygoogle.push({})
+    }
   } catch {
     // script not yet loaded — fires push() when it loads
   }
-}, [])
+}, [personalization])
 ```
 
-The `try/catch` handles the race condition where the component mounts before the AdSense script has finished loading.
+The `try/catch` handles the race condition where the component mounts before
+the AdSense script has finished loading.
 
 ### 4. Slot renders `null` when unconfigured
 
@@ -180,10 +201,19 @@ adsbygoogle.requestNonPersonalizedAds = personalization === 'non-personalized' ?
 adsbygoogle.push({})
 ```
 
-The effect that does this runs once on mount (empty dependency array), so
-if a visitor accepts consent _after_ a unit has already rendered, that
-unit keeps whatever personalization it started with until the next full
-navigation remounts it — a deliberate simplification, not a bug.
+The effect depends on `personalization` and re-runs whenever it changes, but
+a `hasPushed` ref guards `push({})` to once per slot (see "Why
+`adsbygoogle.push` is in `useEffect`" above) — so the flag stays in sync with
+the latest consent decision even though the slot is only requested once.
+This isn't just tidiness: `useConsent()` is backed by `useSyncExternalStore`
+with a server snapshot of `null`, so the very first client render after
+hydration briefly sees `null` (→ non-personalized) before correcting to the
+real localStorage value — a naive "capture personalization once at mount"
+implementation freezes that transient wrong value for every returning
+visitor with existing accepted consent, not just react to later in-session
+changes. Caught during BLO-193 by testing all three consent states live in a
+browser, not by unit tests (synchronous `render()` calls can't reproduce the
+SSR-then-correct sequence).
 
 Google still sets cookies in non-personalized mode (frequency capping,
 invalid-traffic detection), so the privacy page and consent banner copy
