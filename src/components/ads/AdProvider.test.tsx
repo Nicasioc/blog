@@ -20,8 +20,12 @@ vi.mock('@/components/consent/ConsentContext', () => ({
 }))
 
 vi.mock('./providers/AdSenseProvider', () => ({
-  AdSenseSlot: ({ placement }: { placement: string }) => (
-    <div data-testid="adsense-slot" data-placement={placement} />
+  AdSenseSlot: ({ placement, personalization }: { placement: string; personalization: string }) => (
+    <div
+      data-testid="adsense-slot"
+      data-placement={placement}
+      data-personalization={personalization}
+    />
   ),
 }))
 
@@ -38,16 +42,15 @@ describe('AdProvider', () => {
     mockStatus = 'accepted'
   })
 
-  it('renders the active provider slot when ads are enabled and consent is accepted', () => {
+  it('renders the active provider slot, personalized, when ads are enabled and consent is accepted', () => {
     render(
       <AdProvider>
         <Probe />
       </AdProvider>,
     )
-    expect(screen.getByTestId('adsense-slot')).toHaveAttribute(
-      'data-placement',
-      'header-leaderboard',
-    )
+    const slot = screen.getByTestId('adsense-slot')
+    expect(slot).toHaveAttribute('data-placement', 'header-leaderboard')
+    expect(slot).toHaveAttribute('data-personalization', 'personalized')
   })
 
   it('renders nothing when siteConfig.ads.enabled is false, even with consent accepted (BLO-135)', () => {
@@ -60,13 +63,29 @@ describe('AdProvider', () => {
     expect(screen.queryByTestId('adsense-slot')).not.toBeInTheDocument()
   })
 
-  it('renders nothing when consent is not accepted, regardless of ads.enabled', () => {
+  it('still renders the slot, non-personalized, when consent is rejected (BLO-193)', () => {
     mockStatus = 'rejected'
     render(
       <AdProvider>
         <Probe />
       </AdProvider>,
     )
-    expect(screen.queryByTestId('adsense-slot')).not.toBeInTheDocument()
+    expect(screen.getByTestId('adsense-slot')).toHaveAttribute(
+      'data-personalization',
+      'non-personalized',
+    )
+  })
+
+  it('still renders the slot, non-personalized, when consent is unanswered / null (BLO-193)', () => {
+    mockStatus = null
+    render(
+      <AdProvider>
+        <Probe />
+      </AdProvider>,
+    )
+    expect(screen.getByTestId('adsense-slot')).toHaveAttribute(
+      'data-personalization',
+      'non-personalized',
+    )
   })
 })
