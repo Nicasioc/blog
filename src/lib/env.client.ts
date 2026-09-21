@@ -19,6 +19,7 @@ const clientSchema = z.object({
   NEXT_PUBLIC_ADSENSE_SLOT_FOOTER: z.string().optional().default(''),
   NEXT_PUBLIC_ADSENSE_SLOT_MOBILE_BANNER: z.string().optional().default(''),
   NEXT_PUBLIC_ADSENSE_SLOT_IN_FEED: z.string().optional().default(''),
+  NEXT_PUBLIC_ADSENSE_SLOT_BELOW_CONTENT: z.string().optional().default(''),
 })
 
 const _clientEnv = clientSchema.safeParse({
@@ -37,6 +38,7 @@ const _clientEnv = clientSchema.safeParse({
   NEXT_PUBLIC_ADSENSE_SLOT_FOOTER: process.env.NEXT_PUBLIC_ADSENSE_SLOT_FOOTER,
   NEXT_PUBLIC_ADSENSE_SLOT_MOBILE_BANNER: process.env.NEXT_PUBLIC_ADSENSE_SLOT_MOBILE_BANNER,
   NEXT_PUBLIC_ADSENSE_SLOT_IN_FEED: process.env.NEXT_PUBLIC_ADSENSE_SLOT_IN_FEED,
+  NEXT_PUBLIC_ADSENSE_SLOT_BELOW_CONTENT: process.env.NEXT_PUBLIC_ADSENSE_SLOT_BELOW_CONTENT,
 })
 
 if (!_clientEnv.success) {

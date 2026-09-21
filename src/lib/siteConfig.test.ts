@@ -58,6 +58,7 @@ describe('siteConfig.ads', () => {
     vi.stubEnv('NEXT_PUBLIC_ADSENSE_SLOT_FOOTER', 'slot-footer')
     vi.stubEnv('NEXT_PUBLIC_ADSENSE_SLOT_MOBILE_BANNER', 'slot-mobile-banner')
     vi.stubEnv('NEXT_PUBLIC_ADSENSE_SLOT_IN_FEED', 'slot-in-feed')
+    vi.stubEnv('NEXT_PUBLIC_ADSENSE_SLOT_BELOW_CONTENT', 'slot-below-content')
 
     const { siteConfig } = await import('@/lib/siteConfig')
 
@@ -68,6 +69,7 @@ describe('siteConfig.ads', () => {
       footer: 'slot-footer',
       'mobile-banner': 'slot-mobile-banner',
       'in-feed': 'slot-in-feed',
+      'below-content': 'slot-below-content',
     })
   })
 
@@ -81,6 +83,7 @@ describe('siteConfig.ads', () => {
       footer: '',
       'mobile-banner': '',
       'in-feed': '',
+      'below-content': '',
     })
   })
 })

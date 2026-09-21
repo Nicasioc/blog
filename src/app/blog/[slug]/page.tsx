@@ -14,6 +14,7 @@ import { clientEnv } from '@/lib/env.client'
 import { PostJsonLd } from '@/components/seo/PostJsonLd'
 import { BreadcrumbJsonLd } from '@/components/seo/BreadcrumbJsonLd'
 import { Sidebar } from '@/components/layout/Sidebar'
+import { AdSlot } from '@/components/ads/AdSlot'
 import { PostBody } from '@/components/post/PostBody'
 import { AuthorCard } from '@/components/post/AuthorCard'
 import { RelatedPosts } from '@/components/post/RelatedPosts'
@@ -107,6 +108,7 @@ export default async function PostPage({ params }: Props) {
               />
             )}
             <PostBody content={post.content} />
+            <AdSlot placement="below-content" className="my-8" />
             <TagList tags={post.tags} />
             <AuthorCard author={post.author} />
             <RelatedPosts posts={relatedPosts} />
