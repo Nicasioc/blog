@@ -270,9 +270,10 @@ The `AdSlot` → `useAdProvider().renderSlot()` → provider switch is the only 
 
 ## Disabling Ads Per Deployment
 
-To deploy a team site without ads:
+Three ways to disable ads, from broadest to narrowest:
 
-- Leave `NEXT_PUBLIC_ADSENSE_PUBLISHER_ID` unset, or
-- Set slot IDs to empty strings
+- **`NEXT_PUBLIC_ADS_ENABLED=false`** — the explicit site-wide switch. `AdProvider.renderSlot` short-circuits to `null` before the provider `switch`, and `AdSenseScript` never loads `adsbygoogle.js` — even with consent accepted. Defaults to `true` when unset.
+- Leave `NEXT_PUBLIC_ADSENSE_PUBLISHER_ID` unset — disables AdSense entirely (no script, no `<ins>` anywhere), same effect as the switch above but implicit.
+- Set an individual placement's slot id to an empty string — disables just that one placement; every other configured slot still renders.
 
-`AdSenseSlot` returns `null` when either is missing — no `<ins>` elements render, no console errors.
+`AdSenseSlot` returns `null` when any of these apply — no `<ins>` elements render, no console errors.

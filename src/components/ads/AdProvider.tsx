@@ -18,6 +18,7 @@ export const AdProvider = ({ children }: { children: ReactNode }) => {
   const { status } = useConsent()
 
   const renderSlot = (placement: AdPlacement, className?: string): ReactNode => {
+    if (!siteConfig.ads.enabled) return null
     if (status !== 'accepted') return null
 
     switch (provider) {
