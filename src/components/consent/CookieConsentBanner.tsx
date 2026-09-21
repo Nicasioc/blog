@@ -18,8 +18,10 @@ export const CookieConsentBanner = () => {
       <div className="container mx-auto flex flex-col items-center justify-between gap-3 sm:flex-row">
         <p className="text-sm">
           Usamos cookies propias y de terceros, incluida publicidad, para mejorar tu experiencia en
-          el sitio. Los anuncios solo se cargan si aceptás. Podés cambiar tu decisión cuando quieras
-          desde &quot;Preferencias de cookies&quot; en el pie de página. Más información en nuestra{' '}
+          el sitio. Si aceptás, los anuncios se personalizan según tu navegación; si rechazás o no
+          elegís, seguirás viendo anuncios genéricos, no personalizados. Podés cambiar tu decisión
+          cuando quieras desde &quot;Preferencias de cookies&quot; en el pie de página. Más
+          información en nuestra{' '}
           <Link href="/privacy" className="text-brand-secondary underline underline-offset-2">
             Política de Privacidad
           </Link>
