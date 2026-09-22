@@ -28,7 +28,9 @@ AdSenseSlot | PrebidSlot | null
 | `src/components/ads/providers/AdSenseProvider.tsx` | `<ins>` element + `adsbygoogle.push()` in `useEffect`                                                                                               |
 | `src/components/ads/providers/PrebidProvider.tsx`  | Stub — empty div for future GAM/Prebid                                                                                                              |
 | `src/components/ads/AdSenseScript.tsx`             | Loads `adsbygoogle.js` once, gated on `ads.enabled`/provider/publisher id                                                                           |
-| `src/app/providers.tsx`                            | Wraps children with `<AdProvider>` and mounts `<AdSenseScript>`, for the whole app                                                                  |
+| `src/components/ads/GamScript.tsx`                 | Loads `gpt.js` + the `googletag.cmd` queue, gated on `ads.enabled`/provider/network code                                                            |
+| `src/domain/ads/gamSizeMapping.utils.ts`           | `buildGamSizeMapping` — per-breakpoint size buckets for `slot.defineSizeMapping()` (GAM, not yet called)                                            |
+| `src/app/providers.tsx`                            | Wraps children with `<AdProvider>` and mounts `<AdSenseScript>` + `<GamScript>`, for the whole app                                                  |
 
 ---
 
@@ -223,11 +225,13 @@ describe this as "no personalized ads," not "no ads" / "no cookies."
 
 ## GAM (Google Ad Manager) Setup
 
-Config + env plumbing only (BLO-137) — no rendering yet. Setting
-`NEXT_PUBLIC_AD_PROVIDER=gam` today does not change what renders; `AdProvider`
-only branches on `gam` starting with BLO-140. `getGamAdUnitPath`
-(`src/services/ads/adConfig.ts`) is available for that later ticket to call,
-but nothing invokes it yet.
+Config, the GPT loader and the size-mapping helper are in place (BLO-137,
+BLO-138, BLO-139); **slot rendering is not** — `AdProvider` only branches on
+`gam` starting with BLO-140. So with `NEXT_PUBLIC_AD_PROVIDER=gam` today,
+`gpt.js` loads and the command queue initialises, but no slot is defined and
+no ad renders. `getGamAdUnitPath` (`src/services/ads/adConfig.ts`) and
+`buildGamSizeMapping` (`src/domain/ads/gamSizeMapping.utils.ts`) are both
+ready for that ticket to call.
 
 ### Env vars
 
@@ -247,6 +251,36 @@ full ad unit path. `getGamAdUnitPath(placement)` assembles
 `/${networkCode}/${slotName}` from `siteConfig.ads.gamNetworkCode` and
 `siteConfig.ads.gamSlots[placement]`, returning `undefined` when either half
 is unset — mirroring the AdSense empty-slot null-guard described above.
+
+### The GPT script
+
+`src/components/ads/GamScript.tsx`, mounted once via `src/app/providers.tsx`
+alongside `<AdSenseScript />` (each self-gates by provider, so both are
+mounted unconditionally), loads `gpt.js` when `ads.enabled`,
+`provider === 'gam'`, and `gamNetworkCode` are all set. Like AdSense after
+BLO-193, **consent does not gate the tag itself** — it only drives ad
+personalization, which for GPT lands in BLO-146.
+
+The `googletag.cmd` queue is initialised at **module scope**, not from an
+inline `<Script>`:
+
+```tsx
+if (typeof window !== 'undefined' && isGamConfigured()) {
+  const w = window as { googletag?: { cmd: unknown[] } }
+  w.googletag = w.googletag ?? { cmd: [] }
+}
+```
+
+This is deliberate and was corrected during BLO-139 after checking a real DOM
+dump. `next/script` hoists an `afterInteractive` **external** script straight
+into `<head>`, while an inline `<Script>` rendered next to it stays where the
+component sits in the tree — so the "init first, then `gpt.js`" ordering that
+reads correctly in JSX is the opposite of what the browser does (the inline
+tag landed ~104KB further down the document, long after `gpt.js` had been
+requested). Module scope runs when the client bundle imports the file, which
+is before hydration and therefore before any slot component effect (BLO-140)
+can push a command. `gpt.js` reuses an existing `window.googletag` rather than
+replacing it, then drains whatever queued up while it was in flight.
 
 ### Responsive size mapping
 
@@ -293,11 +327,11 @@ strict `Content-Security-Policy` (built by `src/lib/csp.ts`), so each of
 those hosts must be explicitly allow-listed or the browser blocks the
 request.
 
-| Directive     | Google hosts added for AdSense                                                                                                                         | Why                                                                                                                                                            |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `script-src`  | `pagead2.googlesyndication.com`, `partner.googleadservices.com`, `tpc.googlesyndication.com`, `*.adtrafficquality.google`, `www.googletagservices.com` | Loads the AdSense/GPT bootstrap script and the sodar traffic-quality script                                                                                    |
-| `frame-src`   | `googleads.g.doubleclick.net`, `tpc.googlesyndication.com`, `*.adtrafficquality.google`, `www.google.com`                                              | AdSense renders each ad unit as a sandboxed iframe                                                                                                             |
-| `connect-src` | `pagead2.googlesyndication.com`, `googleads.g.doubleclick.net`, `*.adtrafficquality.google`, `*.google.com`, `*.googlesyndication.com`                 | The sodar beacon (`ep1.adtrafficquality.google/getconfig/sodar`) reports invalid-traffic signals; blocking it risks impressions being discounted as unverified |
+| Directive     | Google hosts allow-listed                                                                                                                                                                | Why                                                                                                                                                            |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `script-src`  | `pagead2.googlesyndication.com`, `partner.googleadservices.com`, `tpc.googlesyndication.com`, `*.adtrafficquality.google`, `www.googletagservices.com`, `securepubads.g.doubleclick.net` | Loads the AdSense/GPT bootstrap script and the sodar traffic-quality script                                                                                    |
+| `frame-src`   | `googleads.g.doubleclick.net`, `tpc.googlesyndication.com`, `*.adtrafficquality.google`, `www.google.com`, `securepubads.g.doubleclick.net`, `*.safeframe.googlesyndication.com`         | AdSense renders each ad unit as a sandboxed iframe; GPT renders creatives in SafeFrame iframes on per-account subdomains                                       |
+| `connect-src` | `pagead2.googlesyndication.com`, `googleads.g.doubleclick.net`, `*.adtrafficquality.google`, `*.google.com`, `*.googlesyndication.com`, `securepubads.g.doubleclick.net`                 | The sodar beacon (`ep1.adtrafficquality.google/getconfig/sodar`) reports invalid-traffic signals; blocking it risks impressions being discounted as unverified |
 
 `*.google.com`, `*.googlesyndication.com`, and `*.adtrafficquality.google`
 are wildcarded because AdSense rotates the exact subdomain it uses — most
@@ -319,10 +353,13 @@ allowlist is a pragmatic stopgap that matches the rest of this repo's static
 `next.config.ts` header — revisit with a nonce-based CSP (requires
 middleware, not a static header) if AdSense CSP violations recur.
 
-**Not yet added:** BLO-139 (Google Publisher Tag / GAM, milestone M2) will
-need `securepubads.g.doubleclick.net` in `script-src`/`connect-src` and
-`*.safeframe.googlesyndication.com` in `frame-src`. Add those when that
-ticket lands, not before.
+The GPT hosts (`securepubads.g.doubleclick.net`,
+`*.safeframe.googlesyndication.com`) landed with BLO-139, cross-checked
+against
+[Google's Publisher Tag CSP guide](https://developers.google.com/publisher-tag/guides/content-security-policy).
+They are inert while the provider is `adsense` — `GamScript` renders nothing,
+so nothing requests those origins — which is why they ship ahead of the
+provider flip rather than alongside it.
 
 ---
 

@@ -4,12 +4,14 @@ import { ConsentProvider } from '@/components/consent/ConsentContext'
 import { CookieConsentBanner } from '@/components/consent/CookieConsentBanner'
 import { AdProvider } from '@/components/ads/AdProvider'
 import { AdSenseScript } from '@/components/ads/AdSenseScript'
+import { GamScript } from '@/components/ads/GamScript'
 
 export const Providers = ({ children }: { children: ReactNode }) => (
   <ConsentProvider>
     <AdProvider>
       {children}
       <AdSenseScript />
+      <GamScript />
       <CookieConsentBanner />
     </AdProvider>
   </ConsentProvider>
