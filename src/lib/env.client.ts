@@ -20,6 +20,14 @@ const clientSchema = z.object({
   NEXT_PUBLIC_ADSENSE_SLOT_MOBILE_BANNER: z.string().optional().default(''),
   NEXT_PUBLIC_ADSENSE_SLOT_IN_FEED: z.string().optional().default(''),
   NEXT_PUBLIC_ADSENSE_SLOT_BELOW_CONTENT: z.string().optional().default(''),
+  NEXT_PUBLIC_GAM_NETWORK_CODE: z.string().optional(),
+  NEXT_PUBLIC_GAM_SLOT_HEADER: z.string().optional().default(''),
+  NEXT_PUBLIC_GAM_SLOT_IN_CONTENT: z.string().optional().default(''),
+  NEXT_PUBLIC_GAM_SLOT_SIDEBAR: z.string().optional().default(''),
+  NEXT_PUBLIC_GAM_SLOT_FOOTER: z.string().optional().default(''),
+  NEXT_PUBLIC_GAM_SLOT_MOBILE_BANNER: z.string().optional().default(''),
+  NEXT_PUBLIC_GAM_SLOT_IN_FEED: z.string().optional().default(''),
+  NEXT_PUBLIC_GAM_SLOT_BELOW_CONTENT: z.string().optional().default(''),
   NEXT_PUBLIC_ADS_ENABLED: z
     .enum(['true', 'false'])
     .default('true')
@@ -43,6 +51,14 @@ const _clientEnv = clientSchema.safeParse({
   NEXT_PUBLIC_ADSENSE_SLOT_MOBILE_BANNER: process.env.NEXT_PUBLIC_ADSENSE_SLOT_MOBILE_BANNER,
   NEXT_PUBLIC_ADSENSE_SLOT_IN_FEED: process.env.NEXT_PUBLIC_ADSENSE_SLOT_IN_FEED,
   NEXT_PUBLIC_ADSENSE_SLOT_BELOW_CONTENT: process.env.NEXT_PUBLIC_ADSENSE_SLOT_BELOW_CONTENT,
+  NEXT_PUBLIC_GAM_NETWORK_CODE: process.env.NEXT_PUBLIC_GAM_NETWORK_CODE,
+  NEXT_PUBLIC_GAM_SLOT_HEADER: process.env.NEXT_PUBLIC_GAM_SLOT_HEADER,
+  NEXT_PUBLIC_GAM_SLOT_IN_CONTENT: process.env.NEXT_PUBLIC_GAM_SLOT_IN_CONTENT,
+  NEXT_PUBLIC_GAM_SLOT_SIDEBAR: process.env.NEXT_PUBLIC_GAM_SLOT_SIDEBAR,
+  NEXT_PUBLIC_GAM_SLOT_FOOTER: process.env.NEXT_PUBLIC_GAM_SLOT_FOOTER,
+  NEXT_PUBLIC_GAM_SLOT_MOBILE_BANNER: process.env.NEXT_PUBLIC_GAM_SLOT_MOBILE_BANNER,
+  NEXT_PUBLIC_GAM_SLOT_IN_FEED: process.env.NEXT_PUBLIC_GAM_SLOT_IN_FEED,
+  NEXT_PUBLIC_GAM_SLOT_BELOW_CONTENT: process.env.NEXT_PUBLIC_GAM_SLOT_BELOW_CONTENT,
   NEXT_PUBLIC_ADS_ENABLED: process.env.NEXT_PUBLIC_ADS_ENABLED,
 })
 

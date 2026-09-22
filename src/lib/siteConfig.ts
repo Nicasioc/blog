@@ -16,6 +16,8 @@ export type SiteConfig = {
     provider: 'adsense' | 'gam' | 'prebid'
     adSensePublisherId: string | undefined
     slots: Record<AdPlacement, string>
+    gamNetworkCode?: string
+    gamSlots: Record<AdPlacement, string>
   }
 }
 
@@ -43,6 +45,16 @@ export const siteConfig: SiteConfig = {
       'mobile-banner': clientEnv.NEXT_PUBLIC_ADSENSE_SLOT_MOBILE_BANNER,
       'in-feed': clientEnv.NEXT_PUBLIC_ADSENSE_SLOT_IN_FEED,
       'below-content': clientEnv.NEXT_PUBLIC_ADSENSE_SLOT_BELOW_CONTENT,
+    },
+    gamNetworkCode: clientEnv.NEXT_PUBLIC_GAM_NETWORK_CODE,
+    gamSlots: {
+      'header-leaderboard': clientEnv.NEXT_PUBLIC_GAM_SLOT_HEADER,
+      'in-content': clientEnv.NEXT_PUBLIC_GAM_SLOT_IN_CONTENT,
+      sidebar: clientEnv.NEXT_PUBLIC_GAM_SLOT_SIDEBAR,
+      footer: clientEnv.NEXT_PUBLIC_GAM_SLOT_FOOTER,
+      'mobile-banner': clientEnv.NEXT_PUBLIC_GAM_SLOT_MOBILE_BANNER,
+      'in-feed': clientEnv.NEXT_PUBLIC_GAM_SLOT_IN_FEED,
+      'below-content': clientEnv.NEXT_PUBLIC_GAM_SLOT_BELOW_CONTENT,
     },
   },
 }

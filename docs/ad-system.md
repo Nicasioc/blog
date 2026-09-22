@@ -19,16 +19,16 @@ AdSenseSlot | PrebidSlot | null
 
 ### Key Files
 
-| File                                               | Role                                                                                            |
-| -------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `src/lib/siteConfig.ts`                            | Single read surface for ad config — `siteConfig.ads.{provider,adSensePublisherId,slots}`        |
-| `src/services/ads/adConfig.ts`                     | Defines `AdPlacement` type and `AD_PLACEMENTS`; `adUnitId` resolved from `siteConfig.ads.slots` |
-| `src/components/ads/AdProvider.tsx`                | React context; reads `siteConfig.ads.provider`; exposes `renderSlot()`                          |
-| `src/components/ads/AdSlot.tsx`                    | Thin 'use client' wrapper — call `useAdProvider().renderSlot()`                                 |
-| `src/components/ads/providers/AdSenseProvider.tsx` | `<ins>` element + `adsbygoogle.push()` in `useEffect`                                           |
-| `src/components/ads/providers/PrebidProvider.tsx`  | Stub — empty div for future GAM/Prebid                                                          |
-| `src/components/ads/AdSenseScript.tsx`             | Loads `adsbygoogle.js` once, gated on `ads.enabled`/provider/publisher id                       |
-| `src/app/providers.tsx`                            | Wraps children with `<AdProvider>` and mounts `<AdSenseScript>`, for the whole app              |
+| File                                               | Role                                                                                                                                                |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/lib/siteConfig.ts`                            | Single read surface for ad config — `siteConfig.ads.{provider,adSensePublisherId,slots,gamNetworkCode,gamSlots}`                                    |
+| `src/services/ads/adConfig.ts`                     | Defines `AdPlacement` type and `AD_PLACEMENTS`; `adUnitId` resolved from `siteConfig.ads.slots`; `getGamAdUnitPath` (GAM, BLO-137 — not yet called) |
+| `src/components/ads/AdProvider.tsx`                | React context; reads `siteConfig.ads.provider`; exposes `renderSlot()`                                                                              |
+| `src/components/ads/AdSlot.tsx`                    | Thin 'use client' wrapper — call `useAdProvider().renderSlot()`                                                                                     |
+| `src/components/ads/providers/AdSenseProvider.tsx` | `<ins>` element + `adsbygoogle.push()` in `useEffect`                                                                                               |
+| `src/components/ads/providers/PrebidProvider.tsx`  | Stub — empty div for future GAM/Prebid                                                                                                              |
+| `src/components/ads/AdSenseScript.tsx`             | Loads `adsbygoogle.js` once, gated on `ads.enabled`/provider/publisher id                                                                           |
+| `src/app/providers.tsx`                            | Wraps children with `<AdProvider>` and mounts `<AdSenseScript>`, for the whole app                                                                  |
 
 ---
 
@@ -218,6 +218,35 @@ SSR-then-correct sequence).
 Google still sets cookies in non-personalized mode (frequency capping,
 invalid-traffic detection), so the privacy page and consent banner copy
 describe this as "no personalized ads," not "no ads" / "no cookies."
+
+---
+
+## GAM (Google Ad Manager) Setup
+
+Config + env plumbing only (BLO-137) — no rendering yet. Setting
+`NEXT_PUBLIC_AD_PROVIDER=gam` today does not change what renders; `AdProvider`
+only branches on `gam` starting with BLO-140. `getGamAdUnitPath`
+(`src/services/ads/adConfig.ts`) is available for that later ticket to call,
+but nothing invokes it yet.
+
+### Env vars
+
+| Env var                              | Required               | Description                                                        |
+| ------------------------------------ | ---------------------- | ------------------------------------------------------------------ |
+| `NEXT_PUBLIC_GAM_NETWORK_CODE`       | when provider is `gam` | Numeric GAM network code (Admin → Global settings → Network code). |
+| `NEXT_PUBLIC_GAM_SLOT_HEADER`        | optional               | Ad unit name for `header-leaderboard`.                             |
+| `NEXT_PUBLIC_GAM_SLOT_IN_CONTENT`    | optional               | Ad unit name for `in-content`.                                     |
+| `NEXT_PUBLIC_GAM_SLOT_SIDEBAR`       | optional               | Ad unit name for `sidebar`.                                        |
+| `NEXT_PUBLIC_GAM_SLOT_FOOTER`        | optional               | Ad unit name for `footer`.                                         |
+| `NEXT_PUBLIC_GAM_SLOT_MOBILE_BANNER` | optional               | Ad unit name for `mobile-banner`.                                  |
+| `NEXT_PUBLIC_GAM_SLOT_IN_FEED`       | optional               | Ad unit name for `in-feed`.                                        |
+| `NEXT_PUBLIC_GAM_SLOT_BELOW_CONTENT` | optional               | Ad unit name for `below-content`.                                  |
+
+Each `NEXT_PUBLIC_GAM_SLOT_*` value is the leaf/sub-path ad-unit name, not the
+full ad unit path. `getGamAdUnitPath(placement)` assembles
+`/${networkCode}/${slotName}` from `siteConfig.ads.gamNetworkCode` and
+`siteConfig.ads.gamSlots[placement]`, returning `undefined` when either half
+is unset — mirroring the AdSense empty-slot null-guard described above.
 
 ---
 

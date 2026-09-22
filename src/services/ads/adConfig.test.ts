@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 // AD_PLACEMENTS is computed at module-eval time from siteConfig.ads.slots, so
 // siteConfig must be mocked (not stubEnv'd) before adConfig is imported —
@@ -19,11 +19,22 @@ vi.mock('@/lib/siteConfig', () => ({
         'in-feed': 'slot-in-feed',
         'below-content': 'slot-below-content',
       },
+      gamNetworkCode: '123456789',
+      gamSlots: {
+        'header-leaderboard': 'gam-header',
+        'in-content': 'gam-in-content',
+        sidebar: 'gam-sidebar',
+        footer: 'gam-footer',
+        'mobile-banner': 'gam-mobile-banner',
+        'in-feed': 'gam-in-feed',
+        'below-content': 'gam-below-content',
+      },
     },
   },
 }))
 
-const { AD_PLACEMENTS } = await import('@/services/ads/adConfig')
+const { AD_PLACEMENTS, getGamAdUnitPath } = await import('@/services/ads/adConfig')
+const { siteConfig } = await import('@/lib/siteConfig')
 
 describe('AD_PLACEMENTS', () => {
   it('keys every entry by its own placement', () => {
@@ -68,5 +79,43 @@ describe('AD_PLACEMENTS', () => {
       [300, 250],
       [728, 90],
     ])
+  })
+})
+
+describe('getGamAdUnitPath', () => {
+  const originalNetworkCode = siteConfig.ads.gamNetworkCode
+  const originalGamSlots = { ...siteConfig.ads.gamSlots }
+
+  beforeEach(() => {
+    siteConfig.ads.gamNetworkCode = originalNetworkCode
+    siteConfig.ads.gamSlots = { ...originalGamSlots }
+  })
+
+  afterEach(() => {
+    siteConfig.ads.gamNetworkCode = originalNetworkCode
+    siteConfig.ads.gamSlots = { ...originalGamSlots }
+  })
+
+  it('builds the ad unit path when both the network code and the slot are set', () => {
+    expect(getGamAdUnitPath('sidebar')).toBe('/123456789/gam-sidebar')
+  })
+
+  it('is placement-specific, not hardcoded to a single key', () => {
+    expect(getGamAdUnitPath('footer')).toBe('/123456789/gam-footer')
+  })
+
+  it('returns undefined when the network code is missing', () => {
+    siteConfig.ads.gamNetworkCode = undefined
+    expect(getGamAdUnitPath('sidebar')).toBeUndefined()
+  })
+
+  it('returns undefined when the network code is an empty string', () => {
+    siteConfig.ads.gamNetworkCode = ''
+    expect(getGamAdUnitPath('sidebar')).toBeUndefined()
+  })
+
+  it('returns undefined when the slot is not configured', () => {
+    siteConfig.ads.gamSlots.sidebar = ''
+    expect(getGamAdUnitPath('sidebar')).toBeUndefined()
   })
 })

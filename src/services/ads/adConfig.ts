@@ -1,4 +1,5 @@
 import { siteConfig } from '@/lib/siteConfig'
+import { isNonEmptyString } from '@/utils/checks'
 
 export type AdPlacement =
   | 'header-leaderboard'
@@ -76,4 +77,13 @@ export const AD_PLACEMENTS: Record<AdPlacement, AdSlotConfig> = {
     ],
     adUnitId: siteConfig.ads.slots['below-content'],
   },
+}
+
+export const getGamAdUnitPath = (placement: AdPlacement): string | undefined => {
+  const { gamNetworkCode, gamSlots } = siteConfig.ads
+  const slot = gamSlots[placement]
+
+  if (!isNonEmptyString(gamNetworkCode) || !isNonEmptyString(slot)) return undefined
+
+  return `/${gamNetworkCode}/${slot}`
 }
