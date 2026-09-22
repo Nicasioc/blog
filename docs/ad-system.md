@@ -248,6 +248,41 @@ full ad unit path. `getGamAdUnitPath(placement)` assembles
 `siteConfig.ads.gamSlots[placement]`, returning `undefined` when either half
 is unset — mirroring the AdSense empty-slot null-guard described above.
 
+### Responsive size mapping
+
+`buildGamSizeMapping` (`src/domain/ads/gamSizeMapping.utils.ts`) turns a
+placement's configured sizes into a `googletag.sizeMapping()`-shaped build
+array — pure data, no `googletag` import — for `GamProvider` (BLO-140) to
+pass to `slot.defineSizeMapping()`. A size is eligible at a breakpoint when
+its width fits the available space: `container mx-auto px-4` (this repo's
+layout gutter, 16px each side = 32px) subtracted from that breakpoint's
+viewport width, matching the `md`/`lg` breakpoints already used for the
+mobile-banner responsive swap.
+
+| Bucket (`[viewport, 0]`) | Eligibility width | Adds                                                |
+| ------------------------ | ----------------- | --------------------------------------------------- |
+| `[0, 0]` (mobile)        | 368px             | 320×50, 320×100, 300×250, 336×280, 300×600, 160×600 |
+| `[768, 0]` (`md`)        | 768px             | + 728×90                                            |
+| `[1024, 0]` (`lg`)       | 1024px            | + 970×90, 970×250                                   |
+
+The mobile bucket's eligibility width is 368px, not the raw 0px viewport or a
+plain 320px floor: 336 (this repo's narrowest configured rectangle size,
+336×280) plus the 32px gutter is exactly 368 — the smallest viewport where
+that size fits under the _same_ width-fit rule used for the other two
+buckets, rather than a special-cased threshold. Buckets are cumulative (each
+wider breakpoint includes everything narrower breakpoints do, since a larger
+eligibility width is always a superset) — this fixes the original spec's
+"320-family only" mobile bucket, which excluded every rectangle placement
+(`in-content`, `sidebar`, `in-feed`, `below-content`) below `md` even though
+300px/336px-wide creatives fit a phone screen fine.
+
+**`header-leaderboard` and `footer` get an empty mobile bucket by design** —
+their configured sizes are desktop-leaderboard-only (728×90, 970×90,
+970×250), none of which fit any believable phone width. Small viewports are
+covered by the separate `mobile-banner` placement (its own `AdSlot`,
+responsive-swapped in at the component level — see "Responsive desktop/mobile
+swap" above), not by shrinking a leaderboard's GAM size mapping.
+
 ---
 
 ## Content Security Policy
