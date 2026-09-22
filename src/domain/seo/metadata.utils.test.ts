@@ -32,6 +32,15 @@ const mockSiteConfig: SiteConfig = {
       'in-feed': '',
       'below-content': '',
     },
+    gamSlots: {
+      'header-leaderboard': '',
+      'in-content': '',
+      sidebar: '',
+      footer: '',
+      'mobile-banner': '',
+      'in-feed': '',
+      'below-content': '',
+    },
   },
 }
 
