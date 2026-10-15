@@ -17,6 +17,9 @@ const serverSchema = z.object({
   SITE_APPLE_TOUCH_ICON_URL: z.string().min(1).optional(),
   SITE_ICON_192_URL: z.string().min(1).optional(),
   SITE_ICON_512_URL: z.string().min(1).optional(),
+  // Extra /ads.txt entries merged after the generated AdSense line (e.g. the GAM
+  // publisher line, other demand partners). Separate entries with `|` or newlines.
+  ADS_TXT_EXTRA_LINES: z.string().optional(),
 })
 
 const _serverEnv = serverSchema.safeParse(process.env)

@@ -319,6 +319,31 @@ swap" above), not by shrinking a leaderboard's GAM size mapping.
 
 ---
 
+## `ads.txt`
+
+`src/app/ads.txt/route.ts` serves `/ads.txt` from `buildAdsTxtContent`
+(`src/domain/ads/adsTxt.utils.ts`), which merges:
+
+1. the Google `DIRECT` line generated from `NEXT_PUBLIC_ADSENSE_PUBLISHER_ID`
+   (when set), then
+2. every entry in the server-only `ADS_TXT_EXTRA_LINES` env var, in order.
+
+Entries in `ADS_TXT_EXTRA_LINES` are separated by `|` (single-line value) or
+newlines (multi-line value); blank lines and lines starting with `#` are
+dropped, and duplicates are removed case-insensitively and ignoring
+whitespace, keeping the first occurrence. With no publisher id and no extras
+the route returns 404.
+
+It is an env var rather than a committed file because this is a white-label
+platform: each tenant has its own publisher accounts and demand partners. GAM
+requires its own `google.com, pub-XXXX, DIRECT, f08c47fec0942fa0` line keyed by
+the **GAM** publisher id, which can differ from the AdSense one — that line
+goes here.
+
+```bash
+ADS_TXT_EXTRA_LINES="google.com, pub-9999999999999999, DIRECT, f08c47fec0942fa0|appnexus.com, 12345, RESELLER, f5ab79cb980f11d1"
+```
+
 ## Content Security Policy
 
 AdSense loads a script, renders ad iframes, and pings a traffic-verification
