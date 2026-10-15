@@ -16,7 +16,7 @@ const clientSchema = z.object({
     (v) => (v === '' ? undefined : v),
     z.string().url().optional(),
   ),
-  NEXT_PUBLIC_AD_PROVIDER: z.enum(['adsense', 'gam', 'prebid']).default('adsense'),
+  NEXT_PUBLIC_AD_PROVIDER: z.enum(['adsense', 'gam']).default('adsense'),
   NEXT_PUBLIC_ADSENSE_PUBLISHER_ID: z.string().startsWith('ca-pub-').optional(),
   NEXT_PUBLIC_ADSENSE_SLOT_HEADER: z.string().optional().default(''),
   NEXT_PUBLIC_ADSENSE_SLOT_IN_CONTENT: z.string().optional().default(''),

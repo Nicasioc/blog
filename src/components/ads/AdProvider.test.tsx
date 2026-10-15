@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 
 let mockEnabled = true
 let mockStatus: 'accepted' | 'rejected' | null = 'accepted'
-let mockProvider: 'adsense' | 'gam' | 'prebid' = 'adsense'
+let mockProvider: 'adsense' | 'gam' = 'adsense'
 
 vi.mock('@/lib/siteConfig', () => ({
   siteConfig: {
@@ -29,6 +29,12 @@ vi.mock('./providers/AdSenseProvider', () => ({
       data-placement={placement}
       data-personalization={personalization}
     />
+  ),
+}))
+
+vi.mock('./providers/GamProvider', () => ({
+  GamSlot: ({ placement }: { placement: string }) => (
+    <div data-testid="gam-slot" data-placement={placement} />
   ),
 }))
 
@@ -93,16 +99,37 @@ describe('AdProvider', () => {
     )
   })
 
-  it.each(['gam', 'prebid'] as const)(
-    'renders nothing for an unimplemented provider (%s)',
-    (provider) => {
-      mockProvider = provider
-      render(
-        <AdProvider>
-          <Probe />
-        </AdProvider>,
-      )
-      expect(screen.queryByTestId('adsense-slot')).not.toBeInTheDocument()
-    },
-  )
+  it('renders the GAM slot, not the AdSense one, when the provider is gam (BLO-140)', () => {
+    mockProvider = 'gam'
+    render(
+      <AdProvider>
+        <Probe />
+      </AdProvider>,
+    )
+    const slot = screen.getByTestId('gam-slot')
+    expect(slot).toHaveAttribute('data-placement', 'header-leaderboard')
+    expect(screen.queryByTestId('adsense-slot')).not.toBeInTheDocument()
+  })
+
+  it('renders no GAM slot when ads are disabled (BLO-135)', () => {
+    mockProvider = 'gam'
+    mockEnabled = false
+    render(
+      <AdProvider>
+        <Probe />
+      </AdProvider>,
+    )
+    expect(screen.queryByTestId('gam-slot')).not.toBeInTheDocument()
+  })
+
+  it('renders nothing for an unknown provider value', () => {
+    mockProvider = 'unknown' as 'adsense'
+    render(
+      <AdProvider>
+        <Probe />
+      </AdProvider>,
+    )
+    expect(screen.queryByTestId('adsense-slot')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('gam-slot')).not.toBeInTheDocument()
+  })
 })

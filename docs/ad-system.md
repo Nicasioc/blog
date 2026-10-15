@@ -1,6 +1,148 @@
 # Ad System
 
-The ad system is designed for **provider-agnostic placement**. Pages and components only use `<AdSlot placement="...">` — the underlying provider (AdSense, GAM, Prebid) is swapped via a single env var without touching any component.
+The ad system is designed for **provider-agnostic placement**. Pages and components only use `<AdSlot placement="...">` — the underlying provider (AdSense or GAM) is swapped via a single env var without touching any component.
+
+## Setting Up Ads for a Tenant
+
+This section is the operator guide: what to create in the ad console, which
+env vars to set in Vercel, and how to check it works. Everything is per
+Vercel project (one per tenant); no code changes. The rest of this document
+explains how it works internally.
+
+**Every change below needs a redeploy.** All of these env vars are read at
+build time, including `ADS_TXT_EXTRA_LINES` (`/ads.txt` is prerendered).
+
+### Placements
+
+Each placement is one ad unit in AdSense or GAM. Create one unit per
+placement you want to run, accepting the sizes listed. A placement with no
+unit configured renders nothing; the rest of the site is unaffected.
+
+| Placement            | Where it shows                                                            | Sizes                     | AdSense env var                          | GAM env var                          |
+| -------------------- | ------------------------------------------------------------------------- | ------------------------- | ---------------------------------------- | ------------------------------------ |
+| `header-leaderboard` | Under the header nav, desktop (≥768px)                                    | 728×90, 970×90, 970×250   | `NEXT_PUBLIC_ADSENSE_SLOT_HEADER`        | `NEXT_PUBLIC_GAM_SLOT_HEADER`        |
+| `footer`             | Top of the footer, desktop (≥768px)                                       | 728×90, 970×90, 970×250   | `NEXT_PUBLIC_ADSENSE_SLOT_FOOTER`        | `NEXT_PUBLIC_GAM_SLOT_FOOTER`        |
+| `mobile-banner`      | Header, footer and between post paragraphs, on phones (<768px)            | 320×50, 320×100           | `NEXT_PUBLIC_ADSENSE_SLOT_MOBILE_BANNER` | `NEXT_PUBLIC_GAM_SLOT_MOBILE_BANNER` |
+| `in-content`         | Between paragraphs of a post, desktop (≥768px); more breaks on long posts | 300×250, 336×280          | `NEXT_PUBLIC_ADSENSE_SLOT_IN_CONTENT`    | `NEXT_PUBLIC_GAM_SLOT_IN_CONTENT`    |
+| `below-content`      | After the post body                                                       | 336×280, 300×250, 728×90  | `NEXT_PUBLIC_ADSENSE_SLOT_BELOW_CONTENT` | `NEXT_PUBLIC_GAM_SLOT_BELOW_CONTENT` |
+| `sidebar`            | Sidebar on post and list pages                                            | 300×250, 300×600, 160×600 | `NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR`       | `NEXT_PUBLIC_GAM_SLOT_SIDEBAR`       |
+| `in-feed`            | As a card inside post lists (home, `/blog`, category, tag) with 4+ posts  | 300×250, 336×280          | `NEXT_PUBLIC_ADSENSE_SLOT_IN_FEED`       | `NEXT_PUBLIC_GAM_SLOT_IN_FEED`       |
+
+**Mobile fallback (AdSense only):** if an AdSense tenant has no
+`mobile-banner` unit, phones get the desktop unit for that spot instead
+(AdSense units are responsive). GAM has no fallback: without a
+`mobile-banner` unit, phones get no ad in those spots. Create it.
+
+### Option A — AdSense (default)
+
+1. In AdSense, create a **display ad unit** (responsive) for each placement.
+   The slot id is the number in the unit's code (`data-ad-slot`).
+2. In Vercel → Project → Settings → Environment Variables:
+
+   ```bash
+   NEXT_PUBLIC_AD_PROVIDER=adsense          # or leave unset
+   NEXT_PUBLIC_ADSENSE_PUBLISHER_ID=ca-pub-1234567890123456
+   NEXT_PUBLIC_ADSENSE_SLOT_HEADER=1234567890
+   NEXT_PUBLIC_ADSENSE_SLOT_FOOTER=…
+   NEXT_PUBLIC_ADSENSE_SLOT_MOBILE_BANNER=…
+   NEXT_PUBLIC_ADSENSE_SLOT_IN_CONTENT=…
+   NEXT_PUBLIC_ADSENSE_SLOT_BELOW_CONTENT=…
+   NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR=…
+   NEXT_PUBLIC_ADSENSE_SLOT_IN_FEED=…
+   ```
+
+3. Redeploy. `/ads.txt` is generated from the publisher id automatically.
+
+### Option B — Google Ad Manager (GAM)
+
+1. **GAM network code:** GAM → Admin → Global settings → Network code (a
+   number, e.g. `21234567890`).
+2. **Ad units:** GAM → Inventory → Ad units → New ad unit, one per
+   placement, with the sizes from the table above. Note each unit's **code**
+   (e.g. `debatecuervo_header`), not its full path — the app builds
+   `/<network code>/<unit code>` itself. Sub-paths work too
+   (`debatecuervo/header`).
+3. **Line items/orders** that target those units — without demand, slots
+   render as empty reserved boxes.
+4. **ads.txt:** GAM requires its own line,
+   `google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0`, keyed by the
+   **GAM** account's publisher id (`pub-…`), which can differ from the
+   AdSense one — take it from the GAM account settings. Put it,
+   and any other demand partners' lines, in `ADS_TXT_EXTRA_LINES` (server
+   env var, entries separated by `|`). See "`ads.txt`" below.
+5. In Vercel:
+
+   ```bash
+   NEXT_PUBLIC_AD_PROVIDER=gam
+   NEXT_PUBLIC_GAM_NETWORK_CODE=21234567890
+   NEXT_PUBLIC_GAM_SLOT_HEADER=debatecuervo_header
+   NEXT_PUBLIC_GAM_SLOT_FOOTER=…
+   NEXT_PUBLIC_GAM_SLOT_MOBILE_BANNER=…
+   NEXT_PUBLIC_GAM_SLOT_IN_CONTENT=…
+   NEXT_PUBLIC_GAM_SLOT_BELOW_CONTENT=…
+   NEXT_PUBLIC_GAM_SLOT_SIDEBAR=…
+   NEXT_PUBLIC_GAM_SLOT_IN_FEED=…
+   ADS_TXT_EXTRA_LINES="google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0"
+   ```
+
+   Keep `NEXT_PUBLIC_ADSENSE_PUBLISHER_ID` set if the tenant also has an
+   AdSense account — its `ads.txt` line keeps being served; the AdSense
+   script and slots only load when the provider is `adsense`.
+
+6. Redeploy — try it on a **Preview** deployment first.
+
+Switching back is just `NEXT_PUBLIC_AD_PROVIDER=adsense` + redeploy; both
+sets of env vars can coexist.
+
+### Verify
+
+- **`https://<domain>/ads.txt`** contains the expected lines (404 means no
+  publisher id and no extras are set).
+- **Desktop (≥1024px) and phone width**: every configured placement shows an
+  ad or a reserved box of the right size; no layout jump when ads load.
+- **Browser console:** no `Content Security Policy` errors from Google hosts.
+- **GAM only:** run `googletag.openConsole()` in the browser console to open
+  the Google Publisher Console. It lists every
+  slot, its ad unit path and whether it filled. Expect **one** ad request
+  per page load (Single Request Architecture), and no slots for hidden
+  spots (e.g. no `mobile-banner` on desktop).
+- **Consent:** with the cookie banner unanswered or rejected, ads still show
+  but are non-personalized; after "Aceptar" they become personalized (GAM
+  refreshes the slots already on the page once).
+
+### Turning ads off
+
+- Whole site: `NEXT_PUBLIC_ADS_ENABLED=false` (no scripts, no slots).
+- One placement: set its slot env var to an empty string.
+- See "Disabling Ads Per Deployment" at the end for details.
+
+### Troubleshooting
+
+| Symptom                                           | Likely cause                                                                                                                |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Changed an env var, nothing changed               | Not redeployed — env vars are baked in at build time.                                                                       |
+| Reserved box shows, but never an ad               | No demand: AdSense unit not approved yet, or (GAM) no line item targets that ad unit/size. Check the GAM Publisher Console. |
+| No ad at all in one spot                          | That placement's slot env var is unset/empty for the active provider.                                                       |
+| GAM: no ads on phones in header/footer/post body  | `NEXT_PUBLIC_GAM_SLOT_MOBILE_BANNER` not set (GAM has no desktop fallback).                                                 |
+| GAM: nothing at all, no `gpt.js` loaded           | `NEXT_PUBLIC_GAM_NETWORK_CODE` unset, `NEXT_PUBLIC_AD_PROVIDER` isn't `gam`, or `NEXT_PUBLIC_ADS_ENABLED=false`.            |
+| Build fails: `NEXT_PUBLIC_AD_PROVIDER` invalid    | Only `adsense` and `gam` are accepted (`prebid` was removed).                                                               |
+| Resized the window across 768px, slot stays empty | Expected under GAM: slots hidden at load aren't requested until the next page navigation.                                   |
+
+### Local smoke test (GAM, no account needed)
+
+Google's public sample network serves test creatives, so the GAM path can be
+exercised locally before a real network exists:
+
+```bash
+NEXT_PUBLIC_AD_PROVIDER=gam NEXT_PUBLIC_GAM_NETWORK_CODE=6355419 \
+NEXT_PUBLIC_GAM_SLOT_HEADER=Travel NEXT_PUBLIC_GAM_SLOT_SIDEBAR=Travel \
+NEXT_PUBLIC_GAM_SLOT_MOBILE_BANNER=Travel NEXT_PUBLIC_GAM_SLOT_IN_FEED=Travel \
+npm run dev
+```
+
+Inline vars win over `.env.local`, so this doesn't touch your local config.
+
+---
 
 ## Architecture
 
@@ -11,26 +153,28 @@ The ad system is designed for **provider-agnostic placement**. Pages and compone
 useAdProvider().renderSlot('sidebar')
     │  (React context from AdProvider)
     ▼
-AdSenseSlot | PrebidSlot | null
+AdSenseSlot | GamSlot | null
     │  (active provider component)
     ▼
-<ins class="adsbygoogle" ...>
+<ins class="adsbygoogle" ...> | <div id="gpt-…"> (GPT iframe)
 ```
 
 ### Key Files
 
-| File                                               | Role                                                                                                                                                |
-| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/lib/siteConfig.ts`                            | Single read surface for ad config — `siteConfig.ads.{provider,adSensePublisherId,slots,gamNetworkCode,gamSlots}`                                    |
-| `src/services/ads/adConfig.ts`                     | Defines `AdPlacement` type and `AD_PLACEMENTS`; `adUnitId` resolved from `siteConfig.ads.slots`; `getGamAdUnitPath` (GAM, BLO-137 — not yet called) |
-| `src/components/ads/AdProvider.tsx`                | React context; reads `siteConfig.ads.provider`; exposes `renderSlot()`                                                                              |
-| `src/components/ads/AdSlot.tsx`                    | Thin 'use client' wrapper — call `useAdProvider().renderSlot()`                                                                                     |
-| `src/components/ads/providers/AdSenseProvider.tsx` | `<ins>` element + `adsbygoogle.push()` in `useEffect`                                                                                               |
-| `src/components/ads/providers/PrebidProvider.tsx`  | Stub — empty div for future GAM/Prebid                                                                                                              |
-| `src/components/ads/AdSenseScript.tsx`             | Loads `adsbygoogle.js` once, gated on `ads.enabled`/provider/publisher id                                                                           |
-| `src/components/ads/GamScript.tsx`                 | Loads `gpt.js` + the `googletag.cmd` queue, gated on `ads.enabled`/provider/network code                                                            |
-| `src/domain/ads/gamSizeMapping.utils.ts`           | `buildGamSizeMapping` — per-breakpoint size buckets for `slot.defineSizeMapping()` (GAM, not yet called)                                            |
-| `src/app/providers.tsx`                            | Wraps children with `<AdProvider>` and mounts `<AdSenseScript>` + `<GamScript>`, for the whole app                                                  |
+| File                                               | Role                                                                                                                                                      |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/lib/siteConfig.ts`                            | Single read surface for ad config — `siteConfig.ads.{provider,adSensePublisherId,slots,gamNetworkCode,gamSlots}`                                          |
+| `src/services/ads/adConfig.ts`                     | Defines `AdPlacement` type and `AD_PLACEMENTS`; `adUnitId` resolved from `siteConfig.ads.slots`; `getGamAdUnitPath` (GAM ad unit path, used by `GamSlot`) |
+| `src/components/ads/AdProvider.tsx`                | React context; reads `siteConfig.ads.provider`; exposes `renderSlot()`                                                                                    |
+| `src/components/ads/AdSlot.tsx`                    | Thin 'use client' wrapper — call `useAdProvider().renderSlot()`                                                                                           |
+| `src/components/ads/providers/AdSenseProvider.tsx` | `<ins>` element + `adsbygoogle.push()` in `useEffect`                                                                                                     |
+| `src/components/ads/providers/GamProvider.tsx`     | `GamSlot` — reserved `<div>` + GPT slot lifecycle via `src/services/ads/gpt.ts`                                                                           |
+| `src/components/ads/ReservedAdContainer.tsx`       | Shared `w-full` wrapper with reserved `minHeight`/`maxWidth` (BLO-191/BLO-134), used by both providers                                                    |
+| `src/services/ads/gpt.ts`                          | GPT service: one-time SRA/services init, batched `refresh()`, slot define/destroy, `nonPersonalizedAds`                                                   |
+| `src/components/ads/AdSenseScript.tsx`             | Loads `adsbygoogle.js` once, gated on `ads.enabled`/provider/publisher id                                                                                 |
+| `src/components/ads/GamScript.tsx`                 | Loads `gpt.js` + the `googletag.cmd` queue (gated on `ads.enabled`/provider/network code); applies page-level `nonPersonalizedAds`                        |
+| `src/domain/ads/gamSizeMapping.utils.ts`           | `buildGamSizeMapping` — per-breakpoint size buckets for `slot.defineSizeMapping()` (used by `GamSlot`)                                                    |
+| `src/app/providers.tsx`                            | Wraps children with `<AdProvider>` and mounts `<AdSenseScript>` + `<GamScript>`, for the whole app                                                        |
 
 ---
 
@@ -62,11 +206,14 @@ Usage anywhere in the component tree:
 `mobile-banner` sibling: the desktop unit is `hidden md:block` (or
 `md:flex`), the mobile unit is the reverse (`md:hidden`) — both stay in the
 DOM, only one is visible at a given breakpoint. `AdSlot` takes an optional
-`fallbackPlacement`: if the primary placement's slot id isn't configured
-(`AD_PLACEMENTS[placement].adUnitId` is empty), it renders the fallback
-placement instead. This means a tenant that hasn't set
+`fallbackPlacement`: under **AdSense**, if the primary placement isn't
+configured (`AD_PLACEMENTS[placement].adUnitId` is empty), it renders the
+fallback placement instead. This means a tenant that hasn't set
 `NEXT_PUBLIC_ADSENSE_SLOT_MOBILE_BANNER` still gets an ad on mobile (the
-desktop unit, swapped in) rather than nothing:
+responsive desktop unit, swapped in) rather than nothing. Under **GAM** there
+is no fallback (`resolveAdPlacement` in `adConfig.ts`): the fallbacks are the
+desktop leaderboards, whose GAM mobile size bucket is empty by design, so
+falling back would only render a blank reserved box on phones.
 
 ```tsx
 <AdSlot placement="mobile-banner" fallbackPlacement="header-leaderboard" />
@@ -100,6 +247,9 @@ NEXT_PUBLIC_ADSENSE_SLOT_HEADER=1234567890
 NEXT_PUBLIC_ADSENSE_SLOT_IN_CONTENT=0987654321
 NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR=1122334455
 NEXT_PUBLIC_ADSENSE_SLOT_FOOTER=5544332211
+NEXT_PUBLIC_ADSENSE_SLOT_MOBILE_BANNER=6677889900
+NEXT_PUBLIC_ADSENSE_SLOT_IN_FEED=2233445566
+NEXT_PUBLIC_ADSENSE_SLOT_BELOW_CONTENT=3344556677
 ```
 
 These are read once, at boot, into `siteConfig.ads` (`src/lib/siteConfig.ts`) —
@@ -177,8 +327,8 @@ the null-guard.
 
 This is conservative, not exact: a placement whose sizes vary in height
 (`header-leaderboard` is `90px`–`250px`) can still shift by the difference
-once a taller creative fills. `PrebidProvider.tsx`'s stub wrapper applies
-the same reservation so the future GAM provider inherits it.
+once a taller creative fills. `GamSlot` applies the same reservation (and
+the same `w-full` wrapper) to its GPT div.
 
 ### 6. Consent gating: personalization, not blocking
 
@@ -192,7 +342,7 @@ itself.
 
 `src/domain/consent/adPersonalization.ts` — `getAdPersonalization(status)` —
 is the single consent → personalization decision for the whole project;
-GPT (BLO-146) reuses the same helper, don't create a second one.
+GPT reuses the same helper (see "GAM slots" below), don't create a second one.
 `AdProvider` derives `personalization` once per render and passes it to
 `AdSenseSlot`, which sets `window.adsbygoogle.requestNonPersonalizedAds`
 (`1` or `0`) immediately before its own `push({})`:
@@ -225,13 +375,10 @@ describe this as "no personalized ads," not "no ads" / "no cookies."
 
 ## GAM (Google Ad Manager) Setup
 
-Config, the GPT loader and the size-mapping helper are in place (BLO-137,
-BLO-138, BLO-139); **slot rendering is not** — `AdProvider` only branches on
-`gam` starting with BLO-140. So with `NEXT_PUBLIC_AD_PROVIDER=gam` today,
-`gpt.js` loads and the command queue initialises, but no slot is defined and
-no ad renders. `getGamAdUnitPath` (`src/services/ads/adConfig.ts`) and
-`buildGamSizeMapping` (`src/domain/ads/gamSizeMapping.utils.ts`) are both
-ready for that ticket to call.
+Set `NEXT_PUBLIC_AD_PROVIDER=gam` plus the env vars below and every
+`<AdSlot>` renders a GPT slot instead of an AdSense `<ins>` — no call-site
+changes. The pieces: config/env (BLO-137), size mapping (BLO-138), the GPT
+loader (BLO-139) and `GamSlot` (BLO-140).
 
 ### Env vars
 
@@ -259,7 +406,7 @@ alongside `<AdSenseScript />` (each self-gates by provider, so both are
 mounted unconditionally), loads `gpt.js` when `ads.enabled`,
 `provider === 'gam'`, and `gamNetworkCode` are all set. Like AdSense after
 BLO-193, **consent does not gate the tag itself** — it only drives ad
-personalization, which for GPT lands in BLO-146.
+personalization (see "GAM slots" below).
 
 The `googletag.cmd` queue is initialised at **module scope**, not from an
 inline `<Script>`:
@@ -278,7 +425,7 @@ component sits in the tree — so the "init first, then `gpt.js`" ordering that
 reads correctly in JSX is the opposite of what the browser does (the inline
 tag landed ~104KB further down the document, long after `gpt.js` had been
 requested). Module scope runs when the client bundle imports the file, which
-is before hydration and therefore before any slot component effect (BLO-140)
+is before hydration and therefore before any `GamSlot` effect
 can push a command. `gpt.js` reuses an existing `window.googletag` rather than
 replacing it, then drains whatever queued up while it was in flight.
 
@@ -286,7 +433,7 @@ replacing it, then drains whatever queued up while it was in flight.
 
 `buildGamSizeMapping` (`src/domain/ads/gamSizeMapping.utils.ts`) turns a
 placement's configured sizes into a `googletag.sizeMapping()`-shaped build
-array — pure data, no `googletag` import — for `GamProvider` (BLO-140) to
+array — pure data, no `googletag` import — for `GamSlot` to
 pass to `slot.defineSizeMapping()`. A size is eligible at a breakpoint when
 its width fits the available space: `container mx-auto px-4` (this repo's
 layout gutter, 16px each side = 32px) subtracted from that breakpoint's
@@ -316,6 +463,51 @@ their configured sizes are desktop-leaderboard-only (728×90, 970×90,
 covered by the separate `mobile-banner` placement (its own `AdSlot`,
 responsive-swapped in at the component level — see "Responsive desktop/mobile
 swap" above), not by shrinking a leaderboard's GAM size mapping.
+
+### GAM slots
+
+`GamSlot` (`src/components/ads/providers/GamProvider.tsx`) renders the
+reserved, `w-full` `<div>` and hands the GPT lifecycle to
+`src/services/ads/gpt.ts`. Everything goes through `googletag.cmd`, so it
+works whether or not `gpt.js` has loaded yet.
+
+- **Div id:** `gpt-${placement}-${useId()}`, stripped to `[A-Za-z0-9_-]`
+  (`useId()` emits `:`/`«»`).
+- **Services, once per page:** the first slot's command calls
+  `enableSingleRequest()`, `disableInitialLoad()` and `enableServices()`,
+  guarded by a module-level flag.
+- **Per slot:** `defineSlot(getGamAdUnitPath(placement), sizes, divId)`, then
+  `defineSizeMapping(buildGamSizeMapping(sizes))`, `addService(pubads())`
+  and `display(divId)`.
+- **Batched fetch (SRA):** because of `disableInitialLoad()`, `display()`
+  only registers the slot. The slot is added to a pending batch, and a
+  microtask calls `pubads().refresh(batch)` once. `gpt.js` drains its queue
+  synchronously when it loads, so every slot mounted during hydration is
+  fetched in a single request. Without this, enabling SRA does nothing when
+  slots are defined one React effect at a time.
+- **Unmount:** `destroySlots([slot])`. If the cleanup runs before `gpt.js`
+  has drained the queue (React strict mode's mount → unmount → mount, or a
+  fast client navigation), the pending define is cancelled, so the slot is
+  defined exactly once.
+- **Hidden containers are skipped:** the responsive swaps above keep both
+  units in the DOM and hide one with CSS. GPT's size mapping only looks at
+  the viewport, so `GamSlot` doesn't define a slot whose div has no layout
+  box (`isElementRendered`, `src/utils/dom.ts`). A resize across a
+  breakpoint won't load the newly visible slot until the next mount; viewport
+  lazy-loading (BLO-144) replaces this check.
+- **Consent (page-level):** `GamScript` applies
+  `pubads().setPrivacySettings({ nonPersonalizedAds })` from the same
+  `getAdPersonalization(status)` AdSense uses, re-running whenever consent
+  changes (including the post-hydration correction from the SSR `null`
+  snapshot, see "Consent gating" above). Order against the slot defines
+  doesn't matter: the batched fetch runs in a microtask after `gpt.js`
+  drains the whole queue. When a visitor **accepts** mid-page, slots that
+  were already fetched non-personalized are refreshed once so they switch to
+  personalized; slots still in the pending batch aren't double-fetched, and
+  withdrawing consent applies to future requests only.
+- **Not configured:** `GamSlot` returns `null`, with no div and no queued
+  commands, when `getGamAdUnitPath(placement)` is `undefined` (network code
+  or that placement's slot name unset).
 
 ---
 
@@ -448,16 +640,24 @@ Policy guardrail: at most 2 in-content + 1 below-content per article.
 
 Simple, no GAM needed. `AdSenseProvider` renders `<ins class="adsbygoogle">` per placement.
 
-### Stage 2 — Prebid / Header Bidding
+### Stage 2 — Google Ad Manager (shipped)
 
-When ready to add header bidding (higher CPMs):
+`NEXT_PUBLIC_AD_PROVIDER=gam`
 
-1. Create a GAM account and SSP seats (Amazon TAM, Criteo, Index Exchange, etc.)
-2. Implement `src/components/ads/providers/PrebidProvider.tsx` using `googletag` + `pbjs`
-3. Set `NEXT_PUBLIC_AD_PROVIDER=prebid`
-4. **No changes needed** to `AdSlot`, routes, or any other component
+1. Set up the GAM network and one ad unit per placement (BLO-142).
+2. Set `NEXT_PUBLIC_GAM_NETWORK_CODE` and the `NEXT_PUBLIC_GAM_SLOT_*` vars
+   (see "GAM (Google Ad Manager) Setup" above), plus the GAM publisher's
+   `ads.txt` line.
+3. Set `NEXT_PUBLIC_AD_PROVIDER=gam`. **No changes needed** to `AdSlot`,
+   routes or any other component.
 
-The `AdSlot` → `useAdProvider().renderSlot()` → provider switch is the only change path.
+### Future — header bidding
+
+Prebid.js layers on top of GAM (bids flow into GPT as key-values before
+`refresh()`), so it doesn't need a separate provider. The old
+`PrebidProvider` stub and the `prebid` provider value were removed in
+BLO-140; header bidding is a separate future project that would extend
+`src/services/ads/gpt.ts`.
 
 ---
 
@@ -469,4 +669,4 @@ Three ways to disable ads, from broadest to narrowest:
 - Leave `NEXT_PUBLIC_ADSENSE_PUBLISHER_ID` unset — disables AdSense entirely (no script, no `<ins>` anywhere), same effect as the switch above but implicit.
 - Set an individual placement's slot id to an empty string — disables just that one placement; every other configured slot still renders.
 
-`AdSenseSlot` returns `null` when any of these apply — no `<ins>` elements render, no console errors.
+`AdSenseSlot` returns `null` when any of these apply — no `<ins>` elements render, no console errors. With `provider=gam`, the GAM equivalents are leaving `NEXT_PUBLIC_GAM_NETWORK_CODE` unset (no `gpt.js`, no slots) or setting a single `NEXT_PUBLIC_GAM_SLOT_*` to an empty string (`GamSlot` returns `null` for that placement).

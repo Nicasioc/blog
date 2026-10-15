@@ -1,6 +1,6 @@
 # Soccer Blog Platform
 
-A white-label Next.js 16 blog that pulls content from a shared Payload CMS over its REST API. One codebase deploys once per soccer team, each with its own environment variables for branding, tenant, and AdSense account.
+A white-label Next.js 16 blog that pulls content from a shared Payload CMS over its REST API. One codebase deploys once per soccer team, each with its own environment variables for branding, tenant, and ad account (AdSense or Google Ad Manager).
 
 ## Tech Stack
 
@@ -47,13 +47,13 @@ The app starts at `http://localhost:3000`. It will error on startup if any requi
 
 ## Documentation
 
-| Guide                                                    | What it covers                                        |
-| -------------------------------------------------------- | ----------------------------------------------------- |
-| [Architecture](docs/architecture.md)                     | Layered architecture, dependency rules, file patterns |
-| [White-Label Deployment](docs/white-label-deployment.md) | Setting up new team sites on Vercel                   |
-| [Payload CMS Integration](docs/payload-integration.md)   | REST API shape, tenant scoping, ISR webhook, media    |
-| [Ad System](docs/ad-system.md)                           | AdSense setup, provider abstraction, Prebid migration |
-| [Development Guide](docs/development.md)                 | Day-to-day dev workflow, testing, gotchas             |
+| Guide                                                    | What it covers                                                            |
+| -------------------------------------------------------- | ------------------------------------------------------------------------- |
+| [Architecture](docs/architecture.md)                     | Layered architecture, dependency rules, file patterns                     |
+| [White-Label Deployment](docs/white-label-deployment.md) | Setting up new team sites on Vercel                                       |
+| [Payload CMS Integration](docs/payload-integration.md)   | REST API shape, tenant scoping, ISR webhook, media                        |
+| [Ad System](docs/ad-system.md)                           | Setting up ads per tenant (AdSense or GAM), provider abstraction, ads.txt |
+| [Development Guide](docs/development.md)                 | Day-to-day dev workflow, testing, gotchas                                 |
 
 ## Project Structure
 

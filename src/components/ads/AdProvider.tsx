@@ -1,6 +1,7 @@
 'use client'
 import { createContext, useContext, type ReactNode } from 'react'
 import { AdSenseSlot } from './providers/AdSenseProvider'
+import { GamSlot } from './providers/GamProvider'
 import type { AdPlacement } from '@/services/ads/adConfig'
 import { siteConfig } from '@/lib/siteConfig'
 import { useConsent } from '@/components/consent/ConsentContext'
@@ -32,6 +33,11 @@ export const AdProvider = ({ children }: { children: ReactNode }) => {
             className={className}
             personalization={personalization}
           />
+        )
+      case 'gam':
+        return (
+          // GPT personalization is page-level — applied by GamScript, not per slot.
+          <GamSlot placement={placement} className={className} />
         )
       default:
         return null
