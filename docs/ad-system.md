@@ -2,6 +2,148 @@
 
 The ad system is designed for **provider-agnostic placement**. Pages and components only use `<AdSlot placement="...">` — the underlying provider (AdSense or GAM) is swapped via a single env var without touching any component.
 
+## Setting Up Ads for a Tenant
+
+This section is the operator guide: what to create in the ad console, which
+env vars to set in Vercel, and how to check it works. Everything is per
+Vercel project (one per tenant); no code changes. The rest of this document
+explains how it works internally.
+
+**Every change below needs a redeploy.** All of these env vars are read at
+build time, including `ADS_TXT_EXTRA_LINES` (`/ads.txt` is prerendered).
+
+### Placements
+
+Each placement is one ad unit in AdSense or GAM. Create one unit per
+placement you want to run, accepting the sizes listed. A placement with no
+unit configured renders nothing; the rest of the site is unaffected.
+
+| Placement            | Where it shows                                                            | Sizes                     | AdSense env var                          | GAM env var                          |
+| -------------------- | ------------------------------------------------------------------------- | ------------------------- | ---------------------------------------- | ------------------------------------ |
+| `header-leaderboard` | Under the header nav, desktop (≥768px)                                    | 728×90, 970×90, 970×250   | `NEXT_PUBLIC_ADSENSE_SLOT_HEADER`        | `NEXT_PUBLIC_GAM_SLOT_HEADER`        |
+| `footer`             | Top of the footer, desktop (≥768px)                                       | 728×90, 970×90, 970×250   | `NEXT_PUBLIC_ADSENSE_SLOT_FOOTER`        | `NEXT_PUBLIC_GAM_SLOT_FOOTER`        |
+| `mobile-banner`      | Header, footer and between post paragraphs, on phones (<768px)            | 320×50, 320×100           | `NEXT_PUBLIC_ADSENSE_SLOT_MOBILE_BANNER` | `NEXT_PUBLIC_GAM_SLOT_MOBILE_BANNER` |
+| `in-content`         | Between paragraphs of a post, desktop (≥768px); more breaks on long posts | 300×250, 336×280          | `NEXT_PUBLIC_ADSENSE_SLOT_IN_CONTENT`    | `NEXT_PUBLIC_GAM_SLOT_IN_CONTENT`    |
+| `below-content`      | After the post body                                                       | 336×280, 300×250, 728×90  | `NEXT_PUBLIC_ADSENSE_SLOT_BELOW_CONTENT` | `NEXT_PUBLIC_GAM_SLOT_BELOW_CONTENT` |
+| `sidebar`            | Sidebar on post and list pages                                            | 300×250, 300×600, 160×600 | `NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR`       | `NEXT_PUBLIC_GAM_SLOT_SIDEBAR`       |
+| `in-feed`            | As a card inside post lists (home, `/blog`, category, tag) with 4+ posts  | 300×250, 336×280          | `NEXT_PUBLIC_ADSENSE_SLOT_IN_FEED`       | `NEXT_PUBLIC_GAM_SLOT_IN_FEED`       |
+
+**Mobile fallback (AdSense only):** if an AdSense tenant has no
+`mobile-banner` unit, phones get the desktop unit for that spot instead
+(AdSense units are responsive). GAM has no fallback: without a
+`mobile-banner` unit, phones get no ad in those spots. Create it.
+
+### Option A — AdSense (default)
+
+1. In AdSense, create a **display ad unit** (responsive) for each placement.
+   The slot id is the number in the unit's code (`data-ad-slot`).
+2. In Vercel → Project → Settings → Environment Variables:
+
+   ```bash
+   NEXT_PUBLIC_AD_PROVIDER=adsense          # or leave unset
+   NEXT_PUBLIC_ADSENSE_PUBLISHER_ID=ca-pub-1234567890123456
+   NEXT_PUBLIC_ADSENSE_SLOT_HEADER=1234567890
+   NEXT_PUBLIC_ADSENSE_SLOT_FOOTER=…
+   NEXT_PUBLIC_ADSENSE_SLOT_MOBILE_BANNER=…
+   NEXT_PUBLIC_ADSENSE_SLOT_IN_CONTENT=…
+   NEXT_PUBLIC_ADSENSE_SLOT_BELOW_CONTENT=…
+   NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR=…
+   NEXT_PUBLIC_ADSENSE_SLOT_IN_FEED=…
+   ```
+
+3. Redeploy. `/ads.txt` is generated from the publisher id automatically.
+
+### Option B — Google Ad Manager (GAM)
+
+1. **GAM network code:** GAM → Admin → Global settings → Network code (a
+   number, e.g. `21234567890`).
+2. **Ad units:** GAM → Inventory → Ad units → New ad unit, one per
+   placement, with the sizes from the table above. Note each unit's **code**
+   (e.g. `debatecuervo_header`), not its full path — the app builds
+   `/<network code>/<unit code>` itself. Sub-paths work too
+   (`debatecuervo/header`).
+3. **Line items/orders** that target those units — without demand, slots
+   render as empty reserved boxes.
+4. **ads.txt:** GAM requires its own line,
+   `google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0`, keyed by the
+   **GAM** account's publisher id (`pub-…`), which can differ from the
+   AdSense one — take it from the GAM account settings. Put it,
+   and any other demand partners' lines, in `ADS_TXT_EXTRA_LINES` (server
+   env var, entries separated by `|`). See "`ads.txt`" below.
+5. In Vercel:
+
+   ```bash
+   NEXT_PUBLIC_AD_PROVIDER=gam
+   NEXT_PUBLIC_GAM_NETWORK_CODE=21234567890
+   NEXT_PUBLIC_GAM_SLOT_HEADER=debatecuervo_header
+   NEXT_PUBLIC_GAM_SLOT_FOOTER=…
+   NEXT_PUBLIC_GAM_SLOT_MOBILE_BANNER=…
+   NEXT_PUBLIC_GAM_SLOT_IN_CONTENT=…
+   NEXT_PUBLIC_GAM_SLOT_BELOW_CONTENT=…
+   NEXT_PUBLIC_GAM_SLOT_SIDEBAR=…
+   NEXT_PUBLIC_GAM_SLOT_IN_FEED=…
+   ADS_TXT_EXTRA_LINES="google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0"
+   ```
+
+   Keep `NEXT_PUBLIC_ADSENSE_PUBLISHER_ID` set if the tenant also has an
+   AdSense account — its `ads.txt` line keeps being served; the AdSense
+   script and slots only load when the provider is `adsense`.
+
+6. Redeploy — try it on a **Preview** deployment first.
+
+Switching back is just `NEXT_PUBLIC_AD_PROVIDER=adsense` + redeploy; both
+sets of env vars can coexist.
+
+### Verify
+
+- **`https://<domain>/ads.txt`** contains the expected lines (404 means no
+  publisher id and no extras are set).
+- **Desktop (≥1024px) and phone width**: every configured placement shows an
+  ad or a reserved box of the right size; no layout jump when ads load.
+- **Browser console:** no `Content Security Policy` errors from Google hosts.
+- **GAM only:** run `googletag.openConsole()` in the browser console to open
+  the Google Publisher Console. It lists every
+  slot, its ad unit path and whether it filled. Expect **one** ad request
+  per page load (Single Request Architecture), and no slots for hidden
+  spots (e.g. no `mobile-banner` on desktop).
+- **Consent:** with the cookie banner unanswered or rejected, ads still show
+  but are non-personalized; after "Aceptar" they become personalized (GAM
+  refreshes the slots already on the page once).
+
+### Turning ads off
+
+- Whole site: `NEXT_PUBLIC_ADS_ENABLED=false` (no scripts, no slots).
+- One placement: set its slot env var to an empty string.
+- See "Disabling Ads Per Deployment" at the end for details.
+
+### Troubleshooting
+
+| Symptom                                           | Likely cause                                                                                                                |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Changed an env var, nothing changed               | Not redeployed — env vars are baked in at build time.                                                                       |
+| Reserved box shows, but never an ad               | No demand: AdSense unit not approved yet, or (GAM) no line item targets that ad unit/size. Check the GAM Publisher Console. |
+| No ad at all in one spot                          | That placement's slot env var is unset/empty for the active provider.                                                       |
+| GAM: no ads on phones in header/footer/post body  | `NEXT_PUBLIC_GAM_SLOT_MOBILE_BANNER` not set (GAM has no desktop fallback).                                                 |
+| GAM: nothing at all, no `gpt.js` loaded           | `NEXT_PUBLIC_GAM_NETWORK_CODE` unset, `NEXT_PUBLIC_AD_PROVIDER` isn't `gam`, or `NEXT_PUBLIC_ADS_ENABLED=false`.            |
+| Build fails: `NEXT_PUBLIC_AD_PROVIDER` invalid    | Only `adsense` and `gam` are accepted (`prebid` was removed).                                                               |
+| Resized the window across 768px, slot stays empty | Expected under GAM: slots hidden at load aren't requested until the next page navigation.                                   |
+
+### Local smoke test (GAM, no account needed)
+
+Google's public sample network serves test creatives, so the GAM path can be
+exercised locally before a real network exists:
+
+```bash
+NEXT_PUBLIC_AD_PROVIDER=gam NEXT_PUBLIC_GAM_NETWORK_CODE=6355419 \
+NEXT_PUBLIC_GAM_SLOT_HEADER=Travel NEXT_PUBLIC_GAM_SLOT_SIDEBAR=Travel \
+NEXT_PUBLIC_GAM_SLOT_MOBILE_BANNER=Travel NEXT_PUBLIC_GAM_SLOT_IN_FEED=Travel \
+npm run dev
+```
+
+Inline vars win over `.env.local`, so this doesn't touch your local config.
+
+---
+
 ## Architecture
 
 ```
@@ -105,6 +247,9 @@ NEXT_PUBLIC_ADSENSE_SLOT_HEADER=1234567890
 NEXT_PUBLIC_ADSENSE_SLOT_IN_CONTENT=0987654321
 NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR=1122334455
 NEXT_PUBLIC_ADSENSE_SLOT_FOOTER=5544332211
+NEXT_PUBLIC_ADSENSE_SLOT_MOBILE_BANNER=6677889900
+NEXT_PUBLIC_ADSENSE_SLOT_IN_FEED=2233445566
+NEXT_PUBLIC_ADSENSE_SLOT_BELOW_CONTENT=3344556677
 ```
 
 These are read once, at boot, into `siteConfig.ads` (`src/lib/siteConfig.ts`) —

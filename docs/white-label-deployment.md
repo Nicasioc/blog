@@ -24,20 +24,26 @@ All four favicon vars fall back to `/favicon.ico` when unset.
 
 ### Client-safe (NEXT*PUBLIC* prefix)
 
-| Variable                              | Required           | Purpose                        | Example                               |
-| ------------------------------------- | ------------------ | ------------------------------ | ------------------------------------- |
-| `NEXT_PUBLIC_SITE_NAME`               | ✅                 | Display name                   | `Real Madrid News`                    |
-| `NEXT_PUBLIC_SITE_URL`                | ✅                 | Canonical base URL             | `https://realmadrid-news.com`         |
-| `NEXT_PUBLIC_SITE_LOGO_URL`           | ✅                 | Logo image URL                 | `https://cdn.example.com/rm-logo.svg` |
-| `NEXT_PUBLIC_PRIMARY_COLOR`           | ✅ hex             | Team primary color             | `#FFFFFF`                             |
-| `NEXT_PUBLIC_SECONDARY_COLOR`         | ✅ hex             | Team secondary color           | `#FFD700`                             |
-| `NEXT_PUBLIC_PRIMARY_FOREGROUND`      | default: `#ffffff` | Text on primary bg             | `#000000`                             |
-| `NEXT_PUBLIC_AD_PROVIDER`             | default: `adsense` | Ad provider (`adsense`\|`gam`) | `adsense`                             |
-| `NEXT_PUBLIC_ADSENSE_PUBLISHER_ID`    | optional           | AdSense publisher ID           | `ca-pub-1234567890`                   |
-| `NEXT_PUBLIC_ADSENSE_SLOT_HEADER`     | optional           | Slot ID for header leaderboard | `1234567890`                          |
-| `NEXT_PUBLIC_ADSENSE_SLOT_IN_CONTENT` | optional           | Slot ID for in-content ad      | `0987654321`                          |
-| `NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR`    | optional           | Slot ID for sidebar            | `1122334455`                          |
-| `NEXT_PUBLIC_ADSENSE_SLOT_FOOTER`     | optional           | Slot ID for footer             | `5544332211`                          |
+| Variable                                 | Required               | Purpose                                                                                                                                      | Example                               |
+| ---------------------------------------- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| `NEXT_PUBLIC_SITE_NAME`                  | ✅                     | Display name                                                                                                                                 | `Real Madrid News`                    |
+| `NEXT_PUBLIC_SITE_URL`                   | ✅                     | Canonical base URL                                                                                                                           | `https://realmadrid-news.com`         |
+| `NEXT_PUBLIC_SITE_LOGO_URL`              | ✅                     | Logo image URL                                                                                                                               | `https://cdn.example.com/rm-logo.svg` |
+| `NEXT_PUBLIC_PRIMARY_COLOR`              | ✅ hex                 | Team primary color                                                                                                                           | `#FFFFFF`                             |
+| `NEXT_PUBLIC_SECONDARY_COLOR`            | ✅ hex                 | Team secondary color                                                                                                                         | `#FFD700`                             |
+| `NEXT_PUBLIC_PRIMARY_FOREGROUND`         | default: `#ffffff`     | Text on primary bg                                                                                                                           | `#000000`                             |
+| `NEXT_PUBLIC_AD_PROVIDER`                | default: `adsense`     | Ad provider (`adsense`\|`gam`)                                                                                                               | `adsense`                             |
+| `NEXT_PUBLIC_ADSENSE_PUBLISHER_ID`       | optional               | AdSense publisher ID                                                                                                                         | `ca-pub-1234567890`                   |
+| `NEXT_PUBLIC_ADSENSE_SLOT_HEADER`        | optional               | Slot ID for header leaderboard                                                                                                               | `1234567890`                          |
+| `NEXT_PUBLIC_ADSENSE_SLOT_IN_CONTENT`    | optional               | Slot ID for in-content ad                                                                                                                    | `0987654321`                          |
+| `NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR`       | optional               | Slot ID for sidebar                                                                                                                          | `1122334455`                          |
+| `NEXT_PUBLIC_ADSENSE_SLOT_FOOTER`        | optional               | Slot ID for footer                                                                                                                           | `5544332211`                          |
+| `NEXT_PUBLIC_ADSENSE_SLOT_MOBILE_BANNER` | optional               | Slot ID for mobile banner                                                                                                                    | `6677889900`                          |
+| `NEXT_PUBLIC_ADSENSE_SLOT_IN_FEED`       | optional               | Slot ID for in-feed (post lists)                                                                                                             | `2233445566`                          |
+| `NEXT_PUBLIC_ADSENSE_SLOT_BELOW_CONTENT` | optional               | Slot ID for below-content                                                                                                                    | `3344556677`                          |
+| `NEXT_PUBLIC_GAM_NETWORK_CODE`           | when provider is `gam` | GAM network code                                                                                                                             | `21234567890`                         |
+| `NEXT_PUBLIC_GAM_SLOT_*`                 | optional               | GAM ad unit code per placement (`HEADER`, `FOOTER`, `MOBILE_BANNER`, `IN_CONTENT`, `BELOW_CONTENT`, `SIDEBAR`, `IN_FEED`), not the full path | `debatecuervo_header`                 |
+| `NEXT_PUBLIC_ADS_ENABLED`                | default: `true`        | Site-wide ads kill switch                                                                                                                    | `false`                               |
 
 **Hex color note:** In `.env` files, unquoted `#` is treated as a comment. Always quote hex values:
 
@@ -129,6 +135,7 @@ Logos render in their natural colors. Provide a logo variant that is legible on 
 1. **Go to Vercel** → Add New Project → Import from GitHub (same repo)
 2. **Add tenant assets** under `public/<tenant-slug>/` and commit them
 3. **Set environment variables** in the Vercel project settings (copy from `.env.example`, fill in team values)
+   - **Ads:** follow [Setting Up Ads for a Tenant](ad-system.md#setting-up-ads-for-a-tenant) — which ad units to create (AdSense or GAM), the env var for each placement, the `ads.txt` lines, and how to verify.
 4. **Assign a custom domain** in Vercel project settings — done
 
 No image-domain step: all media is served through the `/api/media/file/*` rewrite to
