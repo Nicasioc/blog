@@ -18,6 +18,7 @@ One GitHub repo, one Vercel project per team. Each project has its own env vars 
 | `SITE_APPLE_TOUCH_ICON_URL` | optional        | iOS home screen icon path                                                                                                           | `/debate-cuervo/apple-touch-icon.png` |
 | `SITE_ICON_192_URL`         | optional        | PWA manifest icon 192×192                                                                                                           | `/debate-cuervo/favicon-192.png`      |
 | `SITE_ICON_512_URL`         | optional        | PWA manifest icon 512×512                                                                                                           | `/debate-cuervo/favicon-512.png`      |
+| `ADS_TXT_EXTRA_LINES`       | optional        | Extra `/ads.txt` entries (GAM publisher line, demand partners), separated by `\|` or newlines; `#` lines ignored                    | `google.com, pub-…, DIRECT, f08c…`    |
 
 All four favicon vars fall back to `/favicon.ico` when unset.
 
