@@ -33,7 +33,7 @@ vi.mock('@/lib/siteConfig', () => ({
   },
 }))
 
-const { AD_PLACEMENTS, getGamAdUnitPath, isAdPlacementConfigured } =
+const { AD_PLACEMENTS, getGamAdUnitPath, isAdPlacementConfigured, resolveAdPlacement } =
   await import('@/services/ads/adConfig')
 const { siteConfig } = await import('@/lib/siteConfig')
 
@@ -147,5 +147,37 @@ describe('isAdPlacementConfigured', () => {
   it('returns false for an unknown provider value', () => {
     siteConfig.ads.provider = 'unknown' as 'adsense'
     expect(isAdPlacementConfigured('sidebar')).toBe(false)
+  })
+})
+
+describe('resolveAdPlacement', () => {
+  const originalProvider = siteConfig.ads.provider
+  const originalGamSlots = { ...siteConfig.ads.gamSlots }
+  const originalMobileBannerId = AD_PLACEMENTS['mobile-banner'].adUnitId
+
+  afterEach(() => {
+    siteConfig.ads.provider = originalProvider
+    siteConfig.ads.gamSlots = { ...originalGamSlots }
+    AD_PLACEMENTS['mobile-banner'].adUnitId = originalMobileBannerId
+  })
+
+  it('keeps a configured placement', () => {
+    expect(resolveAdPlacement('mobile-banner', 'header-leaderboard')).toBe('mobile-banner')
+  })
+
+  it('keeps the placement when there is no fallback', () => {
+    AD_PLACEMENTS['mobile-banner'].adUnitId = ''
+    expect(resolveAdPlacement('mobile-banner')).toBe('mobile-banner')
+  })
+
+  it('falls back under AdSense when the placement is unconfigured', () => {
+    AD_PLACEMENTS['mobile-banner'].adUnitId = ''
+    expect(resolveAdPlacement('mobile-banner', 'header-leaderboard')).toBe('header-leaderboard')
+  })
+
+  it('never falls back under GAM, so phones get no blank leaderboard box (BLO-140)', () => {
+    siteConfig.ads.provider = 'gam'
+    siteConfig.ads.gamSlots = { ...originalGamSlots, 'mobile-banner': '' }
+    expect(resolveAdPlacement('mobile-banner', 'header-leaderboard')).toBe('mobile-banner')
   })
 })

@@ -2,9 +2,8 @@
 import { useEffect, useRef } from 'react'
 import { siteConfig } from '@/lib/siteConfig'
 import { AD_PLACEMENTS, type AdPlacement } from '@/services/ads/adConfig'
-import { getReservedAdDimensions } from '@/domain/ads/adSize.utils'
 import type { AdPersonalization } from '@/domain/consent/adPersonalization'
-import { cn } from '@/lib/utils'
+import { ReservedAdContainer } from '../ReservedAdContainer'
 
 type Props = { placement: AdPlacement; className?: string; personalization: AdPersonalization }
 
@@ -41,22 +40,11 @@ export const AdSenseSlot = ({ placement, className, personalization }: Props) =>
 
   if (!config.adUnitId || !siteConfig.ads.adSensePublisherId) return null
 
-  const reserved = getReservedAdDimensions(config.sizes)
-
   return (
-    // w-full so the wrapper spans its flex-item context (Header/Footer use
-    // `flex justify-center`) instead of shrinking to zero — a responsive
-    // `data-ad-format="auto"` unit otherwise measures availableWidth=0 and
-    // AdSense never attempts a fill. See BLO-191. minHeight/maxWidth reserve
-    // space before the creative loads to reduce CLS — see BLO-134.
-    <div
-      className={cn('w-full', className)}
-      style={
-        reserved
-          ? { minHeight: reserved.minHeightPx, maxWidth: reserved.maxWidthPx, marginInline: 'auto' }
-          : undefined
-      }
-    >
+    // ReservedAdContainer's w-full matters here: a responsive
+    // `data-ad-format="auto"` unit in a zero-width wrapper measures
+    // availableWidth=0 and AdSense never attempts a fill (BLO-191).
+    <ReservedAdContainer sizes={config.sizes} className={className}>
       <ins
         className="adsbygoogle"
         style={{ display: 'block' }}
@@ -65,6 +53,6 @@ export const AdSenseSlot = ({ placement, className, personalization }: Props) =>
         data-ad-format="auto"
         data-full-width-responsive="true"
       />
-    </div>
+    </ReservedAdContainer>
   )
 }

@@ -222,3 +222,89 @@ describe('setGptPersonalization', () => {
     expect(pubads.setPrivacySettings).toHaveBeenCalledWith({ nonPersonalizedAds: expected })
   })
 })
+
+describe('setGptPersonalization refresh on accept', () => {
+  beforeEach(() => {
+    delete (window as { googletag?: unknown }).googletag
+  })
+
+  it('refreshes already-fetched slots when consent flips to accepted', async () => {
+    const { displayGptSlot, setGptPersonalization } = await loadGpt()
+    const { googletag, pubads, load } = installFakeGoogletag()
+    setGptPersonalization('non-personalized')
+    displayGptSlot(slotArgs('gpt-a'))
+    load()
+    await flushMicrotasks()
+    pubads.refresh.mockClear()
+
+    setGptPersonalization('personalized')
+
+    const slot = googletag.defineSlot.mock.results[0].value
+    expect(pubads.refresh).toHaveBeenCalledWith([slot])
+  })
+
+  it('does not refresh on the first setting, even if it is personalized', async () => {
+    const { displayGptSlot, setGptPersonalization } = await loadGpt()
+    const { pubads, load } = installFakeGoogletag()
+    displayGptSlot(slotArgs('gpt-a'))
+    load()
+    await flushMicrotasks()
+    pubads.refresh.mockClear()
+
+    setGptPersonalization('personalized')
+
+    expect(pubads.refresh).not.toHaveBeenCalled()
+  })
+
+  it('does not double-fetch slots still waiting in the batch (post-hydration consent correction)', async () => {
+    const { displayGptSlot, setGptPersonalization } = await loadGpt()
+    const { pubads, load } = installFakeGoogletag()
+    setGptPersonalization('non-personalized')
+    displayGptSlot(slotArgs('gpt-a'))
+    setGptPersonalization('personalized')
+    load()
+    await flushMicrotasks()
+
+    expect(pubads.refresh).toHaveBeenCalledTimes(1)
+    expect(pubads.setPrivacySettings).toHaveBeenLastCalledWith({ nonPersonalizedAds: false })
+  })
+
+  it('does not refresh when consent is withdrawn', async () => {
+    const { displayGptSlot, setGptPersonalization } = await loadGpt()
+    const { pubads, load } = installFakeGoogletag()
+    setGptPersonalization('personalized')
+    displayGptSlot(slotArgs('gpt-a'))
+    load()
+    await flushMicrotasks()
+    pubads.refresh.mockClear()
+
+    setGptPersonalization('non-personalized')
+
+    expect(pubads.refresh).not.toHaveBeenCalled()
+  })
+
+  it('does not refresh destroyed slots', async () => {
+    const { displayGptSlot, setGptPersonalization } = await loadGpt()
+    const { googletag, pubads, load } = installFakeGoogletag()
+    setGptPersonalization('non-personalized')
+    const cleanupA = displayGptSlot(slotArgs('gpt-a'))
+    displayGptSlot(slotArgs('gpt-b'))
+    load()
+    await flushMicrotasks()
+    cleanupA()
+    pubads.refresh.mockClear()
+
+    setGptPersonalization('personalized')
+
+    const slotB = googletag.defineSlot.mock.results[1].value
+    expect(pubads.refresh).toHaveBeenCalledWith([slotB])
+  })
+})
+
+describe('ensureGoogletagQueue', () => {
+  it('keeps an existing googletag instead of replacing it', async () => {
+    const { ensureGoogletagQueue } = await loadGpt()
+    const { googletag } = installFakeGoogletag()
+    expect(ensureGoogletagQueue()).toBe(googletag)
+  })
+})

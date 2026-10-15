@@ -27,9 +27,10 @@ AdSenseSlot | GamSlot | null
 | `src/components/ads/AdSlot.tsx`                    | Thin 'use client' wrapper — call `useAdProvider().renderSlot()`                                                                                           |
 | `src/components/ads/providers/AdSenseProvider.tsx` | `<ins>` element + `adsbygoogle.push()` in `useEffect`                                                                                                     |
 | `src/components/ads/providers/GamProvider.tsx`     | `GamSlot` — reserved `<div>` + GPT slot lifecycle via `src/services/ads/gpt.ts`                                                                           |
+| `src/components/ads/ReservedAdContainer.tsx`       | Shared `w-full` wrapper with reserved `minHeight`/`maxWidth` (BLO-191/BLO-134), used by both providers                                                    |
 | `src/services/ads/gpt.ts`                          | GPT service: one-time SRA/services init, batched `refresh()`, slot define/destroy, `nonPersonalizedAds`                                                   |
 | `src/components/ads/AdSenseScript.tsx`             | Loads `adsbygoogle.js` once, gated on `ads.enabled`/provider/publisher id                                                                                 |
-| `src/components/ads/GamScript.tsx`                 | Loads `gpt.js` + the `googletag.cmd` queue, gated on `ads.enabled`/provider/network code                                                                  |
+| `src/components/ads/GamScript.tsx`                 | Loads `gpt.js` + the `googletag.cmd` queue (gated on `ads.enabled`/provider/network code); applies page-level `nonPersonalizedAds`                        |
 | `src/domain/ads/gamSizeMapping.utils.ts`           | `buildGamSizeMapping` — per-breakpoint size buckets for `slot.defineSizeMapping()` (used by `GamSlot`)                                                    |
 | `src/app/providers.tsx`                            | Wraps children with `<AdProvider>` and mounts `<AdSenseScript>` + `<GamScript>`, for the whole app                                                        |
 
@@ -63,11 +64,14 @@ Usage anywhere in the component tree:
 `mobile-banner` sibling: the desktop unit is `hidden md:block` (or
 `md:flex`), the mobile unit is the reverse (`md:hidden`) — both stay in the
 DOM, only one is visible at a given breakpoint. `AdSlot` takes an optional
-`fallbackPlacement`: if the primary placement's slot id isn't configured
-(`AD_PLACEMENTS[placement].adUnitId` is empty), it renders the fallback
-placement instead. This means a tenant that hasn't set
+`fallbackPlacement`: under **AdSense**, if the primary placement isn't
+configured (`AD_PLACEMENTS[placement].adUnitId` is empty), it renders the
+fallback placement instead. This means a tenant that hasn't set
 `NEXT_PUBLIC_ADSENSE_SLOT_MOBILE_BANNER` still gets an ad on mobile (the
-desktop unit, swapped in) rather than nothing:
+responsive desktop unit, swapped in) rather than nothing. Under **GAM** there
+is no fallback (`resolveAdPlacement` in `adConfig.ts`): the fallbacks are the
+desktop leaderboards, whose GAM mobile size bucket is empty by design, so
+falling back would only render a blank reserved box on phones.
 
 ```tsx
 <AdSlot placement="mobile-banner" fallbackPlacement="header-leaderboard" />
@@ -340,12 +344,22 @@ works whether or not `gpt.js` has loaded yet.
   has drained the queue (React strict mode's mount → unmount → mount, or a
   fast client navigation), the pending define is cancelled, so the slot is
   defined exactly once.
-- **Consent:** `GamSlot` gets `personalization` from `AdProvider`, the same
-  value `AdSenseSlot` gets, and pushes
-  `pubads().setPrivacySettings({ nonPersonalizedAds })` from an effect
-  declared before the slot effect, so the setting is queued ahead of the
-  first fetch. It re-runs when consent corrects from the SSR `null` snapshot
-  after hydration (see "Consent gating" above).
+- **Hidden containers are skipped:** the responsive swaps above keep both
+  units in the DOM and hide one with CSS. GPT's size mapping only looks at
+  the viewport, so `GamSlot` doesn't define a slot whose div has no layout
+  box (`isElementRendered`, `src/utils/dom.ts`). A resize across a
+  breakpoint won't load the newly visible slot until the next mount; viewport
+  lazy-loading (BLO-144) replaces this check.
+- **Consent (page-level):** `GamScript` applies
+  `pubads().setPrivacySettings({ nonPersonalizedAds })` from the same
+  `getAdPersonalization(status)` AdSense uses, re-running whenever consent
+  changes (including the post-hydration correction from the SSR `null`
+  snapshot, see "Consent gating" above). Order against the slot defines
+  doesn't matter: the batched fetch runs in a microtask after `gpt.js`
+  drains the whole queue. When a visitor **accepts** mid-page, slots that
+  were already fetched non-personalized are refreshed once so they switch to
+  personalized; slots still in the pending batch aren't double-fetched, and
+  withdrawing consent applies to future requests only.
 - **Not configured:** `GamSlot` returns `null`, with no div and no queued
   commands, when `getGamAdUnitPath(placement)` is `undefined` (network code
   or that placement's slot name unset).

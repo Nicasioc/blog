@@ -1,8 +1,9 @@
 import type { AdPersonalization } from '@/domain/consent/adPersonalization'
 import type { GamSizeMappingEntry } from '@/domain/ads/gamSizeMapping.utils'
+import { isNil } from '@/utils/checks'
 
 // Minimal slice of the Google Publisher Tag API this repo uses. Kept local
-// rather than pulling in @types/google-publisher-tag for six methods.
+// rather than pulling in @types/google-publisher-tag for a handful of methods.
 export type GptSlot = {
   defineSizeMapping: (mapping: GamSizeMappingEntry[]) => GptSlot
   addService: (service: GptPubAdsService) => GptSlot
@@ -26,9 +27,10 @@ type GoogleTag = {
   destroySlots: (slots?: GptSlot[]) => boolean
 }
 
-// GamScript (BLO-139) already initialises the queue at module scope; this is a
-// defensive fallback so a slot never pushes onto an undefined queue.
-const getGoogletag = (): GoogleTag => {
+// The one place window.googletag is bootstrapped. GamScript calls it at module
+// scope (before gpt.js is requested, see the comment there); every function
+// below calls it too, so a command is never pushed onto an undefined queue.
+export const ensureGoogletagQueue = (): GoogleTag => {
   const w = window as unknown as { googletag?: GoogleTag }
   w.googletag = w.googletag ?? ({ cmd: [] } as unknown as GoogleTag)
   return w.googletag
@@ -38,7 +40,9 @@ const getGoogletag = (): GoogleTag => {
 // single slot component.
 let servicesEnabled = false
 let pendingSlots: GptSlot[] = []
+let liveSlots: GptSlot[] = []
 let flushScheduled = false
+let appliedPersonalization: AdPersonalization | null = null
 
 // Runs once per page. disableInitialLoad() makes display() register a slot
 // without fetching it, so slots defined in the same tick can be fetched in a
@@ -72,14 +76,22 @@ const scheduleRefresh = (googletag: GoogleTag, slot: GptSlot) => {
 export const buildGptDivId = (placement: string, reactId: string): string =>
   `gpt-${placement}-${reactId.replace(/[^A-Za-z0-9_-]/g, '')}`
 
-// Page-level setting, applied to every subsequent ad request. Idempotent, so
-// each mounted slot pushing it is harmless. See BLO-193 for the policy.
+// Page-level setting (BLO-193 policy), applied to every subsequent request.
+// When a visitor accepts consent mid-page, slots that were already fetched
+// non-personalized are refreshed so they switch over too; slots still in the
+// pending batch pick the new setting up on their first fetch anyway.
 export const setGptPersonalization = (personalization: AdPersonalization): void => {
-  const googletag = getGoogletag()
+  const googletag = ensureGoogletagQueue()
   googletag.cmd.push(() => {
+    const previous = appliedPersonalization
+    appliedPersonalization = personalization
     googletag
       .pubads()
       .setPrivacySettings({ nonPersonalizedAds: personalization === 'non-personalized' })
+
+    if (previous !== 'non-personalized' || personalization !== 'personalized') return
+    const fetched = liveSlots.filter((slot) => !pendingSlots.includes(slot))
+    if (fetched.length > 0) googletag.pubads().refresh(fetched)
   })
 }
 
@@ -100,7 +112,7 @@ export const displayGptSlot = ({
   sizeMapping,
   divId,
 }: DisplayGptSlotArgs): (() => void) => {
-  const googletag = getGoogletag()
+  const googletag = ensureGoogletagQueue()
   const state: { cancelled: boolean; slot: GptSlot | null } = { cancelled: false, slot: null }
 
   googletag.cmd.push(() => {
@@ -108,10 +120,11 @@ export const displayGptSlot = ({
     ensureServices(googletag)
     const slot = googletag.defineSlot(adUnitPath, sizes, divId)
     // defineSlot returns null when the div already has a slot.
-    if (!slot) return
+    if (isNil(slot)) return
     slot.defineSizeMapping(sizeMapping).addService(googletag.pubads())
     googletag.display(divId)
     state.slot = slot
+    liveSlots = [...liveSlots, slot]
     scheduleRefresh(googletag, slot)
   })
 
@@ -119,8 +132,9 @@ export const displayGptSlot = ({
     state.cancelled = true
     googletag.cmd.push(() => {
       const { slot } = state
-      if (!slot) return
+      if (isNil(slot)) return
       pendingSlots = pendingSlots.filter((pending) => pending !== slot)
+      liveSlots = liveSlots.filter((live) => live !== slot)
       googletag.destroySlots([slot])
     })
   }

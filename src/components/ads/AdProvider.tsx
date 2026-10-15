@@ -36,7 +36,8 @@ export const AdProvider = ({ children }: { children: ReactNode }) => {
         )
       case 'gam':
         return (
-          <GamSlot placement={placement} className={className} personalization={personalization} />
+          // GPT personalization is page-level — applied by GamScript, not per slot.
+          <GamSlot placement={placement} className={className} />
         )
       default:
         return null

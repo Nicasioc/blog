@@ -63,16 +63,16 @@ describe('AdSlot', () => {
     expect(container).toBeEmptyDOMElement()
   })
 
-  it('decides the fallback from the GAM config, not the AdSense slot id, under gam (BLO-140)', () => {
+  it('keeps a GAM-configured placement even when its AdSense slot id is empty (BLO-140)', () => {
     mockAds.provider = 'gam'
-    // mobile-banner has no AdSense slot id but does have a GAM ad unit.
-    const renderGam = vi.fn((placement: string) => (
-      <div data-testid="rendered" data-placement={placement} />
-    ))
-    renderSlot.mockImplementationOnce(renderGam)
-    const { getByTestId } = render(
-      <AdSlot placement="mobile-banner" fallbackPlacement="header-leaderboard" />,
-    )
-    expect(getByTestId('rendered')).toHaveAttribute('data-placement', 'mobile-banner')
+    render(<AdSlot placement="mobile-banner" fallbackPlacement="header-leaderboard" />)
+    expect(renderSlot).toHaveBeenLastCalledWith('mobile-banner', undefined)
+  })
+
+  it('never falls back under GAM, even when the placement is unconfigured (BLO-140)', () => {
+    mockAds.provider = 'gam'
+    // footer has an AdSense slot id but no GAM ad unit.
+    render(<AdSlot placement="footer" fallbackPlacement="header-leaderboard" />)
+    expect(renderSlot).toHaveBeenLastCalledWith('footer', undefined)
   })
 })

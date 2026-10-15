@@ -1,49 +1,35 @@
 'use client'
-import { useEffect, useId } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import { AD_PLACEMENTS, getGamAdUnitPath, type AdPlacement } from '@/services/ads/adConfig'
-import { buildGptDivId, displayGptSlot, setGptPersonalization } from '@/services/ads/gpt'
-import { getReservedAdDimensions } from '@/domain/ads/adSize.utils'
+import { buildGptDivId, displayGptSlot } from '@/services/ads/gpt'
 import { buildGamSizeMapping } from '@/domain/ads/gamSizeMapping.utils'
-import type { AdPersonalization } from '@/domain/consent/adPersonalization'
-import { cn } from '@/lib/utils'
+import { isElementRendered } from '@/utils/dom'
+import { isNil } from '@/utils/checks'
+import { ReservedAdContainer } from '../ReservedAdContainer'
 
-type Props = { placement: AdPlacement; className?: string; personalization: AdPersonalization }
+type Props = { placement: AdPlacement; className?: string }
 
-export const GamSlot = ({ placement, className, personalization }: Props) => {
+// Personalization is page-level in GPT, so it's applied once by GamScript,
+// not per slot.
+export const GamSlot = ({ placement, className }: Props) => {
   const divId = buildGptDivId(placement, useId())
   const adUnitPath = getGamAdUnitPath(placement)
   const { sizes } = AD_PLACEMENTS[placement]
-
-  // Declared before the slot effect so the privacy setting is queued ahead of
-  // the first define/fetch. Re-runs when consent corrects from the SSR null
-  // snapshot to the stored value after hydration — same reason AdSenseSlot
-  // keeps its flag in sync instead of capturing it once (BLO-193).
-  useEffect(() => {
-    if (!adUnitPath) return
-    setGptPersonalization(personalization)
-  }, [adUnitPath, personalization])
+  const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!adUnitPath) return
+    const container = containerRef.current
+    if (isNil(adUnitPath) || isNil(container)) return
+    // Responsive swaps hide one of two slots with CSS (md:hidden / hidden
+    // md:block). GPT's size mapping only looks at the viewport, so it would
+    // happily fetch into a display:none div — skip those. A resize across a
+    // breakpoint won't load the newly visible slot until the next mount;
+    // viewport lazy-loading (BLO-144) replaces this check.
+    if (!isElementRendered(container)) return
     return displayGptSlot({ adUnitPath, sizes, sizeMapping: buildGamSizeMapping(sizes), divId })
   }, [adUnitPath, sizes, divId])
 
-  if (!adUnitPath) return null
+  if (isNil(adUnitPath)) return null
 
-  const reserved = getReservedAdDimensions(sizes)
-
-  return (
-    // w-full: without it the div collapses to 0px inside Header/Footer's
-    // `flex justify-center` and the size mapping picks nothing (BLO-191).
-    // minHeight/maxWidth reserve space before the creative loads (BLO-134).
-    <div
-      id={divId}
-      className={cn('w-full', className)}
-      style={
-        reserved
-          ? { minHeight: reserved.minHeightPx, maxWidth: reserved.maxWidthPx, marginInline: 'auto' }
-          : undefined
-      }
-    />
-  )
+  return <ReservedAdContainer ref={containerRef} id={divId} sizes={sizes} className={className} />
 }

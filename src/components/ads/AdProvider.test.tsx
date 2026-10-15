@@ -33,8 +33,8 @@ vi.mock('./providers/AdSenseProvider', () => ({
 }))
 
 vi.mock('./providers/GamProvider', () => ({
-  GamSlot: ({ placement, personalization }: { placement: string; personalization: string }) => (
-    <div data-testid="gam-slot" data-placement={placement} data-personalization={personalization} />
+  GamSlot: ({ placement }: { placement: string }) => (
+    <div data-testid="gam-slot" data-placement={placement} />
   ),
 }))
 
@@ -108,22 +108,7 @@ describe('AdProvider', () => {
     )
     const slot = screen.getByTestId('gam-slot')
     expect(slot).toHaveAttribute('data-placement', 'header-leaderboard')
-    expect(slot).toHaveAttribute('data-personalization', 'personalized')
     expect(screen.queryByTestId('adsense-slot')).not.toBeInTheDocument()
-  })
-
-  it('passes non-personalized to the GAM slot when consent is not accepted (BLO-140)', () => {
-    mockProvider = 'gam'
-    mockStatus = null
-    render(
-      <AdProvider>
-        <Probe />
-      </AdProvider>,
-    )
-    expect(screen.getByTestId('gam-slot')).toHaveAttribute(
-      'data-personalization',
-      'non-personalized',
-    )
   })
 
   it('renders no GAM slot when ads are disabled (BLO-135)', () => {

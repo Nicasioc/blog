@@ -71,18 +71,22 @@ describe('GamSlot', () => {
   beforeEach(() => {
     delete (window as { googletag?: unknown }).googletag
     mockAds.gamNetworkCode = '123456'
+    vi.restoreAllMocks()
+    // jsdom does no layout, so every element reports zero client rects; treat
+    // slots as visible unless a test says otherwise.
+    vi.spyOn(HTMLElement.prototype, 'getClientRects').mockReturnValue({ length: 1 } as DOMRectList)
   })
 
   it('renders nothing and queues no commands when the placement has no GAM ad unit', async () => {
     const GamSlot = await loadGamSlot()
     const { googletag, pubads, load } = installFakeGoogletag()
 
-    const { container } = render(<GamSlot placement="footer" personalization="personalized" />)
+    const { container } = render(<GamSlot placement="footer" />)
     load()
 
     expect(container).toBeEmptyDOMElement()
     expect(googletag.defineSlot).not.toHaveBeenCalled()
-    expect(pubads.setPrivacySettings).not.toHaveBeenCalled()
+    expect(pubads.refresh).not.toHaveBeenCalled()
   })
 
   it('renders nothing when the network code is missing', async () => {
@@ -90,7 +94,7 @@ describe('GamSlot', () => {
     const GamSlot = await loadGamSlot()
     installFakeGoogletag()
 
-    const { container } = render(<GamSlot placement="sidebar" personalization="personalized" />)
+    const { container } = render(<GamSlot placement="sidebar" />)
 
     expect(container).toBeEmptyDOMElement()
   })
@@ -99,9 +103,7 @@ describe('GamSlot', () => {
     const GamSlot = await loadGamSlot()
     installFakeGoogletag()
 
-    const { container } = render(
-      <GamSlot placement="sidebar" className="my-4" personalization="personalized" />,
-    )
+    const { container } = render(<GamSlot placement="sidebar" className="my-4" />)
     const div = container.firstElementChild as HTMLElement
 
     expect(div.id).toMatch(/^gpt-sidebar-[A-Za-z0-9_-]+$/)
@@ -115,7 +117,7 @@ describe('GamSlot', () => {
     const GamSlot = await loadGamSlot()
     const { googletag, load } = installFakeGoogletag()
 
-    const { container } = render(<GamSlot placement="sidebar" personalization="personalized" />)
+    const { container } = render(<GamSlot placement="sidebar" />)
     load()
 
     const divId = (container.firstElementChild as HTMLElement).id
@@ -137,7 +139,7 @@ describe('GamSlot', () => {
 
     render(
       <StrictMode>
-        <GamSlot placement="sidebar" personalization="personalized" />
+        <GamSlot placement="sidebar" />
       </StrictMode>,
     )
     load()
@@ -151,8 +153,8 @@ describe('GamSlot', () => {
 
     render(
       <>
-        <GamSlot placement="sidebar" personalization="personalized" />
-        <GamSlot placement="header-leaderboard" personalization="personalized" />
+        <GamSlot placement="sidebar" />
+        <GamSlot placement="header-leaderboard" />
       </>,
     )
     load()
@@ -166,7 +168,7 @@ describe('GamSlot', () => {
     const GamSlot = await loadGamSlot()
     const { googletag, load } = installFakeGoogletag()
 
-    const { unmount } = render(<GamSlot placement="sidebar" personalization="personalized" />)
+    const { unmount } = render(<GamSlot placement="sidebar" />)
     load()
     unmount()
 
@@ -174,15 +176,16 @@ describe('GamSlot', () => {
     expect(googletag.destroySlots).toHaveBeenCalledWith([slot])
   })
 
-  it('requests non-personalized ads, then follows a personalization change', async () => {
+  it('skips a slot whose container is hidden with CSS (responsive swap)', async () => {
     const GamSlot = await loadGamSlot()
-    const { pubads, load } = installFakeGoogletag()
+    const { googletag, load } = installFakeGoogletag()
+    vi.spyOn(HTMLElement.prototype, 'getClientRects').mockReturnValue({ length: 0 } as DOMRectList)
 
-    const { rerender } = render(<GamSlot placement="sidebar" personalization="non-personalized" />)
+    const { container } = render(<GamSlot placement="sidebar" />)
     load()
-    expect(pubads.setPrivacySettings).toHaveBeenLastCalledWith({ nonPersonalizedAds: true })
 
-    rerender(<GamSlot placement="sidebar" personalization="personalized" />)
-    expect(pubads.setPrivacySettings).toHaveBeenLastCalledWith({ nonPersonalizedAds: false })
+    // The reserved div still renders; only the ad request is skipped.
+    expect(container.firstElementChild).not.toBeNull()
+    expect(googletag.defineSlot).not.toHaveBeenCalled()
   })
 })

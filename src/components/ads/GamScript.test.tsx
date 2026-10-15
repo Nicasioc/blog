@@ -21,6 +21,12 @@ vi.mock('@/lib/siteConfig', () => ({
   },
 }))
 
+let mockStatus: 'accepted' | 'rejected' | null = 'accepted'
+
+vi.mock('@/components/consent/ConsentContext', () => ({
+  useConsent: () => ({ status: mockStatus }),
+}))
+
 vi.mock('next/script', () => ({
   default: (props: Record<string, unknown>) => <script data-testid="gpt-script" {...props} />,
 }))
@@ -37,6 +43,7 @@ describe('GamScript', () => {
     mockEnabled = true
     mockProvider = 'gam'
     mockNetworkCode = '123456789'
+    mockStatus = 'accepted'
   })
 
   it('initialises window.googletag.cmd at import time, before gpt.js is requested', () => {
@@ -58,7 +65,8 @@ describe('GamScript', () => {
 
   it.each(['rejected', null] as const)(
     'still loads regardless of consent status (%s) — consent only gates personalization (BLO-193)',
-    () => {
+    (status) => {
+      mockStatus = status
       render(<GamScript />)
       expect(screen.getByTestId('gpt-script')).toBeInTheDocument()
     },
@@ -86,5 +94,44 @@ describe('GamScript', () => {
     mockNetworkCode = ''
     render(<GamScript />)
     expect(screen.queryByTestId('gpt-script')).not.toBeInTheDocument()
+  })
+
+  describe('personalization', () => {
+    // A gpt.js-already-loaded googletag: push() runs commands immediately.
+    const installLoadedGoogletag = () => {
+      const pubads = { setPrivacySettings: vi.fn(), refresh: vi.fn() }
+      ;(window as unknown as { googletag: unknown }).googletag = {
+        cmd: { push: (...commands: Array<() => void>) => commands.forEach((c) => c()) },
+        pubads: () => pubads,
+      }
+      return pubads
+    }
+
+    it.each([
+      ['accepted', false],
+      ['rejected', true],
+      [null, true],
+    ] as const)('sets nonPersonalizedAds from consent %s → %s (BLO-193)', (status, expected) => {
+      const pubads = installLoadedGoogletag()
+      mockStatus = status
+      render(<GamScript />)
+      expect(pubads.setPrivacySettings).toHaveBeenLastCalledWith({ nonPersonalizedAds: expected })
+    })
+
+    it('follows a consent change without remounting', () => {
+      const pubads = installLoadedGoogletag()
+      mockStatus = null
+      const { rerender } = render(<GamScript />)
+      mockStatus = 'accepted'
+      rerender(<GamScript />)
+      expect(pubads.setPrivacySettings).toHaveBeenLastCalledWith({ nonPersonalizedAds: false })
+    })
+
+    it('does not touch googletag when GAM is not configured', () => {
+      const pubads = installLoadedGoogletag()
+      mockProvider = 'adsense'
+      render(<GamScript />)
+      expect(pubads.setPrivacySettings).not.toHaveBeenCalled()
+    })
   })
 })
