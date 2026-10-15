@@ -34,6 +34,7 @@ describe('buildCsp', () => {
       'https://*.adtrafficquality.google',
       'https://*.google.com',
       'https://*.googlesyndication.com',
+      'https://securepubads.g.doubleclick.net',
     ])
   })
 
@@ -45,6 +46,8 @@ describe('buildCsp', () => {
       'https://tpc.googlesyndication.com',
       'https://*.adtrafficquality.google',
       'https://www.google.com',
+      'https://securepubads.g.doubleclick.net',
+      'https://*.safeframe.googlesyndication.com',
     ])
   })
 
@@ -59,7 +62,17 @@ describe('buildCsp', () => {
       'https://tpc.googlesyndication.com',
       'https://*.adtrafficquality.google',
       'https://www.googletagservices.com',
+      'https://securepubads.g.doubleclick.net',
     ])
+  })
+
+  it('allows the GPT hosts gpt.js needs across script-src, connect-src and frame-src (BLO-139)', () => {
+    const directives = directivesOf(buildCsp(false))
+
+    expect(directives['script-src']).toContain('https://securepubads.g.doubleclick.net')
+    expect(directives['connect-src']).toContain('https://securepubads.g.doubleclick.net')
+    expect(directives['frame-src']).toContain('https://securepubads.g.doubleclick.net')
+    expect(directives['frame-src']).toContain('https://*.safeframe.googlesyndication.com')
   })
 
   it('does not add fundingchoicesmessages.google.com to script-src (out of scope for BLO-195)', () => {
@@ -87,7 +100,7 @@ describe('buildCsp', () => {
     expect(wildcards.length).toBeGreaterThan(0)
     for (const wildcard of wildcards) {
       expect(wildcard).toMatch(
-        /^https:\/\/\*\.(google\.com|googlesyndication\.com|adtrafficquality\.google)$/,
+        /^https:\/\/\*\.(google\.com|googlesyndication\.com|safeframe\.googlesyndication\.com|adtrafficquality\.google)$/,
       )
     }
   })
