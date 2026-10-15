@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render } from '@testing-library/react'
 
 // AdSlot resolves AD_PLACEMENTS from the real siteConfig singleton, which
@@ -7,10 +7,14 @@ import { render } from '@testing-library/react'
 // AdProvider boundary so this file only exercises AdSlot's own fallback
 // decision, not AdSenseSlot's rendering (covered in its own test file) — the
 // stub below mimics AdSenseSlot's real null-guard for unconfigured slots.
+const mockAds = vi.hoisted(() => ({ provider: 'adsense' as 'adsense' | 'gam' }))
+
 vi.mock('@/lib/siteConfig', () => ({
   siteConfig: {
     ads: {
-      provider: 'adsense',
+      get provider() {
+        return mockAds.provider
+      },
       adSensePublisherId: 'ca-pub-1234567890123456',
       slots: {
         'header-leaderboard': 'slot-header',
@@ -19,6 +23,8 @@ vi.mock('@/lib/siteConfig', () => ({
         footer: 'slot-footer',
         'mobile-banner': '',
       },
+      gamNetworkCode: '123456',
+      gamSlots: { 'header-leaderboard': 'gam-header', 'mobile-banner': 'gam-mobile-banner' },
     },
   },
 }))
@@ -34,6 +40,10 @@ vi.mock('./AdProvider', () => ({
 const { AdSlot } = await import('./AdSlot')
 
 describe('AdSlot', () => {
+  beforeEach(() => {
+    mockAds.provider = 'adsense'
+  })
+
   it('renders the primary placement when its slot id is configured', () => {
     const { getByTestId } = render(
       <AdSlot placement="header-leaderboard" fallbackPlacement="mobile-banner" />,
@@ -51,5 +61,18 @@ describe('AdSlot', () => {
   it('renders nothing when the primary is unconfigured and there is no fallback', () => {
     const { container } = render(<AdSlot placement="mobile-banner" />)
     expect(container).toBeEmptyDOMElement()
+  })
+
+  it('decides the fallback from the GAM config, not the AdSense slot id, under gam (BLO-140)', () => {
+    mockAds.provider = 'gam'
+    // mobile-banner has no AdSense slot id but does have a GAM ad unit.
+    const renderGam = vi.fn((placement: string) => (
+      <div data-testid="rendered" data-placement={placement} />
+    ))
+    renderSlot.mockImplementationOnce(renderGam)
+    const { getByTestId } = render(
+      <AdSlot placement="mobile-banner" fallbackPlacement="header-leaderboard" />,
+    )
+    expect(getByTestId('rendered')).toHaveAttribute('data-placement', 'mobile-banner')
   })
 })

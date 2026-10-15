@@ -37,6 +37,12 @@ describe('siteConfig.ads', () => {
     expect(siteConfig.ads.provider).toBe('gam')
   })
 
+  it('rejects the retired prebid provider (BLO-140)', async () => {
+    stubRequiredEnv()
+    vi.stubEnv('NEXT_PUBLIC_AD_PROVIDER', 'prebid')
+    await expect(import('@/lib/siteConfig')).rejects.toThrow(/NEXT_PUBLIC_AD_PROVIDER/)
+  })
+
   it('defaults enabled to true when NEXT_PUBLIC_ADS_ENABLED is unset (BLO-135)', async () => {
     stubRequiredEnv()
     const { siteConfig } = await import('@/lib/siteConfig')

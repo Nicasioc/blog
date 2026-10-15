@@ -24,20 +24,20 @@ All four favicon vars fall back to `/favicon.ico` when unset.
 
 ### Client-safe (NEXT*PUBLIC* prefix)
 
-| Variable                              | Required           | Purpose                                  | Example                               |
-| ------------------------------------- | ------------------ | ---------------------------------------- | ------------------------------------- |
-| `NEXT_PUBLIC_SITE_NAME`               | ✅                 | Display name                             | `Real Madrid News`                    |
-| `NEXT_PUBLIC_SITE_URL`                | ✅                 | Canonical base URL                       | `https://realmadrid-news.com`         |
-| `NEXT_PUBLIC_SITE_LOGO_URL`           | ✅                 | Logo image URL                           | `https://cdn.example.com/rm-logo.svg` |
-| `NEXT_PUBLIC_PRIMARY_COLOR`           | ✅ hex             | Team primary color                       | `#FFFFFF`                             |
-| `NEXT_PUBLIC_SECONDARY_COLOR`         | ✅ hex             | Team secondary color                     | `#FFD700`                             |
-| `NEXT_PUBLIC_PRIMARY_FOREGROUND`      | default: `#ffffff` | Text on primary bg                       | `#000000`                             |
-| `NEXT_PUBLIC_AD_PROVIDER`             | default: `adsense` | Ad provider (`adsense`\|`gam`\|`prebid`) | `adsense`                             |
-| `NEXT_PUBLIC_ADSENSE_PUBLISHER_ID`    | optional           | AdSense publisher ID                     | `ca-pub-1234567890`                   |
-| `NEXT_PUBLIC_ADSENSE_SLOT_HEADER`     | optional           | Slot ID for header leaderboard           | `1234567890`                          |
-| `NEXT_PUBLIC_ADSENSE_SLOT_IN_CONTENT` | optional           | Slot ID for in-content ad                | `0987654321`                          |
-| `NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR`    | optional           | Slot ID for sidebar                      | `1122334455`                          |
-| `NEXT_PUBLIC_ADSENSE_SLOT_FOOTER`     | optional           | Slot ID for footer                       | `5544332211`                          |
+| Variable                              | Required           | Purpose                        | Example                               |
+| ------------------------------------- | ------------------ | ------------------------------ | ------------------------------------- |
+| `NEXT_PUBLIC_SITE_NAME`               | ✅                 | Display name                   | `Real Madrid News`                    |
+| `NEXT_PUBLIC_SITE_URL`                | ✅                 | Canonical base URL             | `https://realmadrid-news.com`         |
+| `NEXT_PUBLIC_SITE_LOGO_URL`           | ✅                 | Logo image URL                 | `https://cdn.example.com/rm-logo.svg` |
+| `NEXT_PUBLIC_PRIMARY_COLOR`           | ✅ hex             | Team primary color             | `#FFFFFF`                             |
+| `NEXT_PUBLIC_SECONDARY_COLOR`         | ✅ hex             | Team secondary color           | `#FFD700`                             |
+| `NEXT_PUBLIC_PRIMARY_FOREGROUND`      | default: `#ffffff` | Text on primary bg             | `#000000`                             |
+| `NEXT_PUBLIC_AD_PROVIDER`             | default: `adsense` | Ad provider (`adsense`\|`gam`) | `adsense`                             |
+| `NEXT_PUBLIC_ADSENSE_PUBLISHER_ID`    | optional           | AdSense publisher ID           | `ca-pub-1234567890`                   |
+| `NEXT_PUBLIC_ADSENSE_SLOT_HEADER`     | optional           | Slot ID for header leaderboard | `1234567890`                          |
+| `NEXT_PUBLIC_ADSENSE_SLOT_IN_CONTENT` | optional           | Slot ID for in-content ad      | `0987654321`                          |
+| `NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR`    | optional           | Slot ID for sidebar            | `1122334455`                          |
+| `NEXT_PUBLIC_ADSENSE_SLOT_FOOTER`     | optional           | Slot ID for footer             | `5544332211`                          |
 
 **Hex color note:** In `.env` files, unquoted `#` is treated as a comment. Always quote hex values:
 

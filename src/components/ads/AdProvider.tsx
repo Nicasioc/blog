@@ -1,6 +1,7 @@
 'use client'
 import { createContext, useContext, type ReactNode } from 'react'
 import { AdSenseSlot } from './providers/AdSenseProvider'
+import { GamSlot } from './providers/GamProvider'
 import type { AdPlacement } from '@/services/ads/adConfig'
 import { siteConfig } from '@/lib/siteConfig'
 import { useConsent } from '@/components/consent/ConsentContext'
@@ -32,6 +33,10 @@ export const AdProvider = ({ children }: { children: ReactNode }) => {
             className={className}
             personalization={personalization}
           />
+        )
+      case 'gam':
+        return (
+          <GamSlot placement={placement} className={className} personalization={personalization} />
         )
       default:
         return null

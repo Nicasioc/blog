@@ -87,3 +87,18 @@ export const getGamAdUnitPath = (placement: AdPlacement): string | undefined => 
 
   return `/${gamNetworkCode}/${slot}`
 }
+
+// Whether the active provider has an ad unit for this placement. AdSlot's
+// fallback (BLO-133) must ask the active provider — checking the AdSense slot
+// id under provider=gam made mobile-banner always fall back to the
+// leaderboard, whose GAM mobile size bucket is empty (BLO-140).
+export const isAdPlacementConfigured = (placement: AdPlacement): boolean => {
+  switch (siteConfig.ads.provider) {
+    case 'adsense':
+      return isNonEmptyString(AD_PLACEMENTS[placement].adUnitId)
+    case 'gam':
+      return getGamAdUnitPath(placement) !== undefined
+    default:
+      return false
+  }
+}

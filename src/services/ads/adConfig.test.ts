@@ -33,7 +33,8 @@ vi.mock('@/lib/siteConfig', () => ({
   },
 }))
 
-const { AD_PLACEMENTS, getGamAdUnitPath } = await import('@/services/ads/adConfig')
+const { AD_PLACEMENTS, getGamAdUnitPath, isAdPlacementConfigured } =
+  await import('@/services/ads/adConfig')
 const { siteConfig } = await import('@/lib/siteConfig')
 
 describe('AD_PLACEMENTS', () => {
@@ -117,5 +118,34 @@ describe('getGamAdUnitPath', () => {
   it('returns undefined when the slot is not configured', () => {
     siteConfig.ads.gamSlots.sidebar = ''
     expect(getGamAdUnitPath('sidebar')).toBeUndefined()
+  })
+})
+
+describe('isAdPlacementConfigured', () => {
+  const originalProvider = siteConfig.ads.provider
+  const originalGamSlots = { ...siteConfig.ads.gamSlots }
+
+  afterEach(() => {
+    siteConfig.ads.provider = originalProvider
+    siteConfig.ads.gamSlots = { ...originalGamSlots }
+  })
+
+  it('checks the AdSense slot id when the provider is adsense', () => {
+    siteConfig.ads.provider = 'adsense'
+    siteConfig.ads.gamSlots = { ...originalGamSlots, sidebar: '' }
+    expect(isAdPlacementConfigured('sidebar')).toBe(true)
+  })
+
+  it('checks the GAM ad unit, not the AdSense slot id, when the provider is gam (BLO-140)', () => {
+    siteConfig.ads.provider = 'gam'
+    expect(isAdPlacementConfigured('sidebar')).toBe(true)
+
+    siteConfig.ads.gamSlots = { ...originalGamSlots, sidebar: '' }
+    expect(isAdPlacementConfigured('sidebar')).toBe(false)
+  })
+
+  it('returns false for an unknown provider value', () => {
+    siteConfig.ads.provider = 'unknown' as 'adsense'
+    expect(isAdPlacementConfigured('sidebar')).toBe(false)
   })
 })

@@ -14,7 +14,7 @@ export type SiteConfig = {
   }
   ads: {
     enabled: boolean
-    provider: 'adsense' | 'gam' | 'prebid'
+    provider: 'adsense' | 'gam'
     adSensePublisherId: string | undefined
     slots: Record<AdPlacement, string>
     gamNetworkCode?: string

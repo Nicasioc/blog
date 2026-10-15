@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 
 let mockEnabled = true
-let mockProvider: 'adsense' | 'gam' | 'prebid' = 'adsense'
+let mockProvider: 'adsense' | 'gam' = 'adsense'
 let mockPublisherId: string | undefined = 'ca-pub-1234567890123456'
 
 vi.mock('@/lib/siteConfig', () => ({

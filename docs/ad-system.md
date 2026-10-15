@@ -1,6 +1,6 @@
 # Ad System
 
-The ad system is designed for **provider-agnostic placement**. Pages and components only use `<AdSlot placement="...">` — the underlying provider (AdSense, GAM, Prebid) is swapped via a single env var without touching any component.
+The ad system is designed for **provider-agnostic placement**. Pages and components only use `<AdSlot placement="...">` — the underlying provider (AdSense or GAM) is swapped via a single env var without touching any component.
 
 ## Architecture
 
@@ -11,26 +11,27 @@ The ad system is designed for **provider-agnostic placement**. Pages and compone
 useAdProvider().renderSlot('sidebar')
     │  (React context from AdProvider)
     ▼
-AdSenseSlot | PrebidSlot | null
+AdSenseSlot | GamSlot | null
     │  (active provider component)
     ▼
-<ins class="adsbygoogle" ...>
+<ins class="adsbygoogle" ...> | <div id="gpt-…"> (GPT iframe)
 ```
 
 ### Key Files
 
-| File                                               | Role                                                                                                                                                |
-| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/lib/siteConfig.ts`                            | Single read surface for ad config — `siteConfig.ads.{provider,adSensePublisherId,slots,gamNetworkCode,gamSlots}`                                    |
-| `src/services/ads/adConfig.ts`                     | Defines `AdPlacement` type and `AD_PLACEMENTS`; `adUnitId` resolved from `siteConfig.ads.slots`; `getGamAdUnitPath` (GAM, BLO-137 — not yet called) |
-| `src/components/ads/AdProvider.tsx`                | React context; reads `siteConfig.ads.provider`; exposes `renderSlot()`                                                                              |
-| `src/components/ads/AdSlot.tsx`                    | Thin 'use client' wrapper — call `useAdProvider().renderSlot()`                                                                                     |
-| `src/components/ads/providers/AdSenseProvider.tsx` | `<ins>` element + `adsbygoogle.push()` in `useEffect`                                                                                               |
-| `src/components/ads/providers/PrebidProvider.tsx`  | Stub — empty div for future GAM/Prebid                                                                                                              |
-| `src/components/ads/AdSenseScript.tsx`             | Loads `adsbygoogle.js` once, gated on `ads.enabled`/provider/publisher id                                                                           |
-| `src/components/ads/GamScript.tsx`                 | Loads `gpt.js` + the `googletag.cmd` queue, gated on `ads.enabled`/provider/network code                                                            |
-| `src/domain/ads/gamSizeMapping.utils.ts`           | `buildGamSizeMapping` — per-breakpoint size buckets for `slot.defineSizeMapping()` (GAM, not yet called)                                            |
-| `src/app/providers.tsx`                            | Wraps children with `<AdProvider>` and mounts `<AdSenseScript>` + `<GamScript>`, for the whole app                                                  |
+| File                                               | Role                                                                                                                                                      |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/lib/siteConfig.ts`                            | Single read surface for ad config — `siteConfig.ads.{provider,adSensePublisherId,slots,gamNetworkCode,gamSlots}`                                          |
+| `src/services/ads/adConfig.ts`                     | Defines `AdPlacement` type and `AD_PLACEMENTS`; `adUnitId` resolved from `siteConfig.ads.slots`; `getGamAdUnitPath` (GAM ad unit path, used by `GamSlot`) |
+| `src/components/ads/AdProvider.tsx`                | React context; reads `siteConfig.ads.provider`; exposes `renderSlot()`                                                                                    |
+| `src/components/ads/AdSlot.tsx`                    | Thin 'use client' wrapper — call `useAdProvider().renderSlot()`                                                                                           |
+| `src/components/ads/providers/AdSenseProvider.tsx` | `<ins>` element + `adsbygoogle.push()` in `useEffect`                                                                                                     |
+| `src/components/ads/providers/GamProvider.tsx`     | `GamSlot` — reserved `<div>` + GPT slot lifecycle via `src/services/ads/gpt.ts`                                                                           |
+| `src/services/ads/gpt.ts`                          | GPT service: one-time SRA/services init, batched `refresh()`, slot define/destroy, `nonPersonalizedAds`                                                   |
+| `src/components/ads/AdSenseScript.tsx`             | Loads `adsbygoogle.js` once, gated on `ads.enabled`/provider/publisher id                                                                                 |
+| `src/components/ads/GamScript.tsx`                 | Loads `gpt.js` + the `googletag.cmd` queue, gated on `ads.enabled`/provider/network code                                                                  |
+| `src/domain/ads/gamSizeMapping.utils.ts`           | `buildGamSizeMapping` — per-breakpoint size buckets for `slot.defineSizeMapping()` (used by `GamSlot`)                                                    |
+| `src/app/providers.tsx`                            | Wraps children with `<AdProvider>` and mounts `<AdSenseScript>` + `<GamScript>`, for the whole app                                                        |
 
 ---
 
@@ -177,8 +178,8 @@ the null-guard.
 
 This is conservative, not exact: a placement whose sizes vary in height
 (`header-leaderboard` is `90px`–`250px`) can still shift by the difference
-once a taller creative fills. `PrebidProvider.tsx`'s stub wrapper applies
-the same reservation so the future GAM provider inherits it.
+once a taller creative fills. `GamSlot` applies the same reservation (and
+the same `w-full` wrapper) to its GPT div.
 
 ### 6. Consent gating: personalization, not blocking
 
@@ -192,7 +193,7 @@ itself.
 
 `src/domain/consent/adPersonalization.ts` — `getAdPersonalization(status)` —
 is the single consent → personalization decision for the whole project;
-GPT (BLO-146) reuses the same helper, don't create a second one.
+GPT reuses the same helper (see "GAM slots" below), don't create a second one.
 `AdProvider` derives `personalization` once per render and passes it to
 `AdSenseSlot`, which sets `window.adsbygoogle.requestNonPersonalizedAds`
 (`1` or `0`) immediately before its own `push({})`:
@@ -225,13 +226,10 @@ describe this as "no personalized ads," not "no ads" / "no cookies."
 
 ## GAM (Google Ad Manager) Setup
 
-Config, the GPT loader and the size-mapping helper are in place (BLO-137,
-BLO-138, BLO-139); **slot rendering is not** — `AdProvider` only branches on
-`gam` starting with BLO-140. So with `NEXT_PUBLIC_AD_PROVIDER=gam` today,
-`gpt.js` loads and the command queue initialises, but no slot is defined and
-no ad renders. `getGamAdUnitPath` (`src/services/ads/adConfig.ts`) and
-`buildGamSizeMapping` (`src/domain/ads/gamSizeMapping.utils.ts`) are both
-ready for that ticket to call.
+Set `NEXT_PUBLIC_AD_PROVIDER=gam` plus the env vars below and every
+`<AdSlot>` renders a GPT slot instead of an AdSense `<ins>` — no call-site
+changes. The pieces: config/env (BLO-137), size mapping (BLO-138), the GPT
+loader (BLO-139) and `GamSlot` (BLO-140).
 
 ### Env vars
 
@@ -259,7 +257,7 @@ alongside `<AdSenseScript />` (each self-gates by provider, so both are
 mounted unconditionally), loads `gpt.js` when `ads.enabled`,
 `provider === 'gam'`, and `gamNetworkCode` are all set. Like AdSense after
 BLO-193, **consent does not gate the tag itself** — it only drives ad
-personalization, which for GPT lands in BLO-146.
+personalization (see "GAM slots" below).
 
 The `googletag.cmd` queue is initialised at **module scope**, not from an
 inline `<Script>`:
@@ -278,7 +276,7 @@ component sits in the tree — so the "init first, then `gpt.js`" ordering that
 reads correctly in JSX is the opposite of what the browser does (the inline
 tag landed ~104KB further down the document, long after `gpt.js` had been
 requested). Module scope runs when the client bundle imports the file, which
-is before hydration and therefore before any slot component effect (BLO-140)
+is before hydration and therefore before any `GamSlot` effect
 can push a command. `gpt.js` reuses an existing `window.googletag` rather than
 replacing it, then drains whatever queued up while it was in flight.
 
@@ -286,7 +284,7 @@ replacing it, then drains whatever queued up while it was in flight.
 
 `buildGamSizeMapping` (`src/domain/ads/gamSizeMapping.utils.ts`) turns a
 placement's configured sizes into a `googletag.sizeMapping()`-shaped build
-array — pure data, no `googletag` import — for `GamProvider` (BLO-140) to
+array — pure data, no `googletag` import — for `GamSlot` to
 pass to `slot.defineSizeMapping()`. A size is eligible at a breakpoint when
 its width fits the available space: `container mx-auto px-4` (this repo's
 layout gutter, 16px each side = 32px) subtracted from that breakpoint's
@@ -316,6 +314,41 @@ their configured sizes are desktop-leaderboard-only (728×90, 970×90,
 covered by the separate `mobile-banner` placement (its own `AdSlot`,
 responsive-swapped in at the component level — see "Responsive desktop/mobile
 swap" above), not by shrinking a leaderboard's GAM size mapping.
+
+### GAM slots
+
+`GamSlot` (`src/components/ads/providers/GamProvider.tsx`) renders the
+reserved, `w-full` `<div>` and hands the GPT lifecycle to
+`src/services/ads/gpt.ts`. Everything goes through `googletag.cmd`, so it
+works whether or not `gpt.js` has loaded yet.
+
+- **Div id:** `gpt-${placement}-${useId()}`, stripped to `[A-Za-z0-9_-]`
+  (`useId()` emits `:`/`«»`).
+- **Services, once per page:** the first slot's command calls
+  `enableSingleRequest()`, `disableInitialLoad()` and `enableServices()`,
+  guarded by a module-level flag.
+- **Per slot:** `defineSlot(getGamAdUnitPath(placement), sizes, divId)`, then
+  `defineSizeMapping(buildGamSizeMapping(sizes))`, `addService(pubads())`
+  and `display(divId)`.
+- **Batched fetch (SRA):** because of `disableInitialLoad()`, `display()`
+  only registers the slot. The slot is added to a pending batch, and a
+  microtask calls `pubads().refresh(batch)` once. `gpt.js` drains its queue
+  synchronously when it loads, so every slot mounted during hydration is
+  fetched in a single request. Without this, enabling SRA does nothing when
+  slots are defined one React effect at a time.
+- **Unmount:** `destroySlots([slot])`. If the cleanup runs before `gpt.js`
+  has drained the queue (React strict mode's mount → unmount → mount, or a
+  fast client navigation), the pending define is cancelled, so the slot is
+  defined exactly once.
+- **Consent:** `GamSlot` gets `personalization` from `AdProvider`, the same
+  value `AdSenseSlot` gets, and pushes
+  `pubads().setPrivacySettings({ nonPersonalizedAds })` from an effect
+  declared before the slot effect, so the setting is queued ahead of the
+  first fetch. It re-runs when consent corrects from the SSR `null` snapshot
+  after hydration (see "Consent gating" above).
+- **Not configured:** `GamSlot` returns `null`, with no div and no queued
+  commands, when `getGamAdUnitPath(placement)` is `undefined` (network code
+  or that placement's slot name unset).
 
 ---
 
@@ -448,16 +481,24 @@ Policy guardrail: at most 2 in-content + 1 below-content per article.
 
 Simple, no GAM needed. `AdSenseProvider` renders `<ins class="adsbygoogle">` per placement.
 
-### Stage 2 — Prebid / Header Bidding
+### Stage 2 — Google Ad Manager (shipped)
 
-When ready to add header bidding (higher CPMs):
+`NEXT_PUBLIC_AD_PROVIDER=gam`
 
-1. Create a GAM account and SSP seats (Amazon TAM, Criteo, Index Exchange, etc.)
-2. Implement `src/components/ads/providers/PrebidProvider.tsx` using `googletag` + `pbjs`
-3. Set `NEXT_PUBLIC_AD_PROVIDER=prebid`
-4. **No changes needed** to `AdSlot`, routes, or any other component
+1. Set up the GAM network and one ad unit per placement (BLO-142).
+2. Set `NEXT_PUBLIC_GAM_NETWORK_CODE` and the `NEXT_PUBLIC_GAM_SLOT_*` vars
+   (see "GAM (Google Ad Manager) Setup" above), plus the GAM publisher's
+   `ads.txt` line.
+3. Set `NEXT_PUBLIC_AD_PROVIDER=gam`. **No changes needed** to `AdSlot`,
+   routes or any other component.
 
-The `AdSlot` → `useAdProvider().renderSlot()` → provider switch is the only change path.
+### Future — header bidding
+
+Prebid.js layers on top of GAM (bids flow into GPT as key-values before
+`refresh()`), so it doesn't need a separate provider. The old
+`PrebidProvider` stub and the `prebid` provider value were removed in
+BLO-140; header bidding is a separate future project that would extend
+`src/services/ads/gpt.ts`.
 
 ---
 
@@ -469,4 +510,4 @@ Three ways to disable ads, from broadest to narrowest:
 - Leave `NEXT_PUBLIC_ADSENSE_PUBLISHER_ID` unset — disables AdSense entirely (no script, no `<ins>` anywhere), same effect as the switch above but implicit.
 - Set an individual placement's slot id to an empty string — disables just that one placement; every other configured slot still renders.
 
-`AdSenseSlot` returns `null` when any of these apply — no `<ins>` elements render, no console errors.
+`AdSenseSlot` returns `null` when any of these apply — no `<ins>` elements render, no console errors. With `provider=gam`, the GAM equivalents are leaving `NEXT_PUBLIC_GAM_NETWORK_CODE` unset (no `gpt.js`, no slots) or setting a single `NEXT_PUBLIC_GAM_SLOT_*` to an empty string (`GamSlot` returns `null` for that placement).
