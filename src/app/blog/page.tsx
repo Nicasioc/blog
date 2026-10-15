@@ -16,7 +16,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const { page: pageParam } = await searchParams
   const page = Math.max(1, Number(pageParam ?? '1'))
   return {
-    title: 'Blog',
+    title: 'Noticias',
     description: `Últimas publicaciones de ${siteConfig.siteName}`,
     alternates: { canonical: buildCanonicalUrl(siteConfig.siteUrl, '/blog', page) },
   }

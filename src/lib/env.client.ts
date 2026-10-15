@@ -11,6 +11,11 @@ const clientSchema = z.object({
     .string()
     .regex(/^#[0-9a-fA-F]{6}$/)
     .default('#ffffff'),
+  // Optional external forum; an empty value is treated as unset so the nav link stays hidden.
+  NEXT_PUBLIC_FORUM_URL: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.string().url().optional(),
+  ),
   NEXT_PUBLIC_AD_PROVIDER: z.enum(['adsense', 'gam', 'prebid']).default('adsense'),
   NEXT_PUBLIC_ADSENSE_PUBLISHER_ID: z.string().startsWith('ca-pub-').optional(),
   NEXT_PUBLIC_ADSENSE_SLOT_HEADER: z.string().optional().default(''),
@@ -42,6 +47,7 @@ const _clientEnv = clientSchema.safeParse({
   NEXT_PUBLIC_PRIMARY_COLOR: process.env.NEXT_PUBLIC_PRIMARY_COLOR,
   NEXT_PUBLIC_SECONDARY_COLOR: process.env.NEXT_PUBLIC_SECONDARY_COLOR,
   NEXT_PUBLIC_PRIMARY_FOREGROUND: process.env.NEXT_PUBLIC_PRIMARY_FOREGROUND,
+  NEXT_PUBLIC_FORUM_URL: process.env.NEXT_PUBLIC_FORUM_URL,
   NEXT_PUBLIC_AD_PROVIDER: process.env.NEXT_PUBLIC_AD_PROVIDER,
   NEXT_PUBLIC_ADSENSE_PUBLISHER_ID: process.env.NEXT_PUBLIC_ADSENSE_PUBLISHER_ID,
   NEXT_PUBLIC_ADSENSE_SLOT_HEADER: process.env.NEXT_PUBLIC_ADSENSE_SLOT_HEADER,
