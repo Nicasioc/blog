@@ -1,4 +1,10 @@
+import { isNonEmptyString } from '@/utils/checks'
+
 const GOOGLE_CERTIFICATION_AUTHORITY_ID = 'f08c47fec0942fa0'
+
+// Field 1 of an ads.txt record (zero-based) is the seller account id, which
+// an exchange may treat as case-sensitive; every other field is not.
+const ACCOUNT_ID_FIELD = 1
 
 const buildGoogleLine = (adSensePublisherId: string): string => {
   const pubId = adSensePublisherId.replace(/^ca-/, '')
@@ -6,35 +12,48 @@ const buildGoogleLine = (adSensePublisherId: string): string => {
 }
 
 // Entries in ADS_TXT_EXTRA_LINES may be separated by newlines (multi-line env
-// value) or `|` (single-line value) — `|` never appears in a valid ads.txt line.
+// value) or `|` (single-line value) — `|` never appears in a valid ads.txt
+// line. Entries come back trimmed, with blank ones dropped.
 export const parseAdsTxtExtraLines = (raw: string | undefined): string[] =>
-  (raw ?? '').split(/\r?\n|\|/)
+  isNonEmptyString(raw)
+    ? raw
+        .split(/\r?\n|\|/)
+        .map((line) => line.trim())
+        .filter(isNonEmptyString)
+    : []
 
-const isAdsTxtEntry = (line: string): boolean => line !== '' && !line.startsWith('#')
+const isAdsTxtEntry = (line: string): boolean => isNonEmptyString(line) && !line.startsWith('#')
 
-// Case-insensitive, whitespace-collapsed, comma-spacing-agnostic, so
-// `google.com,pub-1,DIRECT` and `Google.com, pub-1, DIRECT` dedupe together.
+const stripInlineComment = (line: string): string => line.split('#')[0]
+
+// Ignores whitespace, comma spacing and a trailing `# comment`, and case in
+// every field except the account id — so `google.com,pub-1,DIRECT` and
+// `Google.com, pub-1, direct # GAM` dedupe, but `x.com, AbC` and `x.com, abc`
+// don't.
 const toDedupeKey = (line: string): string =>
-  line
-    .toLowerCase()
-    .replace(/\s*,\s*/g, ',')
-    .replace(/\s+/g, ' ')
+  stripInlineComment(line)
+    .split(',')
+    .map((field) => field.trim().replace(/\s+/g, ' '))
+    .map((field, index) => (index === ACCOUNT_ID_FIELD ? field : field.toLowerCase()))
+    .join(',')
 
-const dedupe = (lines: string[]): string[] =>
-  lines.reduce<{ seen: Set<string>; result: string[] }>(
-    (acc, line) => {
-      const key = toDedupeKey(line)
-      if (acc.seen.has(key)) return acc
-      return { seen: new Set(acc.seen).add(key), result: [...acc.result, line] }
-    },
-    { seen: new Set(), result: [] },
-  ).result
+const dedupe = (lines: string[]): string[] => {
+  const seen = new Set<string>()
+  return lines.filter((line) => {
+    const key = toDedupeKey(line)
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
 
 export const buildAdsTxtContent = (
   adSensePublisherId: string | undefined,
   extraLines: readonly string[] = [],
 ): string | null => {
-  const googleLines = adSensePublisherId ? [buildGoogleLine(adSensePublisherId)] : []
+  const googleLines = isNonEmptyString(adSensePublisherId)
+    ? [buildGoogleLine(adSensePublisherId)]
+    : []
   const extras = extraLines.map((line) => line.trim()).filter(isAdsTxtEntry)
   const lines = dedupe([...googleLines, ...extras])
 

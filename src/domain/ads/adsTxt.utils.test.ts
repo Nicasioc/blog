@@ -37,12 +37,34 @@ describe('buildAdsTxtContent', () => {
 
   it('dedupes case-insensitively and ignoring whitespace, keeping the first occurrence', () => {
     const content = buildAdsTxtContent('ca-pub-1234567890123456', [
-      'GOOGLE.COM,pub-1234567890123456,  DIRECT,f08c47fec0942fa0',
+      'GOOGLE.COM,pub-1234567890123456,  direct,F08C47FEC0942FA0',
       PARTNER_LINE,
       `  ${PARTNER_LINE.toUpperCase()}  `,
     ])
 
     expect(content).toBe(`${GOOGLE_LINE}\n${PARTNER_LINE}\n`)
+  })
+
+  it('dedupes a record that only differs by a trailing inline comment', () => {
+    expect(buildAdsTxtContent('ca-pub-1234567890123456', [`${GOOGLE_LINE} # GAM publisher`])).toBe(
+      `${GOOGLE_LINE}\n`,
+    )
+  })
+
+  it('keeps an inline comment on a record that is not a duplicate', () => {
+    expect(buildAdsTxtContent(undefined, [`${GAM_LINE} # GAM`])).toBe(`${GAM_LINE} # GAM\n`)
+  })
+
+  it('treats account ids as case-sensitive, so they are not deduped by case', () => {
+    const lower = 'exchange.com, abc123, RESELLER'
+    const mixed = 'exchange.com, AbC123, RESELLER'
+    expect(buildAdsTxtContent(undefined, [lower, mixed])).toBe(`${lower}\n${mixed}\n`)
+  })
+
+  it('passes ads.txt variable lines through and dedupes them', () => {
+    expect(
+      buildAdsTxtContent(undefined, ['contact=ads@example.com', 'CONTACT=ads@example.com']),
+    ).toBe('contact=ads@example.com\n')
   })
 
   it('strips comment lines, blank lines and surrounding whitespace from extras', () => {
@@ -59,9 +81,23 @@ describe('buildAdsTxtContent', () => {
 })
 
 describe('parseAdsTxtExtraLines', () => {
-  it('returns no usable entries when the env var is unset or empty', () => {
-    expect(buildAdsTxtContent(undefined, parseAdsTxtExtraLines(undefined))).toBeNull()
-    expect(buildAdsTxtContent(undefined, parseAdsTxtExtraLines(''))).toBeNull()
+  it.each([undefined, '', '   ', '|', '\n\n'])('returns [] for an empty value (%j)', (raw) => {
+    expect(parseAdsTxtExtraLines(raw)).toEqual([])
+  })
+
+  it('trims whitespace around separators and drops a trailing separator', () => {
+    expect(parseAdsTxtExtraLines(` ${GAM_LINE} | ${PARTNER_LINE} |`)).toEqual([
+      GAM_LINE,
+      PARTNER_LINE,
+    ])
+  })
+
+  it('handles "|" and newlines mixed in one value', () => {
+    expect(parseAdsTxtExtraLines(`${GAM_LINE}|${PARTNER_LINE}\n${GOOGLE_LINE}`)).toEqual([
+      GAM_LINE,
+      PARTNER_LINE,
+      GOOGLE_LINE,
+    ])
   })
 
   it('splits on "|" for single-line env values', () => {

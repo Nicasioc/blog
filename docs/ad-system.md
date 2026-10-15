@@ -330,9 +330,14 @@ swap" above), not by shrinking a leaderboard's GAM size mapping.
 
 Entries in `ADS_TXT_EXTRA_LINES` are separated by `|` (single-line value) or
 newlines (multi-line value); blank lines and lines starting with `#` are
-dropped, and duplicates are removed case-insensitively and ignoring
-whitespace, keeping the first occurrence. With no publisher id and no extras
-the route returns 404.
+dropped. Duplicates are removed keeping the first occurrence, ignoring
+whitespace, comma spacing, a trailing `# comment` and case in every field
+except the seller account id (which an exchange may treat as
+case-sensitive). With no publisher id and no extras the route returns 404.
+
+`/ads.txt` is prerendered at build time, so — like every other env var on
+Vercel — **changing `ADS_TXT_EXTRA_LINES` takes effect on the next
+deployment**; redeploy after editing it.
 
 It is an env var rather than a committed file because this is a white-label
 platform: each tenant has its own publisher accounts and demand partners. GAM
