@@ -53,7 +53,7 @@ export default async function PostPage({ params }: Props) {
       <BreadcrumbJsonLd
         items={[
           { name: 'Inicio', url: siteUrl },
-          { name: 'Blog', url: `${siteUrl}/blog` },
+          { name: 'Noticias', url: `${siteUrl}/blog` },
           { name: post.title, url: post.canonicalUrl },
         ]}
       />
@@ -63,7 +63,7 @@ export default async function PostPage({ params }: Props) {
             <Breadcrumb
               items={[
                 { name: 'Inicio', href: '/' },
-                { name: 'Blog', href: '/blog' },
+                { name: 'Noticias', href: '/blog' },
                 { name: post.title },
               ]}
             />

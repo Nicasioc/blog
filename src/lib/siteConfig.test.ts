@@ -100,3 +100,36 @@ describe('siteConfig.ads', () => {
     })
   })
 })
+
+describe('siteConfig.forumUrl', () => {
+  beforeEach(() => {
+    vi.unstubAllEnvs()
+    vi.resetModules()
+  })
+
+  it('is undefined when NEXT_PUBLIC_FORUM_URL is unset', async () => {
+    stubRequiredEnv()
+    const { siteConfig } = await import('@/lib/siteConfig')
+    expect(siteConfig.forumUrl).toBeUndefined()
+  })
+
+  it('is undefined when NEXT_PUBLIC_FORUM_URL is an empty string', async () => {
+    stubRequiredEnv()
+    vi.stubEnv('NEXT_PUBLIC_FORUM_URL', '')
+    const { siteConfig } = await import('@/lib/siteConfig')
+    expect(siteConfig.forumUrl).toBeUndefined()
+  })
+
+  it('reads forumUrl from NEXT_PUBLIC_FORUM_URL when set', async () => {
+    stubRequiredEnv()
+    vi.stubEnv('NEXT_PUBLIC_FORUM_URL', 'https://foro.example.com')
+    const { siteConfig } = await import('@/lib/siteConfig')
+    expect(siteConfig.forumUrl).toBe('https://foro.example.com')
+  })
+
+  it('fails env validation when NEXT_PUBLIC_FORUM_URL is not a URL', async () => {
+    stubRequiredEnv()
+    vi.stubEnv('NEXT_PUBLIC_FORUM_URL', 'not-a-url')
+    await expect(import('@/lib/siteConfig')).rejects.toThrow(/NEXT_PUBLIC_FORUM_URL/)
+  })
+})

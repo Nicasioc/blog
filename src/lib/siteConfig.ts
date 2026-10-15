@@ -6,6 +6,7 @@ export type SiteConfig = {
   siteUrl: string
   logoUrl: string
   contactEmail: string
+  forumUrl?: string
   theme: {
     primary: string
     secondary: string
@@ -28,6 +29,7 @@ export const siteConfig: SiteConfig = {
   siteUrl: clientEnv.NEXT_PUBLIC_SITE_URL.replace(/\/+$/, ''),
   logoUrl: clientEnv.NEXT_PUBLIC_SITE_LOGO_URL,
   contactEmail: clientEnv.NEXT_PUBLIC_CONTACT_EMAIL,
+  forumUrl: clientEnv.NEXT_PUBLIC_FORUM_URL,
   theme: {
     primary: clientEnv.NEXT_PUBLIC_PRIMARY_COLOR,
     secondary: clientEnv.NEXT_PUBLIC_SECONDARY_COLOR,

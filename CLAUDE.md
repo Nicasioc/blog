@@ -247,6 +247,14 @@ All four favicon vars are optional — they fall back to `/favicon.ico` if unset
 
 **Logo rendering:** Logos render in their natural colors via `src/components/layout/SiteLogo.tsx`. Provide a logo version that is legible on the dark primary header background. Avoid relying on CSS filters to adapt logo color.
 
+### Navigation Env Vars
+
+| Variable                | Purpose                                                          | Example                    |
+| ----------------------- | ---------------------------------------------------------------- | -------------------------- |
+| `NEXT_PUBLIC_FORUM_URL` | External forum linked as "Foro" in the header (opens in new tab) | `https://foro.example.com` |
+
+Optional — when unset or empty, the "Foro" link is not rendered.
+
 ### shadcn Token Mapping
 
 `--primary` and `--primary-foreground` in `globals.css` are mapped to the brand vars, so all shadcn components that use `bg-primary`, `text-primary`, or `text-primary-foreground` inherit the tenant's brand automatically:
