@@ -1,3 +1,4 @@
+import { serializeJsonLd } from '@/utils/serializeJsonLd'
 type BreadcrumbItem = { name: string; url: string }
 type Props = { items: BreadcrumbItem[] }
 
@@ -25,7 +26,7 @@ export const BreadcrumbJsonLd = ({ items }: Props) => {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
     />
   )
 }

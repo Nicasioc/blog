@@ -1,5 +1,4 @@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { ContentHtml } from './ContentHtml'
 import { formatPostDate } from '@/domain/post/postDate.utils'
 import { cn } from '@/lib/utils'
 import type { Comment } from '@/domain/comment/comment.model'
@@ -24,7 +23,9 @@ export const CommentItem = ({ comment, depth = 0 }: Props) => (
             {formatPostDate(comment.publishedAt)}
           </time>
         </div>
-        <ContentHtml html={comment.content} className="prose prose-sm max-w-none text-sm" />
+        <p className="prose prose-sm max-w-none text-sm break-words whitespace-pre-line">
+          {comment.content}
+        </p>
       </div>
     </div>
     {comment.children.map((child) => (
