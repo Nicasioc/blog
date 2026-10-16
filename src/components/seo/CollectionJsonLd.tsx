@@ -1,3 +1,4 @@
+import { serializeJsonLd } from '@/utils/serializeJsonLd'
 import { buildCollectionPageJsonLd } from '@/domain/seo/buildCollectionPageJsonLd'
 import { siteConfig } from '@/lib/siteConfig'
 import type { Category } from '@/domain/category/category.model'
@@ -23,7 +24,7 @@ export const CollectionJsonLd = ({ category, posts, page, perPage }: Props) => {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
     />
   )
 }

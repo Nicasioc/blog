@@ -1,3 +1,4 @@
+import { serializeJsonLd } from '@/utils/serializeJsonLd'
 import type { Post } from '@/domain/post/post.model'
 import { siteConfig } from '@/lib/siteConfig'
 
@@ -24,7 +25,7 @@ export const PostJsonLd = ({ post }: Props) => {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
     />
   )
 }
