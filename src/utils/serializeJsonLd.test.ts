@@ -43,4 +43,9 @@ describe('serializeJsonLd', () => {
     expect(serializeJsonLd([])).toBe('[]')
     expect(serializeJsonLd('')).toBe('""')
   })
+
+  it('falls back to null for values JSON.stringify cannot represent', () => {
+    expect(serializeJsonLd(undefined)).toBe('null')
+    expect(serializeJsonLd(() => 1)).toBe('null')
+  })
 })

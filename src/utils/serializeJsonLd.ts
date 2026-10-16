@@ -13,5 +13,8 @@ const UNSAFE_CHARS = new RegExp(`[<${LINE_SEPARATOR}${PARAGRAPH_SEPARATOR}]`, 'g
 // unescaped, so a value containing `</script>` would end the surrounding
 // <script> tag. Escape them as unicode escapes; the output is still valid JSON
 // with the same value.
-export const serializeJsonLd = (value: unknown): string =>
-  JSON.stringify(value).replace(UNSAFE_CHARS, (char) => ESCAPES[char])
+export const serializeJsonLd = (value: unknown): string => {
+  // JSON.stringify returns undefined for undefined, functions and symbols.
+  const json = JSON.stringify(value) ?? 'null'
+  return json.replace(UNSAFE_CHARS, (char) => ESCAPES[char])
+}

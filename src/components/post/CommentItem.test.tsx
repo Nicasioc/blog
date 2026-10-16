@@ -31,10 +31,10 @@ describe('CommentItem', () => {
   })
 
   it('keeps line breaks in the text and styles the paragraph to show them', () => {
-    render(<CommentItem comment={buildComment({ content: 'uno\ndos' })} />)
+    const { container } = render(<CommentItem comment={buildComment({ content: 'uno\ndos' })} />)
 
-    const paragraph = screen.getByText((_, element) => element?.textContent === 'uno\ndos')
-    expect(paragraph.tagName).toBe('P')
+    const paragraph = container.querySelector('p')
+    expect(paragraph?.textContent).toBe('uno\ndos')
     expect(paragraph).toHaveClass('whitespace-pre-line')
   })
 
