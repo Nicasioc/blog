@@ -1,12 +1,14 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getHomepageData } from '@/application/blog/getHomepageData'
+import { getLatestForumTopics } from '@/application/forum/getLatestForumTopics'
 import { buildCanonicalUrl } from '@/domain/seo/metadata.utils'
 import { siteConfig } from '@/lib/siteConfig'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { SectionHeading } from '@/components/layout/SectionHeading'
 import { PostList } from '@/components/post/PostList'
 import { HeroCarousel } from '@/components/home/HeroCarousel'
+import { LatestForumTopics } from '@/components/forum/LatestForumTopics'
 
 export const revalidate = 1800
 
@@ -15,7 +17,10 @@ export const metadata: Metadata = {
 }
 
 export default async function HomePage() {
-  const { heroPosts, recentPosts, categories } = await getHomepageData()
+  const [{ heroPosts, recentPosts, categories }, forumTopics] = await Promise.all([
+    getHomepageData(),
+    getLatestForumTopics(siteConfig.forumUrl),
+  ])
   return (
     <>
       {heroPosts.length > 0 && <HeroCarousel posts={heroPosts} />}
@@ -32,6 +37,9 @@ export default async function HomePage() {
                 Ver todas las publicaciones &rarr;
               </Link>
             </section>
+            {siteConfig.forumUrl && (
+              <LatestForumTopics topics={forumTopics} forumUrl={siteConfig.forumUrl} />
+            )}
           </div>
           <Sidebar categories={categories} />
         </div>
