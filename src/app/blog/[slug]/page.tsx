@@ -22,6 +22,7 @@ import { TagList } from '@/components/navigation/TagList'
 import { Breadcrumb } from '@/components/navigation/Breadcrumb'
 import { CommentList } from '@/components/post/CommentList'
 import { CommentForm } from '@/components/post/CommentForm'
+import { DiscussInForumCta } from '@/components/forum/DiscussInForumCta'
 
 export const revalidate = 3600
 
@@ -112,6 +113,7 @@ export default async function PostPage({ params }: Props) {
             <TagList tags={post.tags} />
             <AuthorCard author={post.author} />
             <RelatedPosts posts={relatedPosts} />
+            <DiscussInForumCta forumUrl={siteConfig.forumUrl} />
             <CommentList comments={comments} />
             <CommentForm postId={post.id} />
           </article>
