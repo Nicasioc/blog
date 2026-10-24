@@ -102,7 +102,7 @@ Payload CMS over REST — the only data source. Full details in `docs/payload-in
   (`depth`, `where[field][op]`, `select`, `sort`), adds the `where[tenant][equals]=<id>`
   filter to every request (`PAYLOAD_TENANT_SLUG` → `resolveTenantId`), sets Next ISR tags,
   and normalises the `{ docs, totalDocs, totalPages }` body to `PayloadFetchResult<T>`.
-  `payloadWriteClient.ts` is the authenticated equivalent for writes. `payloadError.ts` —
+  `payloadPublicWriteClient.ts` is the unauthenticated create used for comments (no API key sent). `payloadError.ts` —
   `PayloadApiError`.
 - **`types/`** — `payload<Entity>.dto.ts`, mirroring the API response shape.
 - **`mappers/`** — pure functions, DTO → domain model (`postMapper`, `authorMapper`,

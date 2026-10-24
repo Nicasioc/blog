@@ -1,5 +1,5 @@
 import { payloadFetch } from '@/persistence/payload/payloadClient'
-import { payloadMutate } from '@/persistence/payload/payloadWriteClient'
+import { payloadPublicCreate } from '@/persistence/payload/payloadPublicWriteClient'
 import {
   mapPayloadCommentToComment,
   buildCommentTree,
@@ -21,17 +21,14 @@ export const fetchCommentsByPostId = async (postId: number): Promise<Comment[]> 
 
 // Called by submitComment.ts (the 'use server' action) — keeps the write path
 // inside the repository layer rather than issuing fetch from the use case.
-export const createComment = async (data: CommentSubmission): Promise<Comment> => {
-  const dto = await payloadMutate<PayloadCommentDto>('/comments', {
-    method: 'POST',
-    body: {
-      post: data.postId,
-      parent: data.parentId,
-      authorName: data.authorName,
-      authorEmail: data.authorEmail,
-      authorUrl: data.authorUrl ?? '',
-      content: data.content,
-    },
+// The response is ignored: an anonymous create may not be allowed to read back a pending comment.
+export const createComment = async (data: CommentSubmission): Promise<void> => {
+  await payloadPublicCreate('/comments', {
+    post: data.postId,
+    parent: data.parentId,
+    authorName: data.authorName,
+    authorEmail: data.authorEmail,
+    authorUrl: data.authorUrl ?? '',
+    content: data.content,
   })
-  return mapPayloadCommentToComment(dto)
 }

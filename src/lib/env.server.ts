@@ -6,9 +6,9 @@ const serverSchema = z.object({
   PAYLOAD_API_URL: z.string().url(),
   // Tenant slug — every read and write is scoped to this tenant.
   PAYLOAD_TENANT_SLUG: z.string().min(1),
-  // Required, not just for writes — every read resolves PAYLOAD_TENANT_SLUG to a
-  // numeric id via the Tenants collection, which isn't publicly readable (it holds
-  // revalidateSecret), so that lookup needs credentials too.
+  // Used only for the tenant lookup — every read and write resolves PAYLOAD_TENANT_SLUG
+  // to a numeric id via the Tenants collection, which isn't publicly readable (it holds
+  // revalidateSecret). A read-only `service` role key is enough; comment writes send no key.
   PAYLOAD_API_KEY: z.string().min(1),
   REVALIDATE_POSTS: z.coerce.number().default(3600),
   REVALIDATE_PAGES: z.coerce.number().default(86400),

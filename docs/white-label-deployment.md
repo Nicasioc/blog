@@ -6,19 +6,19 @@ One GitHub repo, one Vercel project per team. Each project has its own env vars 
 
 ### Server-only (never exposed to browser)
 
-| Variable                    | Required        | Purpose                                                                                                                             | Example                               |
-| --------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
-| `PAYLOAD_API_URL`           | ✅              | Payload CMS REST API base URL (must end in `/api`)                                                                                  | `https://admin.vex-agency.com/api`    |
-| `PAYLOAD_TENANT_SLUG`       | ✅              | Tenant slug used to scope all Payload reads/writes                                                                                  | `realmadrid`                          |
-| `PAYLOAD_API_KEY`           | ✅              | Per-tenant API key — required even for reads, since resolving `PAYLOAD_TENANT_SLUG` to an id hits the non-public Tenants collection | `pk_live_...`                         |
-| `REVALIDATE_POSTS`          | default: 3600   | ISR TTL for posts (seconds)                                                                                                         | `3600`                                |
-| `REVALIDATE_PAGES`          | default: 86400  | ISR TTL for CMS pages (seconds)                                                                                                     | `86400`                               |
-| `REVALIDATE_SECRET`         | ✅ min 16 chars | Authenticates the ISR webhook                                                                                                       | `my-super-secret-key-32chars`         |
-| `SITE_FAVICON_URL`          | optional        | Browser tab favicon path                                                                                                            | `/debate-cuervo/favicon.ico`          |
-| `SITE_APPLE_TOUCH_ICON_URL` | optional        | iOS home screen icon path                                                                                                           | `/debate-cuervo/apple-touch-icon.png` |
-| `SITE_ICON_192_URL`         | optional        | PWA manifest icon 192×192                                                                                                           | `/debate-cuervo/favicon-192.png`      |
-| `SITE_ICON_512_URL`         | optional        | PWA manifest icon 512×512                                                                                                           | `/debate-cuervo/favicon-512.png`      |
-| `ADS_TXT_EXTRA_LINES`       | optional        | Extra `/ads.txt` entries (GAM publisher line, demand partners), separated by `\|` or newlines; `#` lines ignored                    | `google.com, pub-…, DIRECT, f08c…`    |
+| Variable                    | Required        | Purpose                                                                                                                                                              | Example                               |
+| --------------------------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| `PAYLOAD_API_URL`           | ✅              | Payload CMS REST API base URL (must end in `/api`)                                                                                                                   | `https://admin.vex-agency.com/api`    |
+| `PAYLOAD_TENANT_SLUG`       | ✅              | Tenant slug used to scope all Payload reads/writes                                                                                                                   | `realmadrid`                          |
+| `PAYLOAD_API_KEY`           | ✅              | Per-tenant API key (read-only `service` role) — used only to resolve `PAYLOAD_TENANT_SLUG` to an id in the non-public Tenants collection; comment writes send no key | `pk_live_...`                         |
+| `REVALIDATE_POSTS`          | default: 3600   | ISR TTL for posts (seconds)                                                                                                                                          | `3600`                                |
+| `REVALIDATE_PAGES`          | default: 86400  | ISR TTL for CMS pages (seconds)                                                                                                                                      | `86400`                               |
+| `REVALIDATE_SECRET`         | ✅ min 16 chars | Authenticates the ISR webhook                                                                                                                                        | `my-super-secret-key-32chars`         |
+| `SITE_FAVICON_URL`          | optional        | Browser tab favicon path                                                                                                                                             | `/debate-cuervo/favicon.ico`          |
+| `SITE_APPLE_TOUCH_ICON_URL` | optional        | iOS home screen icon path                                                                                                                                            | `/debate-cuervo/apple-touch-icon.png` |
+| `SITE_ICON_192_URL`         | optional        | PWA manifest icon 192×192                                                                                                                                            | `/debate-cuervo/favicon-192.png`      |
+| `SITE_ICON_512_URL`         | optional        | PWA manifest icon 512×512                                                                                                                                            | `/debate-cuervo/favicon-512.png`      |
+| `ADS_TXT_EXTRA_LINES`       | optional        | Extra `/ads.txt` entries (GAM publisher line, demand partners), separated by `\|` or newlines; `#` lines ignored                                                     | `google.com, pub-…, DIRECT, f08c…`    |
 
 All four favicon vars fall back to `/favicon.ico` when unset.
 
@@ -198,6 +198,7 @@ read (posts, pages, categories, tags, authors, comments), so there is no "AND vs
 interaction with archive pages to reason about. The
 per-tenant `PAYLOAD_API_KEY` is required even though content reads are otherwise
 unauthenticated, because resolving the slug to an id hits the non-public Tenants collection.
+The key only needs read access (the `service` role); comment creation is sent without a key.
 
 > Server-side enforcement of the `tenant` filter (so the CMS rejects a cross-tenant query
 > rather than trusting the `where` clause the blog sends) is tracked in BLO-130. Today the
