@@ -1,9 +1,7 @@
 import { payloadFetch } from '@/persistence/payload/payloadClient'
-import { payloadMutate } from '@/persistence/payload/payloadWriteClient'
 import { mapPayloadPostToPost } from '@/persistence/payload/mappers/postMapper'
 import { toSlugWithDate, type SlugWithDate } from '@/persistence/payload/mappers/slugWithDateMapper'
 import type { PayloadPostDto } from '@/persistence/payload/types/payloadPost.dto'
-import type { PayloadPostWriteDto } from '@/persistence/payload/types/payloadPostWrite.dto'
 import type { WhereClause } from '@/persistence/payload/payloadClient'
 import type { Post } from '@/domain/post/post.model'
 import { clientEnv } from '@/lib/env.client'
@@ -132,12 +130,4 @@ export const fetchPostCountByCategory = async (categoryId: number): Promise<numb
     revalidate: serverEnv.REVALIDATE_PAGES,
   })
   return result.totalItems
-}
-
-export const createPost = async (input: PayloadPostWriteDto): Promise<Post> => {
-  const dto = await payloadMutate<PayloadPostDto>('/posts', {
-    method: 'POST',
-    body: input,
-  })
-  return mapPayloadPostToPost(dto, clientEnv.NEXT_PUBLIC_SITE_URL)
 }

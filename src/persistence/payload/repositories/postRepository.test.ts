@@ -9,19 +9,16 @@ vi.mock('@/lib/env.client', () => ({
 }))
 
 vi.mock('@/persistence/payload/payloadClient', () => ({ payloadFetch: vi.fn() }))
-vi.mock('@/persistence/payload/payloadWriteClient', () => ({ payloadMutate: vi.fn() }))
 vi.mock('@/persistence/payload/mappers/postMapper', () => ({
   mapPayloadPostToPost: vi.fn((dto: { slug: string }) => ({ slug: dto.slug })),
 }))
 
 import { payloadFetch } from '@/persistence/payload/payloadClient'
-import { payloadMutate } from '@/persistence/payload/payloadWriteClient'
 import {
   fetchPostsList,
   fetchPostBySlug,
   fetchRelatedPosts,
   fetchAllPostSlugs,
-  createPost,
 } from './postRepository'
 
 const makeResult = (data: unknown[], totalItems = data.length, totalPages = 1) => ({
@@ -204,26 +201,5 @@ describe('fetchAllPostSlugs', () => {
 
     expect(slugs.map((s) => s.slug)).toEqual(['a', 'b', 'c'])
     expect(payloadFetch).toHaveBeenCalledTimes(3)
-  })
-})
-
-describe('createPost', () => {
-  beforeEach(() => vi.clearAllMocks())
-
-  it('sends the write DTO to payloadMutate and maps the result', async () => {
-    vi.mocked(payloadMutate).mockResolvedValue({ slug: 'new-post' })
-
-    const input = {
-      title: 'New Post',
-      content: {},
-      _status: 'draft' as const,
-      author: 1,
-      categories: [2],
-      tags: [3],
-    }
-    const post = await createPost(input)
-
-    expect(payloadMutate).toHaveBeenCalledWith('/posts', { method: 'POST', body: input })
-    expect(post).toEqual({ slug: 'new-post' })
   })
 })
