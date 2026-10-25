@@ -7,14 +7,15 @@ import { Sidebar } from '@/components/layout/Sidebar'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { PostList } from '@/components/post/PostList'
 import { Pagination } from '@/components/navigation/Pagination'
+import { parsePageParam } from '@/domain/shared/parsePageParam'
 
 export const revalidate = 1800
 
-type Props = { searchParams: Promise<{ page?: string }> }
+type Props = { searchParams: Promise<{ page?: string | string[] }> }
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const { page: pageParam } = await searchParams
-  const page = Math.max(1, Number(pageParam ?? '1'))
+  const page = parsePageParam(pageParam)
   return {
     title: 'Noticias',
     description: `Últimas publicaciones de ${siteConfig.siteName}`,
@@ -24,7 +25,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
 export default async function BlogPage({ searchParams }: Props) {
   const { page: pageParam } = await searchParams
-  const page = Math.max(1, Number(pageParam ?? '1'))
+  const page = parsePageParam(pageParam)
   const [data, { categories }] = await Promise.all([getPostsList({ page }), getSidebarData()])
 
   return (

@@ -9,18 +9,19 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { PostList } from '@/components/post/PostList'
 import { Breadcrumb } from '@/components/navigation/Breadcrumb'
 import { Pagination } from '@/components/navigation/Pagination'
+import { parsePageParam } from '@/domain/shared/parsePageParam'
 
 export const revalidate = 3600
 
 type Props = {
   params: Promise<{ slug: string }>
-  searchParams: Promise<{ page?: string }>
+  searchParams: Promise<{ page?: string | string[] }>
 }
 
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { slug } = await params
   const { page: pageParam } = await searchParams
-  const page = Math.max(1, Number(pageParam ?? '1'))
+  const page = parsePageParam(pageParam)
   const data = await getTagArchive({ slug })
   if (!data) return {}
   return generateTagMetadata(data.tag, siteConfig, page)
@@ -29,7 +30,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 export default async function TagPage({ params, searchParams }: Props) {
   const { slug } = await params
   const { page: pageParam } = await searchParams
-  const page = Math.max(1, Number(pageParam ?? '1'))
+  const page = parsePageParam(pageParam)
 
   const [data, { categories }] = await Promise.all([
     getTagArchive({ slug, page }),
