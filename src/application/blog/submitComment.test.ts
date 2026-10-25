@@ -8,6 +8,8 @@ import { submitComment } from './submitComment'
 import { createComment } from '@/persistence/payload/repositories/commentRepository'
 import { PayloadApiError } from '@/persistence/payload/payloadError'
 
+const GENERIC = 'Ocurrió un error al enviar tu comentario. Por favor, intenta de nuevo.'
+
 const validData = {
   postId: 1,
   parentId: undefined,
@@ -56,21 +58,56 @@ describe('submitComment — validation', () => {
   })
 
   it('accepts a valid http URL', async () => {
-    vi.mocked(createComment).mockResolvedValue({} as never)
+    vi.mocked(createComment).mockResolvedValue(undefined)
     const result = await submitComment({ ...validData, authorUrl: 'http://example.com' })
     expect(result).toMatchObject({ success: true })
   })
 
   it('accepts a valid https URL', async () => {
-    vi.mocked(createComment).mockResolvedValue({} as never)
+    vi.mocked(createComment).mockResolvedValue(undefined)
     const result = await submitComment({ ...validData, authorUrl: 'https://example.com' })
     expect(result).toMatchObject({ success: true })
   })
 
   it('accepts an absent URL (empty string)', async () => {
-    vi.mocked(createComment).mockResolvedValue({} as never)
+    vi.mocked(createComment).mockResolvedValue(undefined)
     const result = await submitComment({ ...validData, authorUrl: '' })
     expect(result).toMatchObject({ success: true })
+  })
+})
+
+describe('submitComment — untrusted input', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it.each([null, undefined, 42])(
+    'returns a validation error for payload %s without throwing',
+    async (payload) => {
+      const result = await submitComment(payload as never)
+      expect(result).toMatchObject({ success: false })
+      expect(createComment).not.toHaveBeenCalled()
+    },
+  )
+
+  it('rejects wrongly typed fields without calling the CMS', async () => {
+    expect(await submitComment({ ...validData, authorName: 123 } as never)).toMatchObject({
+      success: false,
+    })
+    expect(await submitComment({ ...validData, content: [] } as never)).toMatchObject({
+      success: false,
+    })
+    expect(await submitComment({ ...validData, postId: 'abc' } as never)).toMatchObject({
+      success: false,
+    })
+    expect(createComment).not.toHaveBeenCalled()
+  })
+
+  it('sends the trimmed, parsed data to createComment', async () => {
+    vi.mocked(createComment).mockResolvedValue(undefined)
+    await submitComment({ ...validData, authorName: '  Alice  ', unexpected: 'x' } as never)
+    expect(createComment).toHaveBeenCalledWith(
+      expect.not.objectContaining({ unexpected: expect.anything() }),
+    )
+    expect(createComment).toHaveBeenCalledWith(expect.objectContaining({ authorName: 'Alice' }))
   })
 })
 
@@ -78,25 +115,22 @@ describe('submitComment — createComment outcomes', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('returns success: true when createComment resolves', async () => {
-    vi.mocked(createComment).mockResolvedValue({} as never)
+    vi.mocked(createComment).mockResolvedValue(undefined)
     const result = await submitComment(validData)
     expect(result).toEqual({ success: true })
   })
 
-  it('surfaces the message when createComment rejects with a PayloadApiError', async () => {
+  it('returns the generic message, not the CMS message, on a PayloadApiError', async () => {
     vi.mocked(createComment).mockRejectedValue(
-      new PayloadApiError(422, '/comments', 'Duplicate comment'),
+      new PayloadApiError(400, '/comments', 'Payload API error: 400'),
     )
     const result = await submitComment(validData)
-    expect(result).toMatchObject({ success: false, error: 'Duplicate comment' })
+    expect(result).toEqual({ success: false, error: GENERIC })
   })
 
-  it('returns a generic message when createComment rejects with a non-API error', async () => {
+  it('returns the generic message on a non-API error', async () => {
     vi.mocked(createComment).mockRejectedValue(new Error('No Payload tenant found for slug "x"'))
     const result = await submitComment(validData)
-    expect(result).toMatchObject({
-      success: false,
-      error: 'Ocurrió un error al enviar tu comentario. Por favor, intenta de nuevo.',
-    })
+    expect(result).toEqual({ success: false, error: GENERIC })
   })
 })
