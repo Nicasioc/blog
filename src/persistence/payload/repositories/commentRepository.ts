@@ -4,6 +4,7 @@ import {
   mapPayloadCommentToComment,
   buildCommentTree,
 } from '@/persistence/payload/mappers/commentMapper'
+import { logger } from '@/utils/logger'
 import type { PayloadCommentDto } from '@/persistence/payload/types/payloadComment.dto'
 import type { Comment, CommentSubmission } from '@/domain/comment/comment.model'
 
@@ -15,7 +16,13 @@ export const fetchCommentsByPostId = async (postId: number): Promise<Comment[]> 
     tags: [`comments-${postId}`],
     revalidate: 300,
   })
-  const flat = result.data.map(mapPayloadCommentToComment)
+  const flat = result.data.flatMap((dto) => mapPayloadCommentToComment(dto) ?? [])
+  if (flat.length < result.data.length) {
+    logger.warn('malformed comments skipped', {
+      postId,
+      skipped: result.data.length - flat.length,
+    })
+  }
   return buildCommentTree(flat)
 }
 

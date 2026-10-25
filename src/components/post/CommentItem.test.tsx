@@ -46,4 +46,16 @@ describe('CommentItem', () => {
     expect(screen.getByText('Respuesta')).toBeInTheDocument()
     expect(screen.getByText('Beto')).toBeInTheDocument()
   })
+
+  it('shows the whole emoji as the avatar initial', () => {
+    render(<CommentItem comment={buildComment({ authorName: '😀 Pepe' })} />)
+
+    expect(screen.getByText('😀')).toBeInTheDocument()
+  })
+
+  it('shows a fallback initial when the author name is empty', () => {
+    render(<CommentItem comment={buildComment({ authorName: '' })} />)
+
+    expect(screen.getByText('?')).toBeInTheDocument()
+  })
 })

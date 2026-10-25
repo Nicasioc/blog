@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { isNil, isNonEmptyString, isNonEmptyArray, isNonEmptyObject } from '@/utils/checks'
+import {
+  isNil,
+  isNonEmptyString,
+  isNonEmptyArray,
+  isNonEmptyObject,
+  isPositiveInteger,
+} from '@/utils/checks'
 
 describe('isNil', () => {
   it('returns true for null', () => expect(isNil(null)).toBe(true))
@@ -37,4 +43,15 @@ describe('isNonEmptyObject', () => {
   it('returns false for undefined', () => expect(isNonEmptyObject(undefined)).toBe(false))
   it('returns false for string', () => expect(isNonEmptyObject('abc')).toBe(false))
   it('returns false for number', () => expect(isNonEmptyObject(42)).toBe(false))
+})
+
+describe('isPositiveInteger', () => {
+  it('accepts positive integers', () => {
+    expect(isPositiveInteger(1)).toBe(true)
+    expect(isPositiveInteger(42)).toBe(true)
+  })
+
+  it.each([0, -1, 1.5, NaN, Infinity, '3', null, undefined, {}, []])('rejects %j', (value) => {
+    expect(isPositiveInteger(value)).toBe(false)
+  })
 })

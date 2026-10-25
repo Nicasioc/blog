@@ -12,3 +12,6 @@ export const isNonEmptyObject = (value: unknown): value is Record<string, unknow
   value !== null &&
   !Array.isArray(value) &&
   Object.keys(value).length > 0
+
+export const isPositiveInteger = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isInteger(value) && value > 0
