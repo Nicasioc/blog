@@ -1,7 +1,7 @@
 'use client'
-import { useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import { submitComment } from '@/application/blog/submitComment'
-import type { CommentSubmission } from '@/domain/comment/comment.model'
+import type { CommentSubmissionInput } from '@/domain/comment/comment.model'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -14,14 +14,25 @@ export const CommentForm = ({ postId }: Props) => {
   const [isPending, startTransition] = useTransition()
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
+  // Set on mount, not during render: this component is server-rendered into cached (ISR) HTML,
+  // so a render-time timestamp would be the build time rather than when the visitor saw the form.
+  const renderedAt = useRef<number | null>(null)
+
+  useEffect(() => {
+    renderedAt.current = Date.now()
+  }, [])
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    // The effect has always run by the time a user can submit; this only narrows the type.
+    if (renderedAt.current === null) return
     const form = e.currentTarget
     const data = new FormData(form)
 
-    const submission: CommentSubmission = {
+    const submission: CommentSubmissionInput = {
       postId,
+      renderedAt: renderedAt.current,
+      website: (data.get('website') as string | null) ?? '',
       authorName: (data.get('authorName') as string).trim(),
       authorEmail: (data.get('authorEmail') as string).trim(),
       content: (data.get('content') as string).trim(),
@@ -49,7 +60,7 @@ export const CommentForm = ({ postId }: Props) => {
       ) : (
         <form
           onSubmit={handleSubmit}
-          className="bg-muted/40 ring-foreground/10 space-y-4 rounded-xl p-5 ring-1"
+          className="bg-muted/40 ring-foreground/10 relative space-y-4 rounded-xl p-5 ring-1"
         >
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
@@ -70,6 +81,10 @@ export const CommentForm = ({ postId }: Props) => {
                 No se muestra públicamente.
               </p>
             </div>
+          </div>
+          <div aria-hidden="true" className="absolute left-[-9999px] h-px w-px overflow-hidden">
+            <label htmlFor="website">No completar este campo</label>
+            <input id="website" name="website" type="text" tabIndex={-1} autoComplete="off" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="content">Comentario</Label>

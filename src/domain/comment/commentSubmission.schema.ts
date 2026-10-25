@@ -1,9 +1,10 @@
 import { z } from 'zod'
-import type { CommentSubmission } from '@/domain/comment/comment.model'
+import type { CommentSubmissionInput } from '@/domain/comment/comment.model'
 
 const MAX_NAME = 100
 const MAX_EMAIL = 254
 const MAX_CONTENT = 5000
+const MAX_HONEYPOT = 2000
 
 const NAME_MESSAGE = 'El nombre es obligatorio y debe tener menos de 100 caracteres.'
 const EMAIL_MESSAGE = 'Se requiere una dirección de correo electrónico válida.'
@@ -49,6 +50,12 @@ const commentSubmissionSchema = z.object(
       .max(MAX_EMAIL, EMAIL_MESSAGE)
       .pipe(z.email(EMAIL_MESSAGE)),
     authorUrl: authorUrlSchema.nullish().transform(nullToUndefined),
+    website: z
+      .string(INVALID_SUBMISSION_MESSAGE)
+      .max(MAX_HONEYPOT, INVALID_SUBMISSION_MESSAGE)
+      .nullish()
+      .transform(nullToUndefined),
+    renderedAt: z.number(INVALID_SUBMISSION_MESSAGE).finite(INVALID_SUBMISSION_MESSAGE),
     content: z
       .string(CONTENT_MESSAGE)
       .trim()
@@ -59,7 +66,7 @@ const commentSubmissionSchema = z.object(
 )
 
 export type CommentSubmissionParseResult =
-  | { success: true; data: CommentSubmission }
+  | { success: true; data: CommentSubmissionInput }
   | { success: false; error: string }
 
 // Server actions receive arbitrary client input, so this accepts `unknown` and never throws.

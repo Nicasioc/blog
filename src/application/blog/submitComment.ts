@@ -3,7 +3,8 @@ import { createComment } from '@/persistence/payload/repositories/commentReposit
 import { PayloadApiError } from '@/persistence/payload/payloadError'
 import { parseCommentSubmission } from '@/domain/comment/commentSubmission.schema'
 import { logger } from '@/utils/logger'
-import type { CommentSubmission } from '@/domain/comment/comment.model'
+import { detectBotReason } from '@/domain/comment/commentAntiSpam'
+import type { CommentSubmissionInput } from '@/domain/comment/comment.model'
 
 export type SubmitCommentResult = { success: true } | { success: false; error: string }
 
@@ -15,14 +16,23 @@ const describeFailure = (error: unknown): Record<string, unknown> =>
     ? { status: error.status, endpoint: error.endpoint }
     : { reason: error instanceof Error ? error.message : 'unknown' }
 
-// Typed as CommentSubmission for callers, but the argument is untrusted: a server action
+// Typed as CommentSubmissionInput for callers, but the argument is untrusted: a server action
 // can be invoked with any payload, so it is re-validated as `unknown`.
-export const submitComment = async (data: CommentSubmission): Promise<SubmitCommentResult> => {
+export const submitComment = async (data: CommentSubmissionInput): Promise<SubmitCommentResult> => {
   const parsed = parseCommentSubmission(data)
   if (!parsed.success) return { success: false, error: parsed.error }
 
+  const { website, renderedAt, ...submission } = parsed.data
+
+  // Fake success so a bot can't tell it was caught; the comment is silently dropped.
+  const botReason = detectBotReason({ website, renderedAt }, Date.now())
+  if (botReason) {
+    logger.warn('comment dropped', { reason: botReason })
+    return { success: true }
+  }
+
   try {
-    await createComment(parsed.data)
+    await createComment(submission)
     return { success: true }
   } catch (error) {
     logger.warn('comment submit failed', describeFailure(error))
