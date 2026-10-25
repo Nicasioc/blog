@@ -17,3 +17,9 @@ export type CommentSubmission = {
   authorUrl?: string
   content: string
 }
+
+// What the form sends: the submission plus the anti-spam signals checked server-side.
+export type CommentSubmissionInput = CommentSubmission & {
+  website?: string
+  renderedAt: number
+}

@@ -7,6 +7,7 @@ const valid = {
   authorEmail: 'alice@example.com',
   authorUrl: '',
   content: 'Great post!',
+  renderedAt: 1_000,
 }
 
 describe('parseCommentSubmission', () => {
@@ -122,5 +123,25 @@ describe('parseCommentSubmission', () => {
     expect(parseCommentSubmission({ ...valid, authorEmail: 'a b@example.com' })).toMatchObject({
       success: false,
     })
+  })
+
+  it('requires a numeric renderedAt and accepts an optional website', () => {
+    expect(parseCommentSubmission({ ...valid, renderedAt: undefined })).toMatchObject({
+      success: false,
+    })
+    expect(parseCommentSubmission({ ...valid, renderedAt: '1000' })).toMatchObject({
+      success: false,
+    })
+    expect(parseCommentSubmission({ ...valid, renderedAt: Infinity })).toMatchObject({
+      success: false,
+    })
+    expect(parseCommentSubmission({ ...valid, website: 'spam' })).toMatchObject({
+      success: true,
+      data: { website: 'spam' },
+    })
+    expect(parseCommentSubmission({ ...valid, website: 'a'.repeat(2001) })).toMatchObject({
+      success: false,
+    })
+    expect(parseCommentSubmission({ ...valid, website: 5 })).toMatchObject({ success: false })
   })
 })

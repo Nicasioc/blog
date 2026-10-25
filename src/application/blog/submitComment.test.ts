@@ -17,6 +17,7 @@ const validData = {
   authorEmail: 'alice@example.com',
   authorUrl: '',
   content: 'Great post!',
+  renderedAt: Date.now() - 60_000,
 }
 
 describe('submitComment — validation', () => {
@@ -108,6 +109,37 @@ describe('submitComment — untrusted input', () => {
       expect.not.objectContaining({ unexpected: expect.anything() }),
     )
     expect(createComment).toHaveBeenCalledWith(expect.objectContaining({ authorName: 'Alice' }))
+  })
+})
+
+describe('submitComment — anti-spam', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('returns success without calling the CMS when the honeypot is filled', async () => {
+    const result = await submitComment({ ...validData, website: 'http://spam.test' })
+    expect(result).toEqual({ success: true })
+    expect(createComment).not.toHaveBeenCalled()
+  })
+
+  it('returns success without calling the CMS when submitted too fast', async () => {
+    const result = await submitComment({ ...validData, renderedAt: Date.now() - 500 })
+    expect(result).toEqual({ success: true })
+    expect(createComment).not.toHaveBeenCalled()
+  })
+
+  it('creates the comment on a normal submission, without the anti-spam fields', async () => {
+    vi.mocked(createComment).mockResolvedValue(undefined)
+    const result = await submitComment({ ...validData, website: '' })
+    expect(result).toEqual({ success: true })
+    expect(createComment).toHaveBeenCalledTimes(1)
+    const sent = vi.mocked(createComment).mock.calls[0][0]
+    expect(sent).not.toHaveProperty('website')
+    expect(sent).not.toHaveProperty('renderedAt')
+  })
+
+  it('still validates before the anti-spam check', async () => {
+    const result = await submitComment({ ...validData, renderedAt: undefined } as never)
+    expect(result).toMatchObject({ success: false })
   })
 })
 
