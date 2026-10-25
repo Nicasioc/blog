@@ -34,21 +34,15 @@ describe('POST /api/revalidate', () => {
     expect(revalidateTag).toHaveBeenCalledWith('posts', { expire: 300 })
   })
 
-  it('still accepts the secret in the query string', async () => {
+  it('no longer accepts the secret in the query string', async () => {
     const response = await POST(buildRequest({ query: '?secret=right-secret' }))
-
-    expect(response.status).toBe(200)
-  })
-
-  it('rejects a wrong secret in the header', async () => {
-    const response = await POST(buildRequest({ headers: { authorization: 'Bearer wrong' } }))
 
     expect(response.status).toBe(401)
     expect(revalidateTag).not.toHaveBeenCalled()
   })
 
-  it('rejects a wrong secret in the query string', async () => {
-    const response = await POST(buildRequest({ query: '?secret=wrong' }))
+  it('rejects a wrong secret in the header', async () => {
+    const response = await POST(buildRequest({ headers: { authorization: 'Bearer wrong' } }))
 
     expect(response.status).toBe(401)
     expect(revalidateTag).not.toHaveBeenCalled()
@@ -68,7 +62,7 @@ describe('POST /api/revalidate', () => {
     expect(revalidateTag).not.toHaveBeenCalled()
   })
 
-  it('rejects a wrong header even when the query secret is right', async () => {
+  it('ignores a right query secret when the header is wrong', async () => {
     const response = await POST(
       buildRequest({ query: '?secret=right-secret', headers: { authorization: 'Bearer wrong' } }),
     )
