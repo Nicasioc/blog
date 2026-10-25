@@ -1,9 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { extractRevalidateSecret } from '@/utils/extractRevalidateSecret'
+import { extractRevalidateSecret } from '@/app/api/revalidate/extractRevalidateSecret'
 
 describe('extractRevalidateSecret', () => {
   it('reads the secret from the Bearer header', () => {
     expect(extractRevalidateSecret('Bearer abc', null)).toBe('abc')
+  })
+
+  it('treats the Bearer scheme as case-insensitive', () => {
+    expect(extractRevalidateSecret('bearer abc', null)).toBe('abc')
+    expect(extractRevalidateSecret('BEARER abc', null)).toBe('abc')
   })
 
   it('prefers the header over the query param', () => {

@@ -86,4 +86,18 @@ describe('POST /api/revalidate', () => {
     expect(revalidateTag).toHaveBeenCalledTimes(1)
     expect(revalidateTag).toHaveBeenCalledWith('posts', { expire: 300 })
   })
+
+  it.each(['null', '[]', '{"slug":123}', '{"slug":{}}'])(
+    'only revalidates posts when the body is %s',
+    async (body) => {
+      const response = await POST(
+        buildRequest({ headers: { authorization: 'Bearer right-secret' }, body }),
+      )
+
+      expect(response.status).toBe(200)
+      expect(await response.json()).toEqual({ revalidated: true, slug: 'all' })
+      expect(revalidateTag).toHaveBeenCalledTimes(1)
+      expect(revalidateTag).toHaveBeenCalledWith('posts', { expire: 300 })
+    },
+  )
 })

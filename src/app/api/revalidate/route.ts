@@ -2,7 +2,7 @@ import { timingSafeEqual, createHash } from 'crypto'
 import { revalidateTag } from 'next/cache'
 import { NextRequest, NextResponse } from 'next/server'
 import { serverEnv } from '@/lib/env.server'
-import { extractRevalidateSecret } from '@/utils/extractRevalidateSecret'
+import { extractRevalidateSecret } from '@/app/api/revalidate/extractRevalidateSecret'
 
 const timingSafeCompare = (a: string, b: string): boolean => {
   const ha = createHash('sha256').update(a).digest()
