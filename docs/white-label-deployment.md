@@ -135,8 +135,46 @@ Logos render in their natural colors. Provide a logo variant that is legible on 
 1. **Go to Vercel** → Add New Project → Import from GitHub (same repo)
 2. **Add tenant assets** under `public/<tenant-slug>/` and commit them
 3. **Set environment variables** in the Vercel project settings (copy from `.env.example`, fill in team values)
+   - **`PAYLOAD_API_KEY`:** create the tenant's service-role key first — see [Creating the Tenant's Service Key](#creating-the-tenants-service-key).
    - **Ads:** follow [Setting Up Ads for a Tenant](ad-system.md#setting-up-ads-for-a-tenant) — which ad units to create (AdSense or GAM), the env var for each placement, the `ads.txt` lines, and how to verify.
 4. **Assign a custom domain** in Vercel project settings — done
+
+### Creating the Tenant's Service Key
+
+`PAYLOAD_API_KEY` must belong to a user with the **`service`** role, scoped to this tenant only. A
+service user is read-only and cannot sign in to the admin UI, so a leaked key can read this
+tenant's data but change nothing. **Never use an `admin` or `editor` user's key** — the blog does not
+need to write anything with it (comments are created without a key).
+
+Only an `admin` can create users. In the CMS admin (`PAYLOAD_API_URL` without `/api`):
+
+1. **Users → Create New**. Use a dedicated email, for example `<tenant-slug>@blog-cms.local`, and a
+   long random password (nobody signs in with it).
+2. **Roles:** select **Service** and nothing else.
+3. **Tenants:** add this tenant only.
+4. Turn on **Enable API Key**, then **Generate New API Key**, and copy the key before leaving the page.
+5. **Save the user.** The key only takes effect once the user is saved.
+6. In the tenant's Vercel project, set `PAYLOAD_API_KEY` for **Production and Preview** and
+   redeploy. A changed variable only applies to new deployments; the running deployment keeps the old
+   value until it is replaced.
+
+Check the key before relying on it:
+
+```bash
+curl -s -H "Authorization: users API-Key <key>" "$PAYLOAD_API_URL/users/me"      # a user with roles ["service"]
+curl -s -H "Authorization: users API-Key <key>" "$PAYLOAD_API_URL/tenants?where[slug][equals]=<tenant-slug>"
+```
+
+The second call must return exactly one doc whose `slug` is this tenant's. An empty `docs` array
+means the key cannot see the tenant, and the blog's tenant lookup would fail at runtime.
+
+`/users/me` returning `{"user": null}` means the key was not verified (the CMS verifies keys with its
+own `PAYLOAD_SECRET`, so a key created against a different secret fails silently). Service users are
+read-only, so any write with this key is rejected (401 or 403).
+
+To rotate, generate a new key on the same user and update the Vercel variable. To move a tenant off an
+old editor key, create the service user first, redeploy, smoke test, and only then revoke the old key:
+until the new deployment is live, the old one still uses it.
 
 No image-domain step: all media is served through the `/api/media/file/*` rewrite to
 `PAYLOAD_API_URL` (see below), so `next/image` treats it as a local path — nothing to add
