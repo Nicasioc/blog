@@ -2,6 +2,7 @@ import { timingSafeEqual, createHash } from 'crypto'
 import { revalidateTag } from 'next/cache'
 import { NextRequest, NextResponse } from 'next/server'
 import { serverEnv } from '@/lib/env.server'
+import { extractRevalidateSecret } from '@/utils/extractRevalidateSecret'
 
 const timingSafeCompare = (a: string, b: string): boolean => {
   const ha = createHash('sha256').update(a).digest()
@@ -10,7 +11,10 @@ const timingSafeCompare = (a: string, b: string): boolean => {
 }
 
 export async function POST(request: NextRequest) {
-  const secret = request.nextUrl.searchParams.get('secret')
+  const secret = extractRevalidateSecret(
+    request.headers.get('authorization'),
+    request.nextUrl.searchParams.get('secret'),
+  )
 
   if (!secret || !timingSafeCompare(secret, serverEnv.REVALIDATE_SECRET)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
