@@ -4,7 +4,7 @@
 
 - Node.js 20+ (`node --version`)
 - npm 10+ (comes with Node 20)
-- Access to the Payload CMS REST API + a per-tenant API key (see `docs/payload-integration.md`)
+- Access to the Payload CMS REST API + a per-tenant service-role API key (see `docs/white-label-deployment.md`)
 
 ## First-Run Setup
 
@@ -18,7 +18,7 @@ cp .env.example .env.local
 # 3. Fill in at minimum:
 #    PAYLOAD_API_URL — https://admin.vex-agency.com/api
 #    PAYLOAD_TENANT_SLUG — this site's tenant slug (e.g. debate-cuervo)
-#    PAYLOAD_API_KEY — this tenant's API key
+#    PAYLOAD_API_KEY — this tenant's service-role API key (read-only; see docs/white-label-deployment.md)
 #    NEXT_PUBLIC_SITE_NAME — any name
 #    NEXT_PUBLIC_SITE_URL — http://localhost:3000
 #    NEXT_PUBLIC_SITE_LOGO_URL — any image URL or /favicon.ico

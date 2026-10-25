@@ -58,7 +58,10 @@ serverEnv.PAYLOAD_TENANT_SLUG
 ```
 
 `resolveTenantId` is the one call that sends the API key (`Authorization: users API-Key …`)
-— the Tenants collection isn't publicly readable (it holds `revalidateSecret`). The
+— the Tenants collection isn't publicly readable (it holds `revalidateSecret`). The key belongs to a
+read-only `service`-role user scoped to this tenant; see
+[Creating the Tenant's Service Key](white-label-deployment.md#creating-the-tenants-service-key).
+Comments are created without any key (`payloadPublicWriteClient.ts`). The
 resolved id is cached under the `tenant` ISR tag. Content reads themselves are unauthenticated
 and rely on Payload's public-read access rules plus this `tenant` filter.
 
