@@ -87,8 +87,8 @@ Payload returns ISO-8601 UTC strings (`publishedAt`, `updatedAt`) with the `Z` s
 
 Revalidation is driven from the **CMS side**: Payload's `afterChange`/`afterDelete` hooks on
 Posts/Pages/Comments POST `{ slug }` to this tenant's `blogUrl` + `/api/revalidate`, sending the
-secret as `Authorization: Bearer <revalidateSecret>` (the legacy `?secret=…` query param is still
-accepted during the header transition and will be removed). The tenant's `blogUrl` and `revalidateSecret` are fields on the CMS Tenants collection.
+secret as `Authorization: Bearer <revalidateSecret>` (the legacy `?secret=…` query param is no longer
+accepted). The tenant's `blogUrl` and `revalidateSecret` are fields on the CMS Tenants collection.
 
 ```
 Payload afterChange (published post) ──► POST https://<blogUrl>/api/revalidate
